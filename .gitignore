@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Environment & secrets
+.env
+.env.*
+config.*.json
+!config.example.json
+secrets/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data
+tmp/
+temp/
+uploads/
+
+# Test coverage
+coverage/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.npm
+
+# Local development files
+*.local
+docker-compose.override.yml
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.aac
+
+# Enterprise specific
+enterprise/*
+!enterprise/README.md
+!enterprise/LICENSE
+
+# Exclude enterprise builds
+bin/levelmix-ee
+dist/enterprise/
+
+# Development overrides
+config/*/dev.yaml
