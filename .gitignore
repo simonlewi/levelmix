@@ -60,3 +60,6 @@ dist/enterprise/
 
 # Development overrides
 config/*/dev.yaml
+
+# Enterprise documentation
+docs/ee
