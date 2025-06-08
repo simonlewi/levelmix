@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LevelMix - Audio Upload Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        .upload-gradient {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+        }
+        
+        /* Loading Spinner Styles */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: conic-gradient(from 90deg, rgb(6, 182, 212) 0deg, transparent 360deg);
+            mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
+            animation: spin 1s linear infinite;
+        }
+        
+        .spinner-lg {
+            width: 60px;
+            height: 60px;
+            mask: radial-gradient(farthest-side, transparent calc(100% - 6px), white calc(100% - 6px));
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), white calc(100% - 6px));
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Upload processing overlay */
+        .processing-overlay {
+            backdrop-filter: blur(4px);
+            background: rgba(17, 24, 39, 0.8);
+        }
+        
+        /* Progress bar animation */
+        .progress-bar {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            transition: width 0.3s ease;
+        }
+        
+        /* Pulse animation for upload area */
+        .upload-pulse {
+            animation: pulse-border 2s infinite;
+        }
+        
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(6, 182, 212, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+            <h1 class="text-2xl font-bold">
+                <span class="text-white">LEVEL</span><span class="italic text-gray-300">mix</span>
+            </h1>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-8">
+            <a href="#upload" class="text-gray-300 hover:text-white transition-colors">Upload</a>
+            <a href="#pricing" class="text-gray-300 hover:text-white transition-colors">Pricing</a>
+            <a href="#about" class="text-gray-300 hover:text-white transition-colors">About</a>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <button class="border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors">
+                Log In
+            </button>
+            <button class="bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium">
+                Register
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex items-center justify-center min-h-screen px-6 py-20" style="margin-top: -80px;">
+        <div class="text-center max-w-md w-full">
+            <h2 class="text-4xl font-bold mb-8 leading-tight">
+                Upload Your<br>
+                Audio Here!
+            </h2>
+            
+            <!-- Upload Container -->
+            <div id="upload-container" class="relative">
+                <!-- Upload Area -->
+                <div class="mb-8">
+                    <div 
+                        id="upload-area"
+                        class="upload-gradient rounded-2xl p-8 cursor-pointer hover:opacity-90 transition-opacity relative"
+                        onclick="document.getElementById('file-input').click()"
+                    >
+                        <div class="flex flex-col items-center">
+                            <!-- Upload Icon -->
+                            <div class="mb-4">
+                                <svg class="w-12 h-12 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                                    <path d="M12,11L16,15H13V19H11V15H8L12,11Z" />
+                                </svg>
+                            </div>
+                            <p class="text-gray-900 font-medium" id="upload-text">
+                                Click to upload or drag and drop
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden file input -->
+                    <input 
+                        type="file" 
+                        id="file-input" 
+                        class="hidden" 
+                        accept="audio/*"
+                        onchange="handleFileSelect(this)"
+                    >
+                </div>
+                
+                <!-- Upload Status -->
+                <div id="upload-status" class="mb-6 min-h-[24px]"></div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-center space-x-4">
+                    <button 
+                        id="upload-btn"
+                        class="bg-cyan-400 text-gray-900 px-6 py-2 rounded font-medium hover:bg-cyan-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled
+                        onclick="startUpload()"
+                    >
+                        Upload
+                    </button>
+                    <button 
+                        id="remove-btn"
+                        class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-500 transition-colors"
+                        onclick="removeFile()"
+                    >
+                        Remove
+                    </button>
+                </div>
+                
+                <!-- Processing Overlay -->
+                <div id="processing-overlay" class="hidden absolute inset-0 processing-overlay rounded-2xl flex items-center justify-center z-10">
+                    <div class="text-center bg-gray-800 rounded-xl p-8 max-w-sm mx-4 border border-gray-700">
+                        <div class="spinner-lg mx-auto mb-4"></div>
+                        <h3 class="text-xl font-semibold text-white mb-2" id="processing-title">Processing Your Audio</h3>
+                        <p class="text-gray-300 mb-6" id="processing-subtitle">This may take a few moments depending on file size</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="bg-gray-700 rounded-full h-3 mb-4">
+                            <div id="progress-bar" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
+                        </div>
+                        
+                        <!-- Progress Text -->
+                        <p class="text-sm text-gray-400" id="progress-text">Initializing...</p>
+                        
+                        <!-- Cancel Button (optional) -->
+                        <button 
+                            id="cancel-btn"
+                            class="mt-4 text-gray-400 hover:text-white text-sm underline"
+                            onclick="cancelUpload()"
+                        >
+                            Cancel Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let selectedFile = null;
+        let uploadInProgress = false;
+        let uploadTimeout = null;
+
+        // Handle file selection
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('upload-text').textContent = file.name;
+                document.getElementById('upload-btn').disabled = false;
+                
+                // Show file info
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+                document.getElementById('upload-status').innerHTML = 
+                    `<div class="text-green-400 text-sm">
+                        <p class="font-medium">${file.name}</p>
+                        <p class="text-gray-400">${fileSize} MB • ${file.type}</p>
+                    </div>`;
+            }
+        }
+
+        // Remove file
+        function removeFile() {
+            if (uploadInProgress) return;
+            
+            selectedFile = null;
+            document.getElementById('file-input').value = '';
+            document.getElementById('upload-text').textContent = 'Click to upload or drag and drop';
+            document.getElementById('upload-btn').disabled = true;
+            document.getElementById('upload-status').innerHTML = '';
+        }
+
+        // Start upload process
+        function startUpload() {
+            if (!selectedFile || uploadInProgress) return;
+            
+            uploadInProgress = true;
+            showProcessingOverlay();
+            simulateUploadProgress();
+        }
+
+        // Show processing overlay
+        function showProcessingOverlay() {
+            document.getElementById('processing-overlay').classList.remove('hidden');
+            document.getElementById('upload-area').classList.add('upload-pulse');
+        }
+
+        // Hide processing overlay
+        function hideProcessingOverlay() {
+            document.getElementById('processing-overlay').classList.add('hidden');
+            document.getElementById('upload-area').classList.remove('upload-pulse');
+            uploadInProgress = false;
+        }
+
+        // Simulate upload progress (replace with real HTMX implementation)
+        function simulateUploadProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const processingTitle = document.getElementById('processing-title');
+            const processingSubtitle = document.getElementById('processing-subtitle');
+            
+            let progress = 0;
+            const stages = [
+                { progress: 20, title: 'Uploading File', subtitle: 'Transferring your audio file to our servers', text: 'Uploading... 20%' },
+                { progress: 50, title: 'Analyzing Audio', subtitle: 'Processing audio metadata and format', text: 'Analyzing... 50%' },
+                { progress: 75, title: 'Optimizing Quality', subtitle: 'Enhancing audio quality and compression', text: 'Optimizing... 75%' },
+                { progress: 90, title: 'Finalizing', subtitle: 'Preparing your audio for mixing', text: 'Almost done... 90%' },
+                { progress: 100, title: 'Complete!', subtitle: 'Your audio has been processed successfully', text: 'Processing complete!' }
+            ];
+            
+            let currentStage = 0;
+            
+            const updateProgress = () => {
+                if (currentStage < stages.length && uploadInProgress) {
+                    const stage = stages[currentStage];
+                    
+                    progressBar.style.width = stage.progress + '%';
+                    progressText.textContent = stage.text;
+                    processingTitle.textContent = stage.title;
+                    processingSubtitle.textContent = stage.subtitle;
+                    
+                    if (stage.progress === 100) {
+                        // Show success state
+                        setTimeout(() => {
+                            if (uploadInProgress) {
+                                showSuccessState();
+                            }
+                        }, 1000);
+                    } else {
+                        currentStage++;
+                        uploadTimeout = setTimeout(updateProgress, 1500 + Math.random() * 1000);
+                    }
+                }
+            };
+            
+            // Start the progress simulation
+            setTimeout(updateProgress, 500);
+        }
+
+        // Show success state
+        function showSuccessState() {
+            const overlay = document.getElementById('processing-overlay');
+            overlay.innerHTML = `
+                <div class="text-center bg-gray-800 rounded-xl p-8 max-w-sm mx-4 border border-green-500">
+                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Upload Successful!</h3>
+                    <p class="text-gray-300 mb-6">Your audio file has been processed and is ready for mixing.</p>
+                    <div class="space-y-3">
+                        <button 
+                            class="w-full bg-cyan-400 text-gray-900 px-6 py-2 rounded font-medium hover:bg-cyan-300 transition-colors"
+                            onclick="continueToMixing()"
+                        >
+                            Continue to Mixing
+                        </button>
+                        <button 
+                            class="w-full bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-500 transition-colors"
+                            onclick="uploadAnother()"
+                        >
+                            Upload Another File
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Cancel upload
+        function cancelUpload() {
+            if (uploadTimeout) {
+                clearTimeout(uploadTimeout);
+            }
+            uploadInProgress = false;
+            hideProcessingOverlay();
+            
+            // Reset to initial state
+            document.getElementById('upload-status').innerHTML = 
+                '<p class="text-yellow-400 text-sm">Upload cancelled</p>';
+        }
+
+        // Continue to mixing (placeholder)
+        function continueToMixing() {
+            alert('Redirecting to mixing interface...');
+            // In real implementation, redirect to mixing page
+        }
+
+        // Upload another file
+        function uploadAnother() {
+            hideProcessingOverlay();
+            removeFile();
+        }
+
+        // Handle drag and drop
+        const uploadArea = document.getElementById('upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!uploadInProgress) {
+                uploadArea.classList.add('opacity-80');
+            }
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('opacity-80');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('opacity-80');
+            
+            if (uploadInProgress) return;
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('audio/')) {
+                const fileInput = document.getElementById('file-input');
+                fileInput.files = files;
+                handleFileSelect(fileInput);
+            } else if (files.length > 0) {
+                document.getElementById('upload-status').innerHTML = 
+                    '<p class="text-red-400 text-sm">Please upload an audio file</p>';
+            }
+        });
+
+        // HTMX Integration (for real implementation)
+        // Replace the simulateUploadProgress() function with actual HTMX calls
+        /*
+        function startRealUpload() {
+            if (!selectedFile || uploadInProgress) return;
+            
+            uploadInProgress = true;
+            showProcessingOverlay();
+            
+            const formData = new FormData();
+            formData.append('audio', selectedFile);
+            
+            // Use HTMX programmatically
+            htmx.ajax('POST', '/upload', {
+                values: formData,
+                target: '#upload-status',
+                swap: 'innerHTML'
+            });
+        }
+
+        // HTMX event handlers for real implementation
+        document.body.addEventListener('htmx:xhr:progress', (evt) => {
+            const percent = Math.round((evt.detail.loaded / evt.detail.total) * 100);
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-text').textContent = `Uploading... ${percent}%`;
+        });
+
+        document.body.addEventListener('htmx:xhr:loadend', (evt) => {
+            if (evt.detail.xhr.status === 200) {
+                showSuccessState();
+            } else {
+                hideProcessingOverlay();
+                document.getElementById('upload-status').innerHTML = 
+                    '<p class="text-red-400">Upload failed. Please try again.</p>';
+            }
+        });
+        */
+    </script>
+</body>
+</html>

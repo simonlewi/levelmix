@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LevelMix - Professional DJ Mix Loudness Normalization</title>
+    <!-- Removed PicoCSS stylesheet -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        /* Custom CSS variables */
+        :root {
+            --primary: #5f3a81;
+            --secondary: #6d0e70;
+            --accent: #3aa8a3;
+            --background: #111827;
+            --dark: #1E293B;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-color: var(--background);
+            color: white; /* Ensure text color is white for main content */
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', sans-serif;
+            color: white; /* Ensure headings are white against dark background */
+        }
+
+        /* Header specific styles */
+        .header {
+            background-color: white;
+            color: black;
+            padding: 1rem 1.5rem;
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+        }
+        
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Styles for the clickable logo link */
+        .logo-link {
+            display: flex; 
+            align-items: center;
+            text-decoration: none; 
+            color: black; /* Ensure the link color is black for the logo area */
+        }
+
+        /* Style for the logo image */
+        .logo-image {
+            max-height: 80px; /* Adjust as needed for your logo's height */
+            width: auto; /* Maintain aspect ratio */
+        }
+        
+        .nav-desktop {
+            display: none; /* Hidden by default for mobile, shown on larger screens */
+            align-items: center;
+            gap: 2rem;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .nav-link {
+            color: #374151; /* Dark grey for navigation links */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #6b7280; /* Lighter grey on hover */
+        }
+        
+        .auth-buttons {
+            display: none; /* Hidden by default for mobile, shown on larger screens */
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .btn-login {
+            border: 2px solid #3b82f6; /* Blue border */
+            color: #3b82f6; /* Blue text */
+            background: transparent;
+        }
+        
+        .btn-login:hover {
+            background-color: #eff6ff; /* Light blue on hover */
+        }
+        
+        .btn-register {
+            background: #22d3ee; /* Cyan background */
+            color: white;
+        }
+        
+        .btn-register:hover {
+            background: #06b6d4; /* Darker cyan on hover */
+        }
+        
+        .mobile-menu-btn {
+            display: flex; /* Always show for mobile, hidden on larger screens */
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .mobile-menu {
+            display: none; /* Hidden by default, shown when toggled */
+            background: white;
+            border-top: 1px solid #e5e7eb; /* Light grey border */
+        }
+        
+        .mobile-nav {
+            padding: 1rem 1.5rem;
+        }
+        
+        .mobile-nav a {
+            display: block;
+            color: #374151; /* Dark grey for mobile links */
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+        }
+        
+        .mobile-nav a:hover {
+            color: #6b7280; /* Lighter grey on hover */
+        }
+        
+        .mobile-auth {
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .mobile-auth .btn {
+            width: 100%; /* Full width buttons for mobile auth */
+        }
+
+        /* Hero Section styles */
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .cta-button {
+            background-color: var(--accent);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-weight: bold;
+            color: white; /* Ensure CTA button text is white */
+            cursor: pointer;
+            text-decoration: none; /* Add this to style it like a button */
+            display: inline-block; /* Add this to style it like a button */
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Custom container class to replace Pico's container */
+        .container {
+            max-width: 960px; /* Adjust max-width as needed */
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem; /* Add padding for smaller screens */
+            padding-right: 1rem; /* Add padding for smaller screens */
+        }
+
+        /* Main content padding */
+        main.container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        /* Custom grid class to replace Pico's grid */
+        .grid {
+            display: grid;
+            gap: 1.5rem; /* Spacing between grid items */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid columns */
+            margin-top: 1.5rem;
+        }
+
+        .grid article {
+            background-color: var(--dark); /* Dark background for articles */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+            color: white; /* Ensure text inside articles is white */
+        }
+
+        .grid article:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+        }
+
+        .grid h3 {
+            color: var(--accent); /* Accent color for article titles */
+            margin-bottom: 0.5rem;
+        }
+
+        .grid p {
+            color: #ccc; /* Lighter text for article paragraphs */
+        }
+
+        /* Section titles */
+        section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        /* Footer specific styling to match Pico's default look */
+        footer.container {
+            border-top: 1px solid #374151; /* A subtle border to separate from main content */
+            padding-top: 1.5rem;
+            margin-top: 3rem;
+            text-align: center;
+            color: #9ca3af; /* Lighter grey for footer text */
+        }
+
+        footer.container small nav a {
+            color: #9ca3af; /* Link color for footer links */
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        footer.container small nav a:hover {
+            color: white; /* White on hover for footer links */
+        }
+
+        footer.container small nav {
+            display: inline-block; /* Ensure nav items align nicely */
+            margin-left: 1rem; /* Spacing between copyright and nav */
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Media queries for responsiveness */
+        @media (min-width: 768px) {
+            .nav-desktop {
+                display: flex; /* Show desktop navigation */
+            }
+            
+            .auth-buttons {
+                display: flex; /* Show desktop auth buttons */
+            }
+            
+            .mobile-menu-btn {
+                display: none; /* Hide mobile menu button */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo - Now clickable image, linking to home -->
+            <a href="/" class="logo-link">
+                <img src="static/images/levelmix-logo.png" alt="LevelMix Logo" class="logo-image">
+            </a>
+            
+            <!-- Navigation - Desktop (Home link removed) -->
+            <nav class="nav-desktop">
+                <a href="/upload" class="nav-link">Upload</a>
+                <a href="/pricing" class="nav-link">Pricing</a>
+                <a href="/about" class="nav-link">About</a>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobile-menu-button">
+                <!-- Menu Icon SVG -->
+                <svg id="menu-icon" class="upload-icon" viewBox="0 0 24 24">
+                    <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <!-- Close Icon SVG (initially hidden) -->
+                <svg id="close-icon" class="upload-icon hidden" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <!-- Auth Buttons -->
+            <div class="auth-buttons">
+                <button hx-get="/login" hx-target="body" class="btn btn-login">
+                    Log In
+                </button>
+                <button hx-get="/register" hx-target="body" class="btn btn-register">
+                    Register
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown (Home link removed) -->
+        <div id="mobile-menu" class="mobile-menu">
+            <nav class="mobile-nav">
+                <a href="/upload">Upload</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/about">About</a>
+                <div class="mobile-auth">
+                    <button hx-get="/login" hx-target="body" class="btn btn-login">
+                        Log In
+                    </button>
+                    <button hx-get="/register" hx-target="body" class="btn btn-register">
+                        Register
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="container">
+            <h1>Professional DJ Mix Normalization</h1>
+            <p>Automatically normalize your DJ mixes to industry-standard LUFS levels</p>
+            <!-- Changed button to an anchor tag for full page navigation -->
+            <a href="/upload" class="cta-button">
+                Try It Now For Free!
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" id="main-content">
+        <!-- How It Works Section -->
+        <section>
+            <h2>How It Works</h2>
+            <div class="grid">
+                <article>
+                    <h3>1. Upload</h3>
+                    <p>Upload your DJ mix in MP3 format</p>
+                </article>
+                <article>
+                    <h3>2. Process</h3>
+                    <p>Our algorithm analyzes and adjusts the loudness</p>
+                </article>
+                <article>
+                    <h3>3. Download</h3>
+                    <p>Get your professionally normalized mix</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section>
+            <h2>Why Choose LevelMix?</h2>
+            <div class="grid">
+                <article>
+                    <h3>Professional Quality</h3>
+                    <p>Industry-standard LUFS normalization</p>
+                </article>
+                <article>
+                    <h3>Lightning Fast</h3>
+                    <p>Process your mixes in minutes</p>
+                </article>
+                <article>
+                    <h3>Easy to Use</h3>
+                    <p>No technical knowledge required</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container">
+        <small>
+            © 2025 LevelMix. All rights reserved.
+            <nav>
+                <a href="/terms">Terms</a>
+                <a href="/privacy">Privacy</a>
+                <a href="/contact">Contact</a>
+            </nav>
+        </small>
+    </footer>
+
+    <script>
+        // Function to toggle the mobile menu visibility and switch icons
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            menu.classList.toggle('hidden'); // Toggle the 'hidden' class on the mobile menu
+            menuIcon.classList.toggle('hidden'); // Toggle visibility of the menu icon
+            closeIcon.classList.toggle('hidden'); // Toggle visibility of the close icon
+        }
+    </script>
+</body>
+</html>
