@@ -1,433 +1,351 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LevelMix - Professional DJ Mix Loudness Normalization</title>
-    <!-- Removed PicoCSS stylesheet -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
-        /* Custom CSS variables */
-        :root {
-            --primary: #5f3a81;
-            --secondary: #6d0e70;
-            --accent: #3aa8a3;
-            --background: #111827;
-            --dark: #1E293B;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --error: #EF4444;
-        }
-
-        /* Base styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background-color: var(--background);
-            color: white; /* Ensure text color is white for main content */
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Inter', sans-serif;
-            color: white; /* Ensure headings are white against dark background */
-        }
-
-        /* Header specific styles */
-        .header {
-            background-color: white;
-            color: black;
-            padding: 1rem 1.5rem;
-            border-bottom-left-radius: 1rem;
-            border-bottom-right-radius: 1rem;
+        .hero-gradient {
+            background: linear-gradient(135deg, #5f3a81 0%, #6d0e70 50%, #3aa8a3 100%);
         }
         
-        .header-container {
-            max-width: 1280px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .upload-gradient {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
         }
         
-        /* Styles for the clickable logo link */
-        .logo-link {
-            display: flex; 
-            align-items: center;
-            text-decoration: none; 
-            color: black; /* Ensure the link color is black for the logo area */
-        }
-
-        /* Style for the logo image */
-        .logo-image {
-            max-height: 80px; /* Adjust as needed for your logo's height */
-            width: auto; /* Maintain aspect ratio */
+        /* Hover animations */
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .nav-desktop {
-            display: none; /* Hidden by default for mobile, shown on larger screens */
-            align-items: center;
-            gap: 2rem;
-            flex: 1;
-            justify-content: center;
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
         }
         
-        .nav-link {
-            color: #374151; /* Dark grey for navigation links */
-            text-decoration: none;
-            transition: color 0.3s;
+        /* Pulse animation for CTA */
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
         }
         
-        .nav-link:hover {
-            color: #6b7280; /* Lighter grey on hover */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(58, 168, 163, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(58, 168, 163, 0); }
         }
         
-        .auth-buttons {
-            display: none; /* Hidden by default for mobile, shown on larger screens */
-            align-items: center;
-            gap: 0.75rem;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
         
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-            transition: all 0.3s;
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
         }
         
-        .btn-login {
-            border: 2px solid #3b82f6; /* Blue border */
-            color: #3b82f6; /* Blue text */
-            background: transparent;
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
         }
         
-        .btn-login:hover {
-            background-color: #eff6ff; /* Light blue on hover */
-        }
-        
-        .btn-register {
-            background: #22d3ee; /* Cyan background */
-            color: white;
-        }
-        
-        .btn-register:hover {
-            background: #06b6d4; /* Darker cyan on hover */
-        }
-        
-        .mobile-menu-btn {
-            display: flex; /* Always show for mobile, hidden on larger screens */
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .mobile-menu {
-            display: none; /* Hidden by default, shown when toggled */
-            background: white;
-            border-top: 1px solid #e5e7eb; /* Light grey border */
-        }
-        
-        .mobile-nav {
-            padding: 1rem 1.5rem;
-        }
-        
-        .mobile-nav a {
-            display: block;
-            color: #374151; /* Dark grey for mobile links */
-            text-decoration: none;
-            padding: 0.5rem 0;
-            transition: color 0.3s;
-        }
-        
-        .mobile-nav a:hover {
-            color: #6b7280; /* Lighter grey on hover */
-        }
-        
-        .mobile-auth {
-            padding-top: 1rem;
-            margin-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .mobile-auth .btn {
-            width: 100%; /* Full width buttons for mobile auth */
-        }
-
-        /* Hero Section styles */
-        .hero {
-            text-align: center;
-            padding: 4rem 1rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-
-        .cta-button {
-            background-color: var(--accent);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            font-weight: bold;
-            color: white; /* Ensure CTA button text is white */
-            cursor: pointer;
-            text-decoration: none; /* Add this to style it like a button */
-            display: inline-block; /* Add this to style it like a button */
-            transition: all 0.3s ease;
-        }
-
-        .cta-button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-
-        /* Custom container class to replace Pico's container */
-        .container {
-            max-width: 960px; /* Adjust max-width as needed */
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: 1rem; /* Add padding for smaller screens */
-            padding-right: 1rem; /* Add padding for smaller screens */
-        }
-
-        /* Main content padding */
-        main.container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-
-        /* Custom grid class to replace Pico's grid */
-        .grid {
-            display: grid;
-            gap: 1.5rem; /* Spacing between grid items */
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid columns */
-            margin-top: 1.5rem;
-        }
-
-        .grid article {
-            background-color: var(--dark); /* Dark background for articles */
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out;
-            color: white; /* Ensure text inside articles is white */
-        }
-
-        .grid article:hover {
-            transform: translateY(-5px); /* Lift effect on hover */
-        }
-
-        .grid h3 {
-            color: var(--accent); /* Accent color for article titles */
-            margin-bottom: 0.5rem;
-        }
-
-        .grid p {
-            color: #ccc; /* Lighter text for article paragraphs */
-        }
-
-        /* Section titles */
-        section h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            color: white;
-        }
-
-        /* Footer specific styling to match Pico's default look */
-        footer.container {
-            border-top: 1px solid #374151; /* A subtle border to separate from main content */
-            padding-top: 1.5rem;
-            margin-top: 3rem;
-            text-align: center;
-            color: #9ca3af; /* Lighter grey for footer text */
-        }
-
-        footer.container small nav a {
-            color: #9ca3af; /* Link color for footer links */
-            text-decoration: none;
-            margin: 0 0.5rem;
-            transition: color 0.3s ease;
-        }
-
-        footer.container small nav a:hover {
-            color: white; /* White on hover for footer links */
-        }
-
-        footer.container small nav {
-            display: inline-block; /* Ensure nav items align nicely */
-            margin-left: 1rem; /* Spacing between copyright and nav */
-        }
-
-        /* Utility classes */
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Media queries for responsiveness */
-        @media (min-width: 768px) {
-            .nav-desktop {
-                display: flex; /* Show desktop navigation */
-            }
-            
-            .auth-buttons {
-                display: flex; /* Show desktop auth buttons */
-            }
-            
-            .mobile-menu-btn {
-                display: none; /* Hide mobile menu button */
-            }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
         }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <!-- Logo - Now clickable image, linking to home -->
-            <a href="/" class="logo-link">
-                <img src="static/images/levelmix-logo.png" alt="LevelMix Logo" class="logo-image">
-            </a>
-            
-            <!-- Navigation - Desktop (Home link removed) -->
-            <nav class="nav-desktop">
-                <a href="/upload" class="nav-link">Upload</a>
-                <a href="/pricing" class="nav-link">Pricing</a>
-                <a href="/about" class="nav-link">About</a>
-            </nav>
-
-            <!-- Mobile Menu Button -->
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobile-menu-button">
-                <!-- Menu Icon SVG -->
-                <svg id="menu-icon" class="upload-icon" viewBox="0 0 24 24">
-                    <path d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-                <!-- Close Icon SVG (initially hidden) -->
-                <svg id="close-icon" class="upload-icon hidden" viewBox="0 0 24 24">
-                    <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="flex items-center justify-between px-6 py-4 relative z-10">
+        <div class="flex items-center">
+            <h1 class="text-2xl font-bold">
+                <span class="text-white">LEVEL</span><span class="italic text-gray-300">mix</span>
+            </h1>
+        </div>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-8">
+            <a href="/upload" class="text-gray-300 hover:text-white transition-colors">Upload</a>
+            <a href="/pricing" class="text-gray-300 hover:text-white transition-colors">Pricing</a>
+            <a href="/about" class="text-gray-300 hover:text-white transition-colors">About</a>
+        </div>
+        
+        <!-- Desktop Auth Buttons -->
+        <div class="hidden md:flex items-center space-x-4">
+            <button 
+                hx-get="/login" 
+                hx-target="body" 
+                class="border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors"
+            >
+                Log In
             </button>
-            
-            <!-- Auth Buttons -->
-            <div class="auth-buttons">
-                <button hx-get="/login" hx-target="body" class="btn btn-login">
+            <button 
+                hx-get="/register" 
+                hx-target="body" 
+                class="bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium"
+            >
+                Register
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Button -->
+        <button 
+            id="mobile-menu-btn"
+            class="md:hidden text-white focus:outline-none"
+            onclick="toggleMobileMenu()"
+        >
+            <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-t border-gray-700">
+        <div class="px-6 py-4 space-y-4">
+            <a href="/upload" class="block text-gray-300 hover:text-white transition-colors">Upload</a>
+            <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors">Pricing</a>
+            <a href="/about" class="block text-gray-300 hover:text-white transition-colors">About</a>
+            <div class="pt-4 border-t border-gray-700 space-y-3">
+                <button 
+                    hx-get="/login" 
+                    hx-target="body" 
+                    class="w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors"
+                >
                     Log In
                 </button>
-                <button hx-get="/register" hx-target="body" class="btn btn-register">
+                <button 
+                    hx-get="/register" 
+                    hx-target="body" 
+                    class="w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium"
+                >
                     Register
                 </button>
             </div>
         </div>
-
-        <!-- Mobile Menu Dropdown (Home link removed) -->
-        <div id="mobile-menu" class="mobile-menu">
-            <nav class="mobile-nav">
-                <a href="/upload">Upload</a>
-                <a href="/pricing">Pricing</a>
-                <a href="/about">About</a>
-                <div class="mobile-auth">
-                    <button hx-get="/login" hx-target="body" class="btn btn-login">
-                        Log In
-                    </button>
-                    <button hx-get="/register" hx-target="body" class="btn btn-register">
-                        Register
-                    </button>
-                </div>
-            </nav>
-        </div>
-    </header>
+    </div>
 
     <!-- Hero Section -->
-    <header class="hero">
-        <div class="container">
-            <h1>Professional DJ Mix Normalization</h1>
-            <p>Automatically normalize your DJ mixes to industry-standard LUFS levels</p>
-            <!-- Changed button to an anchor tag for full page navigation -->
-            <a href="/upload" class="cta-button">
+    <header class="hero-gradient py-20 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                Professional DJ Mix<br>
+                <span class="text-cyan-300">Normalization</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto">
+                Automatically normalize your DJ mixes to industry-standard LUFS levels with professional quality results
+            </p>
+            <a 
+                href="/upload" 
+                class="inline-block bg-cyan-400 text-gray-900 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-cyan-300 transition-all duration-300 pulse-glow"
+            >
                 Try It Now For Free!
             </a>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container" id="main-content">
+    <main class="px-6 py-16">
         <!-- How It Works Section -->
-        <section>
-            <h2>How It Works</h2>
-            <div class="grid">
-                <article>
-                    <h3>1. Upload</h3>
-                    <p>Upload your DJ mix in MP3 format</p>
+        <section class="max-w-6xl mx-auto mb-20">
+            <h2 class="text-4xl font-bold text-center mb-12">
+                How It <span class="text-cyan-400">Works</span>
+            </h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <article class="bg-gray-800 p-8 rounded-2xl text-center hover-lift border border-gray-700">
+                    <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                            <path d="M12,11L16,15H13V19H11V15H8L12,11Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-4 text-cyan-400">1. Upload</h3>
+                    <p class="text-gray-300 text-lg">
+                        Upload your DJ mix in MP3 format. Files up to 300MB supported for professional-length mixes.
+                    </p>
                 </article>
-                <article>
-                    <h3>2. Process</h3>
-                    <p>Our algorithm analyzes and adjusts the loudness</p>
+                
+                <article class="bg-gray-800 p-8 rounded-2xl text-center hover-lift border border-gray-700">
+                    <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-4 text-cyan-400">2. Process</h3>
+                    <p class="text-gray-300 text-lg">
+                        Our advanced algorithm analyzes and adjusts the loudness to your chosen LUFS target level.
+                    </p>
                 </article>
-                <article>
-                    <h3>3. Download</h3>
-                    <p>Get your professionally normalized mix</p>
+                
+                <article class="bg-gray-800 p-8 rounded-2xl text-center hover-lift border border-gray-700">
+                    <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-4 text-cyan-400">3. Download</h3>
+                    <p class="text-gray-300 text-lg">
+                        Get your professionally normalized mix ready for streaming platforms and radio play.
+                    </p>
                 </article>
             </div>
         </section>
 
         <!-- Benefits Section -->
-        <section>
-            <h2>Why Choose LevelMix?</h2>
-            <div class="grid">
-                <article>
-                    <h3>Professional Quality</h3>
-                    <p>Industry-standard LUFS normalization</p>
+        <section class="max-w-6xl mx-auto mb-20">
+            <h2 class="text-4xl font-bold text-center mb-12">
+                Why Choose <span class="text-cyan-400">LevelMix?</span>
+            </h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <article class="bg-gray-800 p-8 rounded-2xl hover-lift border border-gray-700">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-4 text-cyan-400">Professional Quality</h3>
+                    <p class="text-gray-300">
+                        Industry-standard LUFS normalization with presets for streaming (-14), podcasts (-16), and radio (-23).
+                    </p>
                 </article>
-                <article>
-                    <h3>Lightning Fast</h3>
-                    <p>Process your mixes in minutes</p>
+                
+                <article class="bg-gray-800 p-8 rounded-2xl hover-lift border border-gray-700">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-4 text-cyan-400">Lightning Fast</h3>
+                    <p class="text-gray-300">
+                        Process your mixes in minutes with our optimized cloud processing pipeline.
+                    </p>
                 </article>
-                <article>
-                    <h3>Easy to Use</h3>
-                    <p>No technical knowledge required</p>
+                
+                <article class="bg-gray-800 p-8 rounded-2xl hover-lift border border-gray-700">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-4 text-cyan-400">Easy to Use</h3>
+                    <p class="text-gray-300">
+                        No technical knowledge required. Simple drag-and-drop interface with real-time progress tracking.
+                    </p>
                 </article>
+            </div>
+        </section>
+
+        <!-- LUFS Targets Section -->
+        <section class="max-w-4xl mx-auto mb-20 bg-gray-800 p-8 rounded-2xl border border-gray-700">
+            <h2 class="text-3xl font-bold text-center mb-8">
+                <span class="text-cyan-400">LUFS</span> Target Options
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-gray-700 p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 text-cyan-400">Standard Presets</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex justify-between">
+                            <span>Streaming Platforms</span>
+                            <span class="font-mono text-cyan-400">-14 LUFS</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Podcast Content</span>
+                            <span class="font-mono text-cyan-400">-16 LUFS</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Radio Broadcast</span>
+                            <span class="font-mono text-cyan-400">-23 LUFS</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-gray-700 p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 text-cyan-400">EDM Presets</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex justify-between">
+                            <span>Club Mix</span>
+                            <span class="font-mono text-cyan-400">-7 LUFS</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Festival Mix</span>
+                            <span class="font-mono text-cyan-400">-5 LUFS</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Custom Target</span>
+                            <span class="font-mono text-cyan-400">Manual Entry</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="text-center">
+            <div class="upload-gradient p-12 rounded-2xl max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Ready to Normalize Your Mix?
+                </h2>
+                <p class="text-gray-800 text-lg mb-8">
+                    Get started with one free upload per month. No account required!
+                </p>
+                <a 
+                    href="/upload" 
+                    class="inline-block bg-gray-900 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-800 transition-colors"
+                >
+                    Start Processing Now
+                </a>
             </div>
         </section>
     </main>
 
     <!-- Footer -->
-    <footer class="container">
-        <small>
-            © 2025 LevelMix. All rights reserved.
-            <nav>
-                <a href="/terms">Terms</a>
-                <a href="/privacy">Privacy</a>
-                <a href="/contact">Contact</a>
+    <footer class="border-t border-gray-700 py-8 px-6 text-center text-gray-400">
+        <div class="max-w-4xl mx-auto">
+            <p class="mb-4">© 2025 LevelMix. All rights reserved.</p>
+            <nav class="space-x-6">
+                <a href="/terms" class="hover:text-white transition-colors">Terms</a>
+                <a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+                <a href="/contact" class="hover:text-white transition-colors">Contact</a>
             </nav>
-        </small>
+        </div>
     </footer>
 
     <script>
-        // Function to toggle the mobile menu visibility and switch icons
+        // Mobile menu toggle functionality
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             const menuIcon = document.getElementById('menu-icon');
             const closeIcon = document.getElementById('close-icon');
             
-            menu.classList.toggle('hidden'); // Toggle the 'hidden' class on the mobile menu
-            menuIcon.classList.toggle('hidden'); // Toggle visibility of the menu icon
-            closeIcon.classList.toggle('hidden'); // Toggle visibility of the close icon
+            menu.classList.toggle('hidden');
+            menuIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
         }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            
+            if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                menu.classList.add('hidden');
+                document.getElementById('menu-icon').classList.remove('hidden');
+                document.getElementById('close-icon').classList.add('hidden');
+            }
+        });
+
+        // HTMX event handlers for navigation
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            // Add loading state if needed
+            console.log('Navigation request started');
+        });
+
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            // Handle after navigation
+            console.log('Navigation completed');
+        });
     </script>
 </body>
 </html>

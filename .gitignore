@@ -50,9 +50,8 @@ docker-compose.override.yml
 *.aac
 
 # Enterprise specific
-enterprise/*
-!enterprise/README.md
-!enterprise/LICENSE
+/ee/*
+!ee/README.md
 
 # Exclude enterprise builds
 bin/levelmix-ee
