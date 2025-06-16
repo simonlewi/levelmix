@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing - LevelMix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <main class="flex items-center justify-center min-h-screen px-6">
+        <div class="text-center max-w-md w-full">
+            <h2 class="text-4xl font-bold mb-8">Processing Your Audio</h2>
+            
+            <div class="bg-gray-800 p-8 rounded-xl">
+                <div class="animate-spin w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                
+                <div hx-get="/status/{{.fileID}}" 
+                     hx-trigger="every 2s" 
+                     hx-target="#status">
+                    <div id="status">
+                        <p>Initializing...</p>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mt-4">
+                            <div class="bg-cyan-400 h-2 rounded-full" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                    // Redirect to results when complete
+                    document.body.addEventListener('htmx:afterRequest', function(evt) {
+                        if (evt.detail.xhr.responseText.includes('"status":"completed"')) {
+                            window.location.href = '/results/{{.fileID}}';
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
