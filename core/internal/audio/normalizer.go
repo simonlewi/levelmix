@@ -7,7 +7,7 @@ import (
 
 const (
 	DefaultLUFS   = -7.0  // Default target LUFS optimized for DJ content
-	LoudLUFS      = -5.0  // Higher output for loud content
+	MaxImpactLUFS = -5.0  // Higher output for loud content
 	StreamingLUFS = -14.0 // Streaming standard
 	PodcastLUFS   = -16.0 // Podcast standard
 	BroadcastLUFS = -23.0 // Broadcast standard
