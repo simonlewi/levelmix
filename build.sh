@@ -8,7 +8,8 @@ mkdir -p build
 
 # Build the project
 echo "Building levelmix..."
-go build -o build/levelmix ./core/cmd/main.go
+go build -o build/levelmix ./core/cmd/server/main.go
+go build -o build/levelmix ./core/cmd/worker/main.go
 
 # Make the binary executable
 chmod +x build/levelmix

@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/simonlewi/levelmix/core/internal/audio"
-	"github.com/simonlewi/levelmix/core/internal/storage"
+	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
 type UploadHandler struct {

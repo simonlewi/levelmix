@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/simonlewi/levelmix/core/internal/storage"
+	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
 type DownloadHandler struct {
