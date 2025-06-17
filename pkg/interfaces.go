@@ -17,4 +17,13 @@ type MetadataStorage interface {
 	CreateAudioFile(ctx context.Context, file *AudioFile) error
 	GetAudioFile(ctx context.Context, fileID string) (*AudioFile, error)
 	UpdateStatus(ctx context.Context, fileID string, status string) error
+	CreateJob(ctx context.Context, job *ProcessingJob) error
+	UpdateJobStatus(ctx context.Context, jobID, status string, errorMsg *string) error
+	GetJobByFileID(ctx context.Context, fileID string) (*ProcessingJob, error)
+}
+
+// StorageFactory defines the interface for creating storage instances
+type StorageFactory interface {
+	CreateAudioStorage() (AudioStorage, error)
+	CreateMetadataStorage() (MetadataStorage, error)
 }
