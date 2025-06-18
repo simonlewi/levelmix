@@ -9,6 +9,7 @@ import (
 // AudioStorage defines the interface for audio file storage operations
 type AudioStorage interface {
 	Upload(ctx context.Context, fileID string, reader io.Reader) error
+	Download(ctx context.Context, key string) (io.ReadCloser, error)
 	GetPresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
 }
 
