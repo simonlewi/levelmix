@@ -15,7 +15,7 @@ import (
 
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/core/internal/handlers"
-	ee_storage "github.com/simonlewi/levelmix/ee/internal/storage"
+	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 )
 
 func main() {

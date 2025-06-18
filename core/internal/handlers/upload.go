@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -130,7 +131,7 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 	}
 
 	// Get job info
-	job, err := h.metadata.(*storage.TursoStorage).GetJobByFileID(c.Request.Context(), fileID)
+	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":   audioFile.Status,
@@ -148,7 +149,7 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 	})
 }
 
-func (h *UploadHandler) validateFile(fileHeader *http.Header) error {
+func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader) error {
 	// Check file size (300MB limit)
 	maxSize := int64(300 * 1024 * 1024)
 	if fileHeader.Size > maxSize {
