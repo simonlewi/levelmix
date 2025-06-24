@@ -19,9 +19,18 @@ import (
 )
 
 func main() {
+	_, b, _, _ := runtime.Caller(0)
+	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
+
 	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+	log.Printf("Project root: %s", projectRoot)
+	envPath := filepath.Join(projectRoot, ".env")
+	log.Printf("Looking for .env file at: %s", envPath)
+
+	if err := godotenv.Load(envPath); err != nil {
+		log.Printf("Error loading.env file: %v", err)
+	} else {
+		log.Println(".env file loaded successfully")
 	}
 
 	// Initialize storage
@@ -52,9 +61,7 @@ func main() {
 	r := gin.Default()
 
 	// Templates
-	_, b, _, _ := runtime.Caller(0)
-	projectRoot := filepath.Join(filepath.Dir(b), "../..")
-	templatesPattern := filepath.Join(projectRoot, "templates", "**", "*.html")
+	templatesPattern := filepath.Join(projectRoot, "core", "templates", "**", "*.html")
 	r.SetHTMLTemplate(template.Must(template.ParseGlob(templatesPattern)))
 
 	// Static files
