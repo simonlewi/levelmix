@@ -11,6 +11,7 @@ type AudioStorage interface {
 	Upload(ctx context.Context, fileID string, reader io.Reader) error
 	Download(ctx context.Context, key string) (io.ReadCloser, error)
 	GetPresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
+	Delete(ctx context.Context, key string) error
 }
 
 // MetadataStorage defines the interface for metadata operations
@@ -21,6 +22,7 @@ type MetadataStorage interface {
 	CreateJob(ctx context.Context, job *ProcessingJob) error
 	UpdateJobStatus(ctx context.Context, jobID, status string, errorMsg *string) error
 	GetJobByFileID(ctx context.Context, fileID string) (*ProcessingJob, error)
+	DeleteAudioFile(ctx context.Context, fileID string) error
 }
 
 // StorageFactory defines the interface for creating storage instances
