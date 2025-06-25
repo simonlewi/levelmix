@@ -109,6 +109,20 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
+	job := &storage.ProcessingJob{
+		ID:          jobID,
+		AudioFileID: fileID,
+		Status:      "queued",
+		CreatedAt:   time.Now(),
+	}
+
+	if err := h.metadata.CreateJob(c.Request.Context(), job); err != nil {
+		log.Printf("Failed to create job record %v", err)
+		h.cleanup(c, fileID)
+		h.returnError(c, "Failed to create processing job")
+		return
+	}
+
 	// Return processing state HTML
 	processingHTML := h.generateProcessingHTML(fileID, jobID)
 	c.Data(http.StatusOK, "text/html", []byte(processingHTML))
