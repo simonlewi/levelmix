@@ -66,8 +66,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 
 	// Upload to S3
 	log.Printf("Attempting to upload file: %s to bucket:", fileID)
-	uploadPath := fmt.Sprintf("uploads/%s", fileID)
-	if err := h.storage.Upload(c.Request.Context(), uploadPath, file); err != nil {
+	if err := h.storage.Upload(c.Request.Context(), fileID, file); err != nil {
 		log.Printf("Storage upload failed: %v", err)
 		h.returnError(c, "Failed to store file")
 		return
@@ -88,7 +87,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	if err := h.metadata.CreateAudioFile(c.Request.Context(), audioFile); err != nil {
 		// Clean up uploaded file if metadata fails
 		log.Printf("Database error: %v", err)
-		h.storage.Delete(c.Request.Context(), uploadPath)
+		h.storage.Delete(c.Request.Context(), fileID)
 		h.returnError(c, "Failed to save file metadata")
 		return
 	}
@@ -105,7 +104,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 
 	if err := h.queue.EnqueueProcessing(c.Request.Context(), task); err != nil {
 		// Clean up if job queueing fails
-		h.cleanup(c, fileID, uploadPath)
+		h.cleanup(c, fileID)
 		h.returnError(c, "Failed to queue processing")
 		return
 	}
@@ -223,9 +222,9 @@ func (h *UploadHandler) parseTargetLUFS(lufsStr string) (float64, error) {
 }
 
 // cleanup removes uploaded file and metadata on error
-func (h *UploadHandler) cleanup(ctx *gin.Context, fileID, uploadPath string) {
+func (h *UploadHandler) cleanup(ctx *gin.Context, fileID string) {
 	// Try to delete the uploaded file (ignore errors)
-	h.storage.Delete(ctx.Request.Context(), uploadPath)
+	h.storage.Delete(ctx.Request.Context(), fileID)
 
 	// Try to delete metadata (ignore errors)
 	h.metadata.DeleteAudioFile(ctx.Request.Context(), fileID)
