@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"runtime"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -13,9 +15,18 @@ import (
 )
 
 func main() {
+	_, b, _, _ := runtime.Caller(0)
+	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
+
 	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+	log.Printf("Project root: %s", projectRoot)
+	envPath := filepath.Join(projectRoot, ".env")
+	log.Printf("Looking for .env file at: %s", envPath)
+
+	if err := godotenv.Load(envPath); err != nil {
+		log.Printf("Error loading.env file: %v", err)
+	} else {
+		log.Println(".env file loaded successfully")
 	}
 
 	// Initialize storage
