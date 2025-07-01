@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -109,13 +111,35 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID string
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
-	defer tempFile.Close()
+	tempFileName := tempFile.Name()
+	tempFile.Close()
 
-	// Download from S3 (assuming S3Storage has a Download method)
-	// You'll need to add this method to your AudioStorage interface or cast to S3Storage
-	// For now, this is a placeholder that needs S3 integration
+	uploadKey := "uploads/" + fileID
 
-	return tempFile.Name(), nil
+	log.Printf("Downloading file %s from S3: %s", uploadKey)
+	reader, err := p.audioStorage.Download(ctx, uploadKey)
+	if err != nil {
+		os.Remove(tempFileName) // Clean up on error
+		return "", fmt.Errorf("failed to download from S3: %w", err)
+	}
+	defer reader.Close()
+
+	outFile, err := os.Create(tempFileName)
+	if err != nil {
+		os.Remove(tempFileName)
+		return "", fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	_, err = io.Copy(outFile, reader)
+	if err != nil {
+		os.Remove(tempFileName)
+		return "", fmt.Errorf("failed to copy file content: %w", err)
+	}
+
+	log.Printf("Successfully downloaded file to: %s", tempFileName)
+
+	return tempFileName, nil
 }
 
 func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath string) error {
@@ -144,7 +168,7 @@ func (p *Processor) getOutputOptions(isPremium bool) OutputOptions {
 
 	return OutputOptions{
 		Codec:   "libmp3lame", // Standard MP3
-		Bitrate: "192k",       // Standard bitrate
+		Bitrate: "320k",       // Standard bitrate
 	}
 }
 
