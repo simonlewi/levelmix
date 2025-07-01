@@ -77,8 +77,29 @@ func main() {
 	})
 
 	r.POST("/upload", uploadHandler.HandleUpload)
+
+	log.Println("=== ROUTE REGISTRATION START ===")
+	log.Printf("Upload handler created: %+v", uploadHandler != nil)
+	log.Printf("GetStatus method exists: %+v", uploadHandler != nil)
+
 	r.GET("/status/:id", uploadHandler.GetStatus)
+
+	r.GET("/test/:id", func(c *gin.Context) {
+		fileID := c.Param("id")
+		log.Printf("Test route called with ID: %s", fileID)
+		c.JSON(200, gin.H{"test": "working", "id": fileID})
+	})
+	log.Println("Registered /test/:id route")
+
+	routes := r.Routes()
+	log.Printf("Total routes registered: %d", len(routes))
+	for _, route := range routes {
+		log.Printf("Route: %s %s", route.Method, route.Path)
+	}
+	log.Println("=== ROUTE REGISTRATION END ===")
+
 	r.GET("/results/:id", downloadHandler.ShowResults)
+	log.Println("All routes registered")
 
 	// Start server
 	port := os.Getenv("PORT")

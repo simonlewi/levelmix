@@ -129,22 +129,31 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 }
 
 func (h *UploadHandler) GetStatus(c *gin.Context) {
+	log.Println("*** REAL GetStatus called ***")
 	fileID := c.Param("id")
+	log.Printf("GetStatus called with fileID: '%s'", fileID)
+
 	if fileID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File ID required"})
 		return
 	}
 
 	// Get file info
+	log.Printf("Looking up file in database: %s", fileID)
 	audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), fileID)
 	if err != nil {
+		log.Printf("ERROR: Database lookup failed: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
 		return
 	}
 
+	log.Printf("Found file: %s, status: %s", fileID, audioFile.Status)
+
 	// Get job info
+	log.Printf("Looking up job for file: %s", fileID)
 	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
 	if err != nil {
+		log.Printf("No job found, returning file status. Error: %v", err)
 		// If no job found, return file status
 		c.JSON(http.StatusOK, gin.H{
 			"status":   audioFile.Status,
@@ -153,6 +162,8 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 		})
 		return
 	}
+
+	log.Printf("Found job: %s, status: %s", job.ID, job.Status)
 
 	progress := getProgressFromStatus(job.Status)
 

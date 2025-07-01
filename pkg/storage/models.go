@@ -12,6 +12,7 @@ type AudioFile struct {
 	Status           string
 	LUFSTarget       float64
 	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 // ProcessingJob represents a background processing job

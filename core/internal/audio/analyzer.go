@@ -3,6 +3,8 @@ package audio
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -53,13 +55,27 @@ func parseLoudnormOutput(output []byte) (*LoudnessInfo, error) {
 }
 
 func AnalyzeLoudness(inputFile string) (*LoudnessInfo, error) {
+	log.Printf("Starting loudness analysis for file: %s", inputFile)
+
+	if _, err := os.Stat(inputFile); os.IsNotExist(err) {
+		log.Printf("ERROR: Input file does not exist: %s", inputFile)
+		return nil, fmt.Errorf("input file does not exist: %s", inputFile)
+	}
+
 	cmd := exec.Command("ffmpeg",
 		"-i", inputFile,
 		"-af", "loudnorm=print_format=json:I=-16:TP=-1.5:LRA=11",
 		"-f", "null", "-")
 
+	log.Printf("FFmpeg command: %s", strings.Join(cmd.Args, " "))
+
 	output, err := cmd.CombinedOutput()
+
+	log.Printf("FFmpeg output: %s", string(output))
+
 	if err != nil {
+		log.Printf("FFmpeg error: %v", err)
+		log.Printf("FFmpeg exit code: %s", err.Error())
 		return nil, fmt.Errorf("loudness analysis failed: %w", err)
 	}
 
