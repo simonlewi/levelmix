@@ -116,7 +116,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID string
 
 	uploadKey := "uploads/" + fileID
 
-	log.Printf("Downloading file %s from S3: %s", uploadKey)
+	log.Printf("Downloading file from S3: %s", uploadKey)
 	reader, err := p.audioStorage.Download(ctx, uploadKey)
 	if err != nil {
 		os.Remove(tempFileName) // Clean up on error
