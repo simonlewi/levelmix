@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/hibiken/asynq"
+	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -149,7 +150,12 @@ func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath st
 	}
 	defer file.Close()
 
-	// Upload to S3 in processed/ folder
+	// Cast to the concrete S3Storage type if available
+	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
+		return s3Storage.UploadProcessed(ctx, fileID, file)
+	}
+
+	// Fallback to upload to S3 in processed/ folder
 	processedKey := "processed/" + fileID
 	return p.audioStorage.Upload(ctx, processedKey, file)
 }

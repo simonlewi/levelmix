@@ -98,6 +98,7 @@ func main() {
 	}
 	log.Println("=== ROUTE REGISTRATION END ===")
 
+	r.GET("/download/:id", downloadHandler.HandleDownload)
 	r.GET("/results/:id", downloadHandler.ShowResults)
 	log.Println("All routes registered")
 
