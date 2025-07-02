@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"time"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/simonlewi/levelmix/pkg/storage"
@@ -38,18 +40,41 @@ func (h *DownloadHandler) ShowResults(c *gin.Context) {
 		return
 	}
 
-	// Generate presigned URL for download
-	downloadURL, err := h.storage.GetPresignedURL(c.Request.Context(), "processed/"+fileID, 1*time.Hour)
+	c.HTML(http.StatusOK, "results.html", gin.H{
+		"fileID":     fileID,
+		"fileName":   audioFile.OriginalFilename,
+		"targetLUFS": audioFile.LUFSTarget,
+	})
+}
+
+func (h *DownloadHandler) HandleDownload(c *gin.Context) {
+	fileID := c.Param("id")
+
+	audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), fileID)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"error": "Failed to generate download link",
-		})
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
 		return
 	}
 
-	c.HTML(http.StatusOK, "results.html", gin.H{
-		"fileName":    audioFile.OriginalFilename,
-		"downloadURL": downloadURL,
-		"targetLUFS":  audioFile.LUFSTarget,
-	})
+	if audioFile.Status != "completed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File not ready"})
+		return
+	}
+
+	originalName := audioFile.OriginalFilename
+	nameWithoutExt := strings.TrimSuffix(originalName, filepath.Ext(originalName))
+	downloadFilename := nameWithoutExt + "_normalized.mp3"
+
+	// Get file from S3
+	reader, err := h.storage.Download(c.Request.Context(), "processed/"+fileID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve file"})
+		return
+	}
+	defer reader.Close()
+
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", downloadFilename))
+	c.Header("Content-Type", "audio/mpeg")
+
+	c.DataFromReader(http.StatusOK, -1, "audio/mpeg", reader, nil)
 }
