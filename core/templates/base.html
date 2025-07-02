@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{block "title" .}}LevelMix - Professional DJ Mix Loudness Normalization{{end}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        /* Smooth transitions between states */
+        .state-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: conic-gradient(from 90deg, rgb(6, 182, 212) 0deg, transparent 360deg);
+            mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Progress bar animation */
+        .progress-bar {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            transition: width 0.5s ease;
+        }
+        
+        /* File drop area */
+        .drop-area {
+            transition: all 0.3s ease;
+        }
+        
+        .drop-area.drag-over {
+            border-color: #06b6d4;
+            background-color: rgba(6, 182, 212, 0.1);
+        }
+        
+        /* Success checkmark animation */
+        .checkmark {
+            animation: checkmark-appear 0.5s ease-in-out;
+        }
+        
+        @keyframes checkmark-appear {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Hover animations */
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+    </style>
+    {{block "styles" .}}{{end}}
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="flex items-center justify-between px-6 py-4 relative z-10 bg-gray-900 border-b border-gray-800">
+        <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold hover:opacity-80 transition-opacity">
+                <span class="text-white">LEVEL</span><span class="italic text-gray-300">mix</span>
+            </a>
+        </div>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-8">
+            <a href="/upload" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
+            <a href="/pricing" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
+            <a href="/about" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
+        </div>
+        
+        <!-- Desktop Auth Buttons -->
+        <div class="hidden md:flex items-center space-x-4">
+            <button 
+                hx-get="/login" 
+                hx-target="body" 
+                class="border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors"
+            >
+                Log In
+            </button>
+            <button 
+                hx-get="/register" 
+                hx-target="body" 
+                class="bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium"
+            >
+                Register
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Button -->
+        <button 
+            id="mobile-menu-btn"
+            class="md:hidden text-white focus:outline-none"
+            onclick="toggleMobileMenu()"
+        >
+            <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-t border-gray-700">
+        <div class="px-6 py-4 space-y-4">
+            <a href="/upload" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
+            <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
+            <a href="/about" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
+            <div class="pt-4 border-t border-gray-700 space-y-3">
+                <button 
+                    hx-get="/login" 
+                    hx-target="body" 
+                    class="w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors"
+                >
+                    Log In
+                </button>
+                <button 
+                    hx-get="/register" 
+                    hx-target="body" 
+                    class="w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium"
+                >
+                    Register
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="{{block "main-classes" .}}{{end}}">
+    {{if eq .CurrentPage "home"}}
+        {{template "home_content" .}}
+    {{else if eq .CurrentPage "upload"}}
+        {{template "upload_content" .}}
+    {{end}}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-700 py-8 px-6 text-center text-gray-400 bg-gray-900">
+        <div class="max-w-4xl mx-auto">
+            <p class="mb-4">© 2025 LevelMix. All rights reserved.</p>
+            <nav class="space-x-6">
+                <a href="/terms" class="hover:text-white transition-colors">Terms</a>
+                <a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+                <a href="/contact" class="hover:text-white transition-colors">Contact</a>
+            </nav>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle functionality
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            menu.classList.toggle('hidden');
+            menuIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            
+            if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                menu.classList.add('hidden');
+                document.getElementById('menu-icon').classList.remove('hidden');
+                document.getElementById('close-icon').classList.add('hidden');
+            }
+        });
+    </script>
+
+    {{block "scripts" .}}{{end}}
+</body>
+</html>
