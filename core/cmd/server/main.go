@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -23,14 +22,9 @@ func main() {
 	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
 
 	// Load environment variables
-	log.Printf("Project root: %s", projectRoot)
 	envPath := filepath.Join(projectRoot, ".env")
-	log.Printf("Looking for .env file at: %s", envPath)
-
 	if err := godotenv.Load(envPath); err != nil {
-		log.Printf("Error loading.env file: %v", err)
-	} else {
-		log.Println(".env file loaded successfully")
+		log.Println("No .env file found")
 	}
 
 	// Initialize storage
@@ -60,47 +54,32 @@ func main() {
 
 	r := gin.Default()
 
-	// Templates
-	templatesPattern := filepath.Join(projectRoot, "core", "templates", "**", "*.html")
-	r.SetHTMLTemplate(template.Must(template.ParseGlob(templatesPattern)))
+	baseTemplate := filepath.Join(projectRoot, "core", "templates", "base.html")
+	homeTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "home.html")
+	uploadTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "upload.html")
+
+	r.LoadHTMLFiles(homeTemplate, uploadTemplate, baseTemplate)
 
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "static"))
 
 	// Routes
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "home.html", gin.H{})
+		c.HTML(http.StatusOK, "base.html", gin.H{
+			"CurrentPage": "home",
+		})
 	})
 
 	r.GET("/upload", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "upload.html", gin.H{})
+		c.HTML(http.StatusOK, "upload.html", gin.H{
+			"CurrentPage": "upload",
+		})
 	})
 
 	r.POST("/upload", uploadHandler.HandleUpload)
-
-	log.Println("=== ROUTE REGISTRATION START ===")
-	log.Printf("Upload handler created: %+v", uploadHandler != nil)
-	log.Printf("GetStatus method exists: %+v", uploadHandler != nil)
-
 	r.GET("/status/:id", uploadHandler.GetStatus)
-
-	r.GET("/test/:id", func(c *gin.Context) {
-		fileID := c.Param("id")
-		log.Printf("Test route called with ID: %s", fileID)
-		c.JSON(200, gin.H{"test": "working", "id": fileID})
-	})
-	log.Println("Registered /test/:id route")
-
-	routes := r.Routes()
-	log.Printf("Total routes registered: %d", len(routes))
-	for _, route := range routes {
-		log.Printf("Route: %s %s", route.Method, route.Path)
-	}
-	log.Println("=== ROUTE REGISTRATION END ===")
-
 	r.GET("/download/:id", downloadHandler.HandleDownload)
 	r.GET("/results/:id", downloadHandler.ShowResults)
-	log.Println("All routes registered")
 
 	// Start server
 	port := os.Getenv("PORT")
@@ -109,6 +88,8 @@ func main() {
 	}
 
 	log.Printf("Server starting on http://localhost:%s", port)
+	log.Printf("DEBUG: Templates loaded successfully")
+
 	go func() {
 		if err := r.Run(":" + port); err != nil {
 			log.Printf("Server error: %v", err)
