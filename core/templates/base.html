@@ -164,6 +164,8 @@
         {{template "home_content" .}}
     {{else if eq .CurrentPage "upload"}}
         {{template "upload_content" .}}
+    {{else if eq .CurrentPage "results"}}
+        {{template "results_content" .}}
     {{end}}
     </main>
 

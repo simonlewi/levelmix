@@ -57,8 +57,9 @@ func main() {
 	baseTemplate := filepath.Join(projectRoot, "core", "templates", "base.html")
 	homeTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "home.html")
 	uploadTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "upload.html")
+	resultsTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "results.html")
 
-	r.LoadHTMLFiles(homeTemplate, uploadTemplate, baseTemplate)
+	r.LoadHTMLFiles(homeTemplate, uploadTemplate, resultsTemplate, baseTemplate)
 
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "static"))
