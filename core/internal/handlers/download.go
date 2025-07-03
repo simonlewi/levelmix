@@ -41,9 +41,10 @@ func (h *DownloadHandler) ShowResults(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "results.html", gin.H{
-		"fileID":     fileID,
-		"fileName":   audioFile.OriginalFilename,
-		"targetLUFS": audioFile.LUFSTarget,
+		"CurrentPage": "results",
+		"fileID":      fileID,
+		"fileName":    audioFile.OriginalFilename,
+		"targetLUFS":  audioFile.LUFSTarget,
 	})
 }
 
