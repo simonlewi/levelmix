@@ -62,7 +62,7 @@ func main() {
 	r.LoadHTMLFiles(homeTemplate, uploadTemplate, resultsTemplate, baseTemplate)
 
 	// Static files
-	r.Static("/static", filepath.Join(projectRoot, "static"))
+	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
 
 	// Routes
 	r.GET("/", func(c *gin.Context) {

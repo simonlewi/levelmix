@@ -4,8 +4,26 @@
 
 {{define "styles"}}
 <style>
-.hero-gradient {
-    background: linear-gradient(135deg, #5f3a81 0%, #6d0e70 50%, #3aa8a3 100%);
+.hero-image {
+    background-image: url('/static/images/hero-image.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.hero-overlay {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(55, 65, 81, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 10;
 }
 
 .upload-gradient {
@@ -14,12 +32,20 @@
 
 /* Pulse animation for CTA */
 .pulse-glow {
-    animation: pulse-glow 2s infinite;
+    animation: pulse-glow 3s infinite;
 }
 
 @keyframes pulse-glow {
     0%, 100% { box-shadow: 0 0 0 0 rgba(58, 168, 163, 0.4); }
     50% { box-shadow: 0 0 0 20px rgba(58, 168, 163, 0); }
+}
+
+.hover-lift {
+    transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
 }
 </style>
 {{end}}
@@ -28,13 +54,14 @@
 
 {{define "home_content"}}
 <!-- Hero Section -->
-<header class="hero-gradient py-20 px-6 text-center">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+<header class="hero-image py-20 px-6 text-center">
+    <div class="hero-overlay"></div>
+    <div class="hero-content max-w-4xl mx-auto">
+        <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight text-white" style="text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);">
             Professional DJ Mix<br>
             <span class="text-cyan-300">Normalization</span>
         </h1>
-        <p class="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto">
+        <p class="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto" style="text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.5);">
             Automatically normalize your DJ mixes to industry-standard LUFS levels with professional quality results
         </p>
         <a 
@@ -47,11 +74,11 @@
 </header>
 
 <!-- Main Content -->
-<div class="px-6 py-16">
+<div class="px-6 py-16 bg-gray-900">
     <!-- How It Works Section -->
     <section class="max-w-6xl mx-auto mb-20">
-        <h2 class="text-4xl font-bold text-center mb-12">
-            How It <span class="text-cyan-400">Works</span>
+        <h2 class="text-4xl font-bold text-center mb-12 text-white">
+            How It Works:
         </h2>
         <div class="grid md:grid-cols-3 gap-8">
             <article class="bg-gray-800 p-8 rounded-2xl text-center hover-lift border border-gray-700">
@@ -95,7 +122,7 @@
 
     <!-- Benefits Section -->
     <section class="max-w-6xl mx-auto mb-20">
-        <h2 class="text-4xl font-bold text-center mb-12">
+        <h2 class="text-4xl font-bold text-center mb-12 text-white">
             Why Choose <span class="text-cyan-400">LevelMix?</span>
         </h2>
         <div class="grid md:grid-cols-3 gap-8">
@@ -107,7 +134,7 @@
                 </div>
                 <h3 class="text-2xl font-semibold mb-4 text-cyan-400">Professional Quality</h3>
                 <p class="text-gray-300">
-                    Industry-standard LUFS normalization with presets for streaming (-14), podcasts (-16), and radio (-23).
+                    Industry-standard LUFS normalization with presets for streaming, podcasts, and radio.
                 </p>
             </article>
             
@@ -139,7 +166,7 @@
 
     <!-- LUFS Targets Section -->
     <section class="max-w-4xl mx-auto mb-20 bg-gray-800 p-8 rounded-2xl border border-gray-700">
-        <h2 class="text-3xl font-bold text-center mb-8">
+        <h2 class="text-3xl font-bold text-center mb-8 text-white">
             <span class="text-cyan-400">LUFS</span> Target Options
         </h2>
         <div class="grid md:grid-cols-2 gap-6">
@@ -170,10 +197,6 @@
                     <li class="flex justify-between">
                         <span>Festival Mix</span>
                         <span class="font-mono text-cyan-400">-5 LUFS</span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Custom Target</span>
-                        <span class="font-mono text-cyan-400">Manual Entry</span>
                     </li>
                 </ul>
             </div>
