@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{block "title" .}}LevelMix - Professional DJ Mix Loudness Normalization{{end}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <title>{{block "title" .}}LevelMix - Professional Audio Normalization{{end}}</title>
     <style>
         /* Smooth transitions between states */
         .state-transition {
@@ -164,13 +164,19 @@
 
     <!-- Main Content -->
     <main class="{{block "main-classes" .}}{{end}}">
-    {{if eq .CurrentPage "home"}}
-        {{template "home_content" .}}
-    {{else if eq .CurrentPage "upload"}}
-        {{template "upload_content" .}}
-    {{else if eq .CurrentPage "results"}}
-        {{template "results_content" .}}
-    {{end}}
+        <div id="page-content">
+            {{if eq .CurrentPage "home"}}
+                {{template "home_content" .}}
+            {{else if eq .CurrentPage "upload"}}
+                {{template "upload_content" .}}
+            {{else if eq .CurrentPage "results"}}
+                {{template "results_content" .}}
+            {{else if eq .CurrentPage "about"}}
+                {{template "about_content" .}}
+            {{else if eq .CurrentPage "pricing"}}
+                {{template "pricing_content" .}}
+            {{end}}
+        </div>
     </main>
 
     <!-- Footer -->

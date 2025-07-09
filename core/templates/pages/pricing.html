@@ -1,0 +1,306 @@
+{{template "base.html" .}}
+
+{{define "title"}}Pricing - LevelMix Professional Audio Normalization{{end}}
+
+{{define "styles"}}
+<style>
+.hero-gradient {
+    background: linear-gradient(135deg, #5f3a81 0%, #6d0e70 50%, #3aa8a3 100%);
+}
+
+.hover-lift {
+    transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+
+.pricing-highlight {
+    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+}
+</style>
+{{end}}
+
+{{define "main-classes"}}bg-gray-900{{end}}
+
+{{define "pricing_content"}}
+<!-- Hero Section -->
+<header class="hero-gradient py-16 px-6 text-center">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
+            Simple, Transparent <span class="text-cyan-300">Pricing</span>
+        </h1>
+        <p class="text-xl text-gray-200 max-w-2xl mx-auto">
+            Choose the plan that fits your workflow. Start free, upgrade anytime.
+        </p>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="px-6 py-16">
+    <!-- Pricing Cards -->
+    <section class="max-w-6xl mx-auto mb-20">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Free Tier -->
+            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover-lift">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Free</h3>
+                    <div class="text-5xl font-bold text-cyan-400 mb-2">€0</div>
+                    <p class="text-gray-400">Perfect for trying out</p>
+                </div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>1 upload</strong> per month</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>MP3 format</strong> support</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Up to <strong>300MB</strong> file size</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>All LUFS presets</strong> included</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>No account</strong> required</span>
+                    </li>
+                </ul>
+                
+                <a href="/upload" class="block w-full bg-gray-700 text-white text-center py-4 rounded-xl text-lg font-semibold hover:bg-gray-600 transition-colors">
+                    Get Started Free
+                </a>
+            </div>
+
+            <!-- Premium Tier -->
+            <div class="bg-gray-800 p-8 rounded-2xl border-2 border-cyan-400 hover-lift relative">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-cyan-400 text-gray-900 px-6 py-2 rounded-full text-sm font-bold">Most Popular</span>
+                </div>
+                
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Premium</h3>
+                    <div class="text-5xl font-bold text-cyan-400 mb-2">€9</div>
+                    <p class="text-gray-400">per month</p>
+                </div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>4 uploads</strong> per month</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>MP3 + WAV</strong> format support</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Background processing</strong></span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Priority queue</strong></span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Email support</strong></span>
+                    </li>
+                </ul>
+                
+                <a href="/signup?plan=premium" class="block w-full bg-cyan-400 text-gray-900 text-center py-4 rounded-xl text-lg font-bold hover:bg-cyan-300 transition-colors">
+                    Start Premium
+                </a>
+            </div>
+
+            <!-- Professional Tier -->
+            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover-lift">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Professional</h3>
+                    <div class="text-5xl font-bold text-cyan-400 mb-2">€19</div>
+                    <p class="text-gray-400">per month</p>
+                </div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Unlimited uploads</strong></span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>All formats</strong> (MP3, WAV, FLAC)</span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Batch processing</strong></span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>API access</strong></span>
+                    </li>
+                    <li class="flex items-center text-gray-300">
+                        <svg class="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span><strong>Priority support</strong></span>
+                    </li>
+                </ul>
+                
+                <a href="/signup?plan=professional" class="block w-full bg-gray-700 text-white text-center py-4 rounded-xl text-lg font-semibold hover:bg-gray-600 transition-colors">
+                    Go Professional
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="max-w-4xl mx-auto mb-20">
+        <h2 class="text-3xl font-bold text-center mb-12 text-white">
+            Frequently Asked <span class="text-cyan-400">Questions</span>
+        </h2>
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Can I upgrade or downgrade my plan anytime?</h3>
+                <p class="text-gray-300">Yes! You can change your plan at any time. Upgrades take effect immediately, and downgrades take effect at your next billing cycle.</p>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">What audio formats do you support?</h3>
+                <p class="text-gray-300">Free tier supports MP3 files. Premium adds WAV support. Professional includes all major formats: MP3, WAV, FLAC, and more.</p>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">How long does processing take?</h3>
+                <p class="text-gray-300">Processing time depends on file size and current queue load. Premium and Professional users get priority processing for faster results.</p>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Is there a file size limit?</h3>
+                <p class="text-gray-300">All plans support files up to 300MB (approximately 2 hours of audio). This covers most DJ mixes, podcasts, and audio content.</p>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Do you store my audio files?</h3>
+                <p class="text-gray-300">Files are temporarily stored for processing and download. They are automatically deleted after 24 hours for security and privacy.</p>
+            </div>
+            
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">What LUFS targets are available?</h3>
+                <p class="text-gray-300">We offer presets for streaming (-14 LUFS), podcasts (-16 LUFS), radio (-23 LUFS), and EDM/club mixes (-7, -5 LUFS). You can also set custom targets.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Proposition Section -->
+    <section class="max-w-6xl mx-auto mb-20">
+        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700">
+            <h2 class="text-3xl font-bold text-center mb-8 text-white">
+                Why Choose <span class="text-cyan-400">LevelMix?</span>
+            </h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-cyan-400 mb-3">Professional Quality</h3>
+                    <p class="text-gray-300">Industry-standard normalization using the latest ITU-R BS.1770-4 loudness standards.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-cyan-400 mb-3">Lightning Fast</h3>
+                    <p class="text-gray-300">Process your audio in minutes with our optimized cloud infrastructure and priority queues.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-cyan-400 mb-3">Easy to Use</h3>
+                    <p class="text-gray-300">No technical knowledge required. Simple drag-and-drop interface with real-time progress tracking.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="text-center">
+        <div class="pricing-highlight p-12 rounded-2xl max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                Ready to Get Started?
+            </h2>
+            <p class="text-gray-800 text-lg mb-8">
+                Join thousands of creators who trust LevelMix for professional audio normalization
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a 
+                    href="/upload" 
+                    class="bg-gray-900 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-800 transition-colors"
+                >
+                    Try Free Now
+                </a>
+                <a 
+                    href="/signup?plan=premium" 
+                    class="bg-white text-gray-900 px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-100 transition-colors"
+                >
+                    Start Premium
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+// HTMX event handlers for navigation
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    console.log('Navigation request started');
+});
+
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    console.log('Navigation completed');
+});
+</script>
+{{end}}

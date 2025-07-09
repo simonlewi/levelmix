@@ -1,0 +1,252 @@
+{{template "base.html" .}}
+
+{{define "title"}}About LevelMix - Professional Audio Normalization{{end}}
+
+{{define "styles"}}
+<style>
+.hero-image {
+    background-image: url('static/images/hero-image.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    min-height: 400px; /* Ensure the div has height */
+    background-color: red;    
+}
+
+.hero-gradient {
+    background: linear-gradient(135deg, #5f3a81 0%, #6d0e70 50%, #3aa8a3 100%);
+}
+
+.hover-lift {
+    transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+</style>
+{{end}}
+
+{{define "main-classes"}}bg-gray-900{{end}}
+
+{{define "about_content"}}
+<!-- Hero Section -->
+<header class="hero-gradient py-16 px-6 text-center">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
+            About <span class="text-cyan-300">LevelMix</span>
+        </h1>
+        <p class="text-xl text-gray-200 max-w-2xl mx-auto">
+            The professional audio normalization service built for creators who demand consistent, high-quality results.
+        </p>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="px-6 py-16">
+    <!-- Mission Section -->
+    <section class="max-w-4xl mx-auto mb-20 text-center">
+        <h2 class="text-3xl font-bold text-white mb-8">Our Mission</h2>
+        <p class="text-xl text-gray-300 leading-relaxed mb-8">
+            LevelMix was created to solve one of the most frustrating problems in audio production: inconsistent loudness levels. We believe that every creator should have access to professional-grade audio normalization without needing expensive software or technical expertise.
+        </p>
+        <p class="text-lg text-gray-400">
+            Our goal is simple: make your audio sound professional, consistent, and ready for any platform.
+        </p>
+    </section>
+
+    <!-- Problem & Solution Section -->
+    <section class="max-w-6xl mx-auto mb-20">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover-lift">
+                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold mb-6 text-red-400 text-center">The Problem</h3>
+                <ul class="space-y-4 text-gray-300">
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Audio creators spend hours manually adjusting volume levels</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Inconsistent loudness across tracks ruins the listening experience</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Professional audio software is expensive and complex</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Different platforms have different loudness requirements</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover-lift">
+                <div class="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M17,7H14L12,10L10,7H7L10.5,12L7,17H10L12,14L14,17H17L13.5,12L17,7Z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold mb-6 text-cyan-400 text-center">Our Solution</h3>
+                <ul class="space-y-4 text-gray-300">
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Automated normalization to industry-standard LUFS levels</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Simple drag-and-drop interface anyone can use</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Professional results in minutes, not hours</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <span>Platform-specific presets for streaming, radio, and more</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Who We Serve Section -->
+    <section class="max-w-6xl mx-auto mb-20">
+        <h2 class="text-4xl font-bold text-center mb-12 text-white">
+            Who We <span class="text-cyan-400">Serve</span>
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,3V12.26C11.5,12.09 11,12 10.5,12C8,12 6,14 6,16.5C6,19 8,21 10.5,21C13,21 15,19 15,16.5V6H19V3H12Z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">DJs</h3>
+                <p class="text-gray-300">Perfect mixes for streaming platforms, live sets, and radio play</p>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Podcasters</h3>
+                <p class="text-gray-300">Consistent audio levels across all episodes for professional listening</p>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.76,2 17.5,4 17.5,4L16.5,5L15.5,4C15.5,4 13.76,3 12,3C10.24,3 8.5,4 8.5,4L7.5,5L6.5,4C6.5,4 9.24,2 12,2Z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Music Producers</h3>
+                <p class="text-gray-300">Industry-standard loudness levels for releases and demos</p>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Content Creators</h3>
+                <p class="text-gray-300">Professional audio quality for YouTube, TikTok, and social media</p>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18,16L16,14L18,12L16,10L18,8H20V16M6,16H8L10,14L8,12L10,10L8,8H6V16M12,8V10H14V14H12V16H10V14H8V10H10V8H12Z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Video Editors</h3>
+                <p class="text-gray-300">Seamless audio integration for films, commercials, and projects</p>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6Z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-cyan-400 mb-3">Audio Engineers</h3>
+                <p class="text-gray-300">Quick normalization for client projects and mastering workflows</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Excellence Section -->
+    <section class="max-w-4xl mx-auto mb-20 bg-gray-800 p-8 rounded-2xl border border-gray-700">
+        <h2 class="text-3xl font-bold text-center mb-8 text-white">
+            Technical <span class="text-cyan-400">Excellence</span>
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-cyan-400">Industry Standards</h3>
+                <p class="text-gray-300 mb-6">
+                    Our normalization engine uses the latest ITU-R BS.1770-4 standards for measuring loudness, ensuring your audio meets professional broadcast and streaming requirements.
+                </p>
+                <h3 class="text-xl font-semibold mb-4 text-cyan-400">Precision Processing</h3>
+                <p class="text-gray-300">
+                    We use advanced algorithms that preserve the dynamic range and character of your audio while achieving target loudness levels with surgical precision.
+                </p>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-cyan-400">Platform Optimization</h3>
+                <p class="text-gray-300 mb-6">
+                    Our presets are specifically calibrated for different platforms and use cases, from streaming services to broadcast radio, ensuring optimal playback everywhere.
+                </p>
+                <h3 class="text-xl font-semibold mb-4 text-cyan-400">Quality Assurance</h3>
+                <p class="text-gray-300">
+                    Every processed file undergoes automated quality checks to ensure no clipping, distortion, or artifacts are introduced during normalization.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="text-center">
+        <div class="bg-gradient-to-r from-cyan-500 to-blue-500 p-12 rounded-2xl max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                Ready to Get Started?
+            </h2>
+            <p class="text-gray-800 text-lg mb-8">
+                Join thousands of creators who trust LevelMix for professional audio normalization
+            </p>
+            <a 
+                href="/upload" 
+                class="inline-block bg-gray-900 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-800 transition-colors mr-4"
+            >
+                Try Free Now
+            </a>
+            <a 
+                href="/pricing" 
+                class="inline-block bg-white text-gray-900 px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-100 transition-colors"
+            >
+                View Pricing
+            </a>
+        </div>
+    </section>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+// HTMX event handlers for navigation
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    console.log('Navigation request started');
+});
+
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    console.log('Navigation completed');
+});
+</script>
+{{end}}
