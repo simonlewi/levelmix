@@ -63,7 +63,8 @@ func main() {
 	aboutTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "about.html")
 	pricingTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "pricing.html")
 
-	r.LoadHTMLFiles(baseTemplate,
+	r.LoadHTMLFiles(
+		baseTemplate,
 		homeTemplate,
 		uploadTemplate,
 		resultsTemplate,
