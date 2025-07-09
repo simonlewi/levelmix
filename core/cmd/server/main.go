@@ -47,6 +47,8 @@ func main() {
 	// Initialize handlers
 	uploadHandler := handlers.NewUploadHandler(audioStorage, metadataStorage, qm)
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
+	aboutHandler := handlers.NewAboutHandler()
+	pricingHandler := handlers.NewPricingHandler()
 
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -58,8 +60,16 @@ func main() {
 	homeTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "home.html")
 	uploadTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "upload.html")
 	resultsTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "results.html")
+	aboutTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "about.html")
+	pricingTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "pricing.html")
 
-	r.LoadHTMLFiles(homeTemplate, uploadTemplate, resultsTemplate, baseTemplate)
+	r.LoadHTMLFiles(baseTemplate,
+		homeTemplate,
+		uploadTemplate,
+		resultsTemplate,
+		aboutTemplate,
+		pricingTemplate,
+	)
 
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
@@ -81,6 +91,8 @@ func main() {
 	r.GET("/status/:id", uploadHandler.GetStatus)
 	r.GET("/download/:id", downloadHandler.HandleDownload)
 	r.GET("/results/:id", downloadHandler.ShowResults)
+	r.GET("/about", aboutHandler.ShowAbout)
+	r.GET("/pricing", pricingHandler.ShowPricing)
 
 	// Start server
 	port := os.Getenv("PORT")
