@@ -102,13 +102,10 @@
                 </div>
             </div>
             
-            <p class="text-gray-400 text-sm">This usually takes 1-2 minutes depending on file size</p>
+            <p class="text-gray-400 text-sm">This usually takes a couple of minutes depending on file size</p>
         </div>
     </div>
 </template>
-{{end}}
-
-{{define "scripts"}}
 <script>
 let selectedFile = null;
 let pollInterval = null;
@@ -146,30 +143,34 @@ function removeFile() {
     document.getElementById('file-info').classList.add('hidden');
 }
 
-// Drag and drop handlers
-const dropArea = document.getElementById('drop-area');
-
-dropArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropArea.classList.add('drag-over');
-});
-
-dropArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    dropArea.classList.remove('drag-over');
-});
-
-dropArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropArea.classList.remove('drag-over');
+// Initialize drag and drop when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const dropArea = document.getElementById('drop-area');
     
-    const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('audio/')) {
-        const fileInput = document.getElementById('file-input');
-        fileInput.files = files;
-        handleFileSelect(fileInput);
-    } else if (files.length > 0) {
-        alert('Please upload an audio file (MP3)');
+    if (dropArea) {
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('drag-over');
+        });
+
+        dropArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('audio/')) {
+                const fileInput = document.getElementById('file-input');
+                fileInput.files = files;
+                handleFileSelect(fileInput);
+            } else if (files.length > 0) {
+                alert('Please upload an audio file (MP3)');
+            }
+        });
     }
 });
 
@@ -184,7 +185,7 @@ function animateProgress(target) {
     function updateProgress() {
         const diff = targetProgress - currentProgress;
         if (Math.abs(diff) > 0.1) {
-            currentProgress += diff * 0.05; // Smooth easing
+            currentProgress += diff * 0.05;
             
             const progressBar = document.getElementById('progress-bar');
             const progressText = document.getElementById('progress-text');
@@ -217,7 +218,6 @@ function getDetailedProgress(status, baseProgress) {
         'uploaded': 5,
         'queued': 10,
         'processing': {
-            // Simulate more granular processing steps
             initial: 15,
             analyzing: 25,
             loudness_analysis: 35,
@@ -230,7 +230,6 @@ function getDetailedProgress(status, baseProgress) {
     };
     
     if (status === 'processing') {
-        // For processing, we'll simulate sub-steps
         const subSteps = progressMaps.processing;
         if (baseProgress <= 15) return subSteps.initial;
         if (baseProgress <= 35) return subSteps.analyzing;
@@ -261,14 +260,13 @@ function getStatusMessage(status, progress) {
     };
     
     if (status === 'processing' && typeof messages.processing === 'object') {
-        // Find the appropriate message based on progress
         const steps = Object.keys(messages.processing).map(Number).sort((a, b) => a - b);
         for (let i = steps.length - 1; i >= 0; i--) {
             if (progress >= steps[i]) {
                 return messages.processing[steps[i]];
             }
         }
-        return messages.processing[15]; // Default to first step
+        return messages.processing[15];
     }
     
     return messages[status] || 'Processing...';
@@ -276,26 +274,26 @@ function getStatusMessage(status, progress) {
 
 // HTMX event handlers
 document.body.addEventListener('htmx:afterRequest', function(evt) {
+    console.log('HTMX after request triggered');
     const response = evt.detail.xhr.responseText;
     
-    // If we got a processing state, show it and start polling
     if (response.includes('processing-state') || response.includes('data-file-id')) {
-        // Replace the upload form with processing template
+        console.log('Processing state detected, setting up...');
         const template = document.getElementById('processing-template');
         const clone = template.content.cloneNode(true);
         document.getElementById('main-container').innerHTML = '';
         document.getElementById('main-container').appendChild(clone);
         
-        // Extract file ID and start polling
         const parser = new DOMParser();
         const doc = parser.parseFromString(response, 'text/html');
         const fileId = doc.querySelector('[data-file-id]')?.getAttribute('data-file-id');
         
+        console.log('Extracted file ID:', fileId);
+        
         if (fileId) {
-            // Reset progress tracking
             currentProgress = 0;
             targetProgress = 0;
-            animateProgress(5); // Start at 5% after upload
+            animateProgress(5);
             startStatusPolling(fileId);
         }
     }
@@ -303,14 +301,17 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
 
 // Status polling function
 function startStatusPolling(fileId) {
+    console.log('Starting status polling for:', fileId);
     if (pollInterval) clearInterval(pollInterval);
     
     let pollCount = 0;
     
     pollInterval = setInterval(() => {
+        console.log('Polling status...');
         fetch(`/status/${fileId}`)
             .then(response => response.json())
             .then(data => {
+                console.log('Status response:', data);
                 pollCount++;
                 updateProcessingState(data, pollCount);
                 
@@ -332,27 +333,23 @@ function startStatusPolling(fileId) {
 function updateProcessingState(data, pollCount) {
     const statusText = document.getElementById('status-text');
     
-    // Calculate more realistic progress
     let progress = getDetailedProgress(data.status, data.progress || 0);
     
-    // Add some time-based progression for processing state
     if (data.status === 'processing') {
-        const timeBonus = Math.min(pollCount * 2, 20); // Add up to 20% over time
+        const timeBonus = Math.min(pollCount * 2, 20);
         progress = Math.min(progress + timeBonus, 95);
     }
     
-    // Update status message
     if (statusText) {
         statusText.textContent = getStatusMessage(data.status, progress);
     }
     
-    // Animate to new progress
     animateProgress(progress);
 }
 
 // Show completed state
 function showCompletedState(fileId, data) {
-    animateProgress(100); // Ensure we hit 100%
+    animateProgress(100);
     
     setTimeout(() => {
         document.getElementById('main-container').innerHTML = `
