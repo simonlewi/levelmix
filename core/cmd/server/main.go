@@ -77,7 +77,7 @@ func main() {
 
 	// Routes
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "base.html", gin.H{
+		c.HTML(http.StatusOK, "home.html", gin.H{
 			"CurrentPage": "home",
 		})
 	})
