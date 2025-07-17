@@ -11,25 +11,29 @@ func TemplateContext() gin.HandlerFunc {
 		userID, err := c.Cookie("user_id")
 		isLoggedIn := err == nil && userID != ""
 		
-		// Set default template data
+		// Set default template data in context
 		c.Set("IsLoggedIn", isLoggedIn)
-		
-		// Override HTML render to include common data
-		originalHTML := c.HTML
-		c.HTML = func(code int, name string, obj interface{}) {
-			if data, ok := obj.(gin.H); ok {
-				// Add common data if not already present
-				if _, exists := data["IsLoggedIn"]; !exists {
-					data["IsLoggedIn"] = isLoggedIn
-				}
-			}
-			originalHTML(code, name, obj)
-		}
+		c.Set("UserID", userID)
 		
 		c.Next()
 	}
 }
 
-// Usage in main.go:
-// r.Use(handlers.TemplateContext())
-// This ensures all templates have access to IsLoggedIn status
+// GetTemplateData creates a gin.H with common template variables
+func GetTemplateData(c *gin.Context, data gin.H) gin.H {
+	// If data is nil, create new map
+	if data == nil {
+		data = gin.H{}
+	}
+	
+	// Add common variables from context
+	if isLoggedIn, exists := c.Get("IsLoggedIn"); exists {
+		data["IsLoggedIn"] = isLoggedIn
+	}
+	
+	if userID, exists := c.Get("UserID"); exists && userID != "" {
+		data["UserID"] = userID
+	}
+	
+	return data
+}

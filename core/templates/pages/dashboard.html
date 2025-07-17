@@ -1,0 +1,171 @@
+{{template "base.html" .}}
+
+{{define "dashboard_content"}}
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            Dashboard
+        </h1>
+        <p class="text-gray-400 mt-2">Welcome back, {{.user.Email}}</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-400 truncate">
+                    Account Type
+                </dt>
+                <dd class="mt-1 text-3xl font-semibold text-cyan-400">
+                    {{.tierName}}
+                </dd>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-400 truncate">
+                    Uploads This Month
+                </dt>
+                <dd class="mt-1 text-3xl font-semibold text-white">
+                    {{.stats.UploadsThisMonth}}
+                    {{if gt .uploadLimit 0}}
+                        <span class="text-sm text-gray-500">/ {{.uploadLimit}}</span>
+                    {{else}}
+                        <span class="text-sm text-gray-500">Unlimited</span>
+                    {{end}}
+                </dd>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-400 truncate">
+                    Total Uploads
+                </dt>
+                <dd class="mt-1 text-3xl font-semibold text-white">
+                    {{.stats.TotalUploads}}
+                </dd>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-400 truncate">
+                    Processing Time
+                </dt>
+                <dd class="mt-1 text-2xl font-semibold text-white">
+                    {{.processingTime}}
+                </dd>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Button / Limit Warning -->
+    <div class="mb-8">
+        {{if or (eq .uploadLimit -1) (gt .uploadsRemaining 0)}}
+            <a href="/upload" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
+                Upload New File
+            </a>
+        {{else}}
+            <div class="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
+                <p class="text-sm text-yellow-400">
+                    You've reached your monthly upload limit. 
+                    <a href="/pricing" class="font-medium underline hover:text-yellow-300">Upgrade your plan</a> for more uploads.
+                </p>
+            </div>
+        {{end}}
+    </div>
+
+    <!-- Processing History -->
+    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-700">
+            <h3 class="text-lg leading-6 font-medium text-white">
+                Processing History
+            </h3>
+        </div>
+        <div class="divide-y divide-gray-700">
+            {{if .jobs}}
+                {{range .jobs}}
+                <div class="px-4 py-4 sm:px-6 hover:bg-gray-700/50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 mr-4">
+                                {{if eq .job.Status "completed"}}
+                                    <div class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                {{else if eq .job.Status "processing"}}
+                                    <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                        <div class="spinner w-5 h-5"></div>
+                                    </div>
+                                {{else if eq .job.Status "failed"}}
+                                    <div class="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </div>
+                                {{else}}
+                                    <div class="w-8 h-8 bg-gray-600/20 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                {{end}}
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-white">
+                                    {{if .file}}{{.file.OriginalFilename}}{{else}}Processing...{{end}}
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    {{if .file}}
+                                        Target: {{printf "%.1f" .file.LUFSTarget}} LUFS
+                                    {{end}}
+                                    • {{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            {{if eq .job.Status "completed"}}
+                                <a href="/download/{{.job.AudioFileID}}" class="text-sm text-cyan-400 hover:text-cyan-300">
+                                    Download
+                                </a>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            {{else}}
+                <div class="px-4 py-12 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-300">No processing history</h3>
+                    <p class="mt-1 text-sm text-gray-500">Get started by uploading your first audio file.</p>
+                    <div class="mt-6">
+                        <a href="/upload" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-cyan-400 hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400">
+                            Upload Audio
+                        </a>
+                    </div>
+                </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<style>
+.spinner {
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-top-color: rgb(59, 130, 246);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{{end}}
