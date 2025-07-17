@@ -16,6 +16,7 @@ type AudioStorage interface {
 
 // MetadataStorage defines the interface for metadata operations
 type MetadataStorage interface {
+	// Audio file operations
 	CreateAudioFile(ctx context.Context, file *AudioFile) error
 	GetAudioFile(ctx context.Context, fileID string) (*AudioFile, error)
 	UpdateStatus(ctx context.Context, fileID string, status string) error
@@ -23,6 +24,19 @@ type MetadataStorage interface {
 	UpdateJobStatus(ctx context.Context, jobID, status string, errorMsg *string) error
 	GetJobByFileID(ctx context.Context, fileID string) (*ProcessingJob, error)
 	DeleteAudioFile(ctx context.Context, fileID string) error
+
+	// User operations
+	CreateUser(ctx context.Context, user *User) error
+	GetUser(ctx context.Context, userID string) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	UpdateUser(ctx context.Context, user *User) error
+	
+	CreateUserStats(ctx context.Context, stats *UserUploadStats) error
+	GetUserStats(ctx context.Context, userID string) (*UserUploadStats, error)
+	UpdateUserStats(ctx context.Context, stats *UserUploadStats) error
+	
+	GetUserJobs(ctx context.Context, userID string, limit, offset int) ([]*ProcessingJob, error)
+	GetAudioFileByJobID(ctx context.Context, jobID string) (*AudioFile, error)	
 }
 
 // StorageFactory defines the interface for creating storage instances
@@ -30,3 +44,5 @@ type StorageFactory interface {
 	CreateAudioStorage() (AudioStorage, error)
 	CreateMetadataStorage() (MetadataStorage, error)
 }
+
+
