@@ -14,6 +14,7 @@ import (
 
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/core/internal/handlers"
+	ee_auth "github.com/simonlewi/levelmix/ee/auth"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 )
 
@@ -49,6 +50,11 @@ func main() {
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
+	dashboardHandler := handlers.NewDashboardHandler(metadataStorage) // You need to create this
+	
+	// Initialize auth
+	authHandler := ee_auth.NewHandler(metadataStorage)
+	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
 
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -56,12 +62,16 @@ func main() {
 
 	r := gin.Default()
 
+	// Load templates
 	baseTemplate := filepath.Join(projectRoot, "core", "templates", "base.html")
 	homeTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "home.html")
 	uploadTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "upload.html")
 	resultsTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "results.html")
 	aboutTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "about.html")
 	pricingTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "pricing.html")
+	loginTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "login.html")
+	registerTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "register.html")
+	dashboardTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "dashboard.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -70,30 +80,53 @@ func main() {
 		resultsTemplate,
 		aboutTemplate,
 		pricingTemplate,
+		loginTemplate,
+		registerTemplate,
+		dashboardTemplate,
 	)
+
+	// Global middleware - order matters!
+	r.Use(handlers.TemplateContext()) // This should be first to set template data
+	r.Use(authMiddleware.TemplateContext()) // If you have this in ee/auth
 
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
 
-	// Routes
+	// Public routes
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "home.html", gin.H{
+		c.HTML(http.StatusOK, "home.html", handlers.GetTemplateData(c, gin.H{
 			"CurrentPage": "home",
-		})
+		}))
 	})
 
 	r.GET("/upload", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "upload.html", gin.H{
+		c.HTML(http.StatusOK, "upload.html", handlers.GetTemplateData(c, gin.H{
 			"CurrentPage": "upload",
-		})
+		}))
 	})
 
-	r.POST("/upload", uploadHandler.HandleUpload)
+	// Authentication routes
+	r.GET("/login", authHandler.ShowLogin)
+	r.POST("/login", authHandler.HandleLogin)
+	r.GET("/register", authHandler.ShowRegister)
+	r.POST("/register", authHandler.HandleRegister)
+	r.GET("/logout", authHandler.HandleLogout)
+
+	// Public routes that work with or without auth
+	r.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)
 	r.GET("/status/:id", uploadHandler.GetStatus)
 	r.GET("/download/:id", downloadHandler.HandleDownload)
 	r.GET("/results/:id", downloadHandler.ShowResults)
 	r.GET("/about", aboutHandler.ShowAbout)
 	r.GET("/pricing", pricingHandler.ShowPricing)
+
+	// Protected routes
+	protected := r.Group("/")
+	protected.Use(authMiddleware.RequireAuth())
+	{
+		protected.GET("/dashboard", dashboardHandler.ShowDashboard)
+		// Add other protected routes here
+	}
 
 	// Start server
 	port := os.Getenv("PORT")
@@ -102,7 +135,6 @@ func main() {
 	}
 
 	log.Printf("Server starting on http://localhost:%s", port)
-	log.Printf("DEBUG: Templates loaded successfully")
 
 	go func() {
 		if err := r.Run(":" + port); err != nil {

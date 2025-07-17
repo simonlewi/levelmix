@@ -211,6 +211,12 @@
                 {{template "about_content" .}}
             {{else if eq .CurrentPage "pricing"}}
                 {{template "pricing_content" .}}
+            {{else if eq .CurrentPage "login"}}
+                {{template "login_content" .}}
+            {{else if eq .CurrentPage "register"}}
+                {{template "register_content" .}}
+            {{else if eq .CurrentPage "dashboard"}}
+                {{template "dashboard_content" .}}
             {{end}}
         </div>
     </main>
