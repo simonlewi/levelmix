@@ -27,6 +27,29 @@ type ProcessingJob struct {
 	CreatedAt    time.Time
 }
 
+type User struct {
+	ID                   string
+	Email                string
+	PasswordHash         *string // Nullable for OAuth users
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	LastLoginAt          *time.Time
+	AuthProvider         string // 'email', 'google', 'apple'
+	AuthProviderID       *string
+	SubscriptionTier     int // 1=free, 2=premium, 3=professional
+	SubscriptionExpiresAt *time.Time
+}
+
+type UserUploadStats struct {
+	ID                        string // Add ID field for updates
+	UserID                    string
+	TotalUploads              int
+	TotalProcessingTimeSeconds int
+	UploadsThisMonth          int
+	LastUploadAt              *time.Time
+	MonthResetAt              time.Time
+}
+
 // Job status constants
 const (
 	StatusUploaded   = "uploaded"
