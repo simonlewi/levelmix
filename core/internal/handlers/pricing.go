@@ -15,5 +15,6 @@ func NewPricingHandler() *PricingHandler {
 func (h *PricingHandler) ShowPricing(c *gin.Context) {
 	c.HTML(http.StatusOK, "pricing.html", gin.H{
 		"CurrentPage": "pricing",
+		"PageTitle":   "Pricing",
 	})
 }

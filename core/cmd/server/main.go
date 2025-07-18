@@ -51,7 +51,7 @@ func main() {
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage) // You need to create this
-	
+
 	// Initialize auth
 	authHandler := ee_auth.NewHandler(metadataStorage)
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
@@ -86,7 +86,7 @@ func main() {
 	)
 
 	// Global middleware - order matters!
-	r.Use(handlers.TemplateContext()) // This should be first to set template data
+	r.Use(handlers.TemplateContext())       // This should be first to set template data
 	r.Use(authMiddleware.TemplateContext()) // If you have this in ee/auth
 
 	// Static files
@@ -102,6 +102,7 @@ func main() {
 	r.GET("/upload", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "upload.html", handlers.GetTemplateData(c, gin.H{
 			"CurrentPage": "upload",
+			"PageTitle":   "Upload",
 		}))
 	})
 

@@ -69,6 +69,7 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
 		"CurrentPage":      "dashboard",
+		"PageTitle":        "Dashboard",
 		"user":             user,
 		"stats":            stats,
 		"jobs":             jobsWithFiles,
