@@ -5,7 +5,7 @@ import "time"
 // AudioFile represents an audio file in the system
 type AudioFile struct {
 	ID               string
-	UserID           string
+	UserID           *string
 	OriginalFilename string
 	FileSize         int64
 	Format           string
@@ -19,6 +19,7 @@ type AudioFile struct {
 type ProcessingJob struct {
 	ID           string
 	AudioFileID  string
+	UserID       string
 	Status       string
 	ErrorMessage string
 	OutputS3Key  string
@@ -28,26 +29,26 @@ type ProcessingJob struct {
 }
 
 type User struct {
-	ID                   string
-	Email                string
-	PasswordHash         *string // Nullable for OAuth users
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
-	LastLoginAt          *time.Time
-	AuthProvider         string // 'email', 'google', 'apple'
-	AuthProviderID       *string
-	SubscriptionTier     int // 1=free, 2=premium, 3=professional
+	ID                    string
+	Email                 string
+	PasswordHash          *string // Nullable for OAuth users
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	LastLoginAt           *time.Time
+	AuthProvider          string // 'email', 'google', 'apple'
+	AuthProviderID        *string
+	SubscriptionTier      int // 1=free, 2=premium, 3=professional
 	SubscriptionExpiresAt *time.Time
 }
 
 type UserUploadStats struct {
-	ID                        string // Add ID field for updates
-	UserID                    string
-	TotalUploads              int
+	ID                         string // Add ID field for updates
+	UserID                     string
+	TotalUploads               int
 	TotalProcessingTimeSeconds int
-	UploadsThisMonth          int
-	LastUploadAt              *time.Time
-	MonthResetAt              time.Time
+	UploadsThisMonth           int
+	LastUploadAt               *time.Time
+	MonthResetAt               time.Time
 }
 
 // Job status constants

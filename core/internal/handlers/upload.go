@@ -56,6 +56,19 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
+	var userID *string
+	isPremium := false
+
+	if user, exists := c.Get("user"); exists {
+		if u, ok := user.(*storage.User); ok {
+			userID = &u.ID
+			isPremium = u.SubscriptionTier > 1 //Premium/Pro users
+			log.Printf("Authenticated user uploading: %s (tier: %d)", *userID, u.SubscriptionTier)
+		}
+	} else {
+		log.Printf("Anonymous upload - no personal data stored")
+	}
+
 	// Open uploaded file
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -75,7 +88,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Store metadata
 	audioFile := &storage.AudioFile{
 		ID:               fileID,
-		UserID:           "anonymous", // For now, will add auth later
+		UserID:           userID,
 		OriginalFilename: fileHeader.Filename,
 		FileSize:         fileHeader.Size,
 		Format:           getFileExtension(fileHeader.Filename),
@@ -94,12 +107,18 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 
 	// Queue processing job
 	jobID := generateID()
+
+	taskUserID := ""
+	if userID != nil {
+		taskUserID = *userID
+	}
+
 	task := audio.ProcessTask{
 		JobID:      jobID,
 		FileID:     fileID,
 		TargetLUFS: targetLUFS,
-		UserID:     "anonymous",
-		IsPremium:  false,
+		UserID:     taskUserID,
+		IsPremium:  isPremium,
 	}
 
 	if err := h.queue.EnqueueProcessing(c.Request.Context(), task); err != nil {
@@ -112,6 +131,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	job := &storage.ProcessingJob{
 		ID:          jobID,
 		AudioFileID: fileID,
+		UserID:      taskUserID,
 		Status:      "queued",
 		CreatedAt:   time.Now(),
 	}

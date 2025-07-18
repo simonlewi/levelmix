@@ -46,7 +46,7 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 	// Get audio files for each job
 	jobsWithFiles := make([]map[string]interface{}, 0)
 	for _, job := range jobs {
-		audioFile, err := h.metadata.GetAudioFileByJobID(c.Request.Context(), job.ID)
+		audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), job.AudioFileID)
 		jobData := map[string]interface{}{
 			"job": job,
 		}
@@ -69,13 +69,13 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
 		"CurrentPage":      "dashboard",
-		"user":            user,
-		"stats":           stats,
-		"jobs":            jobsWithFiles,
-		"tierName":        tierName,
-		"uploadLimit":     uploadLimit,
+		"user":             user,
+		"stats":            stats,
+		"jobs":             jobsWithFiles,
+		"tierName":         tierName,
+		"uploadLimit":      uploadLimit,
 		"uploadsRemaining": uploadsRemaining,
-		"processingTime":  formatDuration(stats.TotalProcessingTimeSeconds),
+		"processingTime":   formatDuration(stats.TotalProcessingTimeSeconds),
 	})
 }
 
