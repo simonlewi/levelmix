@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <title>{{block "title" .}}LevelMix - Professional Audio Normalization{{end}}</title>
+    <title>{{if .PageTitle}}{{.PageTitle}} - LevelMix{{else}}LevelMix - Audio Normalization{{end}}</title>
     <style>
         /* Smooth transitions between states */
         .state-transition {
@@ -202,22 +202,24 @@
     <!-- Main Content -->
     <main class="{{block "main-classes" .}}{{end}}">
         <div id="page-content">
-            {{if eq .CurrentPage "home"}}
-                {{template "home_content" .}}
-            {{else if eq .CurrentPage "upload"}}
-                {{template "upload_content" .}}
-            {{else if eq .CurrentPage "results"}}
-                {{template "results_content" .}}
-            {{else if eq .CurrentPage "about"}}
-                {{template "about_content" .}}
-            {{else if eq .CurrentPage "pricing"}}
-                {{template "pricing_content" .}}
-            {{else if eq .CurrentPage "login"}}
-                {{template "login_content" .}}
-            {{else if eq .CurrentPage "register"}}
-                {{template "register_content" .}}
-            {{else if eq .CurrentPage "dashboard"}}
-                {{template "dashboard_content" .}}
+            {{if .CurrentPage}}
+                {{if eq .CurrentPage "home"}}
+                    {{template "home_content" .}}
+                {{else if eq .CurrentPage "upload"}}
+                    {{template "upload_content" .}}
+                {{else if eq .CurrentPage "results"}}
+                    {{template "results_content" .}}
+                {{else if eq .CurrentPage "about"}}
+                    {{template "about_content" .}}
+                {{else if eq .CurrentPage "pricing"}}
+                    {{template "pricing_content" .}}
+                {{else if eq .CurrentPage "login"}}
+                    {{template "login_content" .}}
+                {{else if eq .CurrentPage "register"}}
+                    {{template "register_content" .}}
+                {{else if eq .CurrentPage "dashboard"}}
+                    {{template "dashboard_content" .}}
+                {{end}}
             {{end}}
         </div>
     </main>

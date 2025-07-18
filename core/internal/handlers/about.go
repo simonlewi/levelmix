@@ -15,5 +15,6 @@ func NewAboutHandler() *AboutHandler {
 func (h *AboutHandler) ShowAbout(c *gin.Context) {
 	c.HTML(http.StatusOK, "about.html", gin.H{
 		"CurrentPage": "about",
+		"PageTitle":   "About",
 	})
 }
