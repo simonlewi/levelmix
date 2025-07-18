@@ -30,13 +30,12 @@ type MetadataStorage interface {
 	GetUser(ctx context.Context, userID string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
-	
+
 	CreateUserStats(ctx context.Context, stats *UserUploadStats) error
 	GetUserStats(ctx context.Context, userID string) (*UserUploadStats, error)
 	UpdateUserStats(ctx context.Context, stats *UserUploadStats) error
-	
+
 	GetUserJobs(ctx context.Context, userID string, limit, offset int) ([]*ProcessingJob, error)
-	GetAudioFileByJobID(ctx context.Context, jobID string) (*AudioFile, error)	
 }
 
 // StorageFactory defines the interface for creating storage instances
@@ -44,5 +43,3 @@ type StorageFactory interface {
 	CreateAudioStorage() (AudioStorage, error)
 	CreateMetadataStorage() (MetadataStorage, error)
 }
-
-
