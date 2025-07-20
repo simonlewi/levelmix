@@ -219,6 +219,8 @@
                     {{template "register_content" .}}
                 {{else if eq .CurrentPage "dashboard"}}
                     {{template "dashboard_content" .}}
+                {{else if eq .CurrentPage "access"}}
+                    {{template "access_content" .}}
                 {{end}}
             {{end}}
         </div>
