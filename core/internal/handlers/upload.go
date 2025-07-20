@@ -63,6 +63,13 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		if u, ok := user.(*storage.User); ok {
 			userID = &u.ID
 			isPremium = u.SubscriptionTier > 1 //Premium/Pro users
+
+			// Check upload limits for authenticated users
+			if err := h.checkUploadLimits(c, u); err != nil {
+				h.returnError(c, err.Error())
+				return
+			}
+
 			log.Printf("Authenticated user uploading: %s (tier: %d)", *userID, u.SubscriptionTier)
 		}
 	} else {
@@ -201,6 +208,36 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) error {
+	stats, err := h.metadata.GetUserStats(c.Request.Context(), user.ID)
+	if err != nil {
+		// If no stats found, user is within limits
+		return nil
+	}
+
+	uploadLimit := getUploadLimit(user.SubscriptionTier)
+	if uploadLimit == -1 {
+		return nil // Unlimited
+	}
+
+	// Check if monthly reset needed
+	now := time.Now()
+	currentMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+
+	if stats.MonthResetAt.Before(currentMonth) {
+		// Reset monthly counter
+		stats.UploadsThisMonth = 0
+		stats.MonthResetAt = currentMonth
+		h.metadata.UpdateUserStats(c.Request.Context(), stats)
+	}
+
+	if stats.UploadsThisMonth >= uploadLimit {
+		return fmt.Errorf("monthly upload limit reached (%d/%d), upgrade your plan for more uploads", stats.UploadsThisMonth, uploadLimit)
+	}
+
+	return nil
+}
+
 // returnError sends an inline error response that the frontend can handle
 func (h *UploadHandler) returnError(c *gin.Context, message string) {
 	errorHTML := fmt.Sprintf(`
@@ -332,5 +369,19 @@ func getProgressFromStatus(status string) int {
 		return 0
 	default:
 		return 0
+	}
+}
+
+// Helper function for upload limits (moved from dashboard handler if needed)
+func getUploadLimit(tier int) int {
+	switch tier {
+	case 1:
+		return 1
+	case 2:
+		return 4
+	case 3:
+		return -1 // Unlimited
+	default:
+		return 1
 	}
 }

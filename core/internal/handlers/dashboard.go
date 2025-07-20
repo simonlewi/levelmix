@@ -59,6 +59,7 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 	// Calculate tier info
 	tierName := getTierName(user.SubscriptionTier)
 	uploadLimit := getUploadLimit(user.SubscriptionTier)
+
 	uploadsRemaining := uploadLimit
 	if uploadLimit > 0 {
 		uploadsRemaining = uploadLimit - stats.UploadsThisMonth
@@ -113,19 +114,6 @@ func getTierName(tier int) string {
 		return "Professional"
 	default:
 		return "Free"
-	}
-}
-
-func getUploadLimit(tier int) int {
-	switch tier {
-	case 1:
-		return 1
-	case 2:
-		return 4
-	case 3:
-		return -1 // Unlimited
-	default:
-		return 1
 	}
 }
 

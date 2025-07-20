@@ -72,6 +72,7 @@ func main() {
 	loginTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "login.html")
 	registerTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "register.html")
 	dashboardTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "dashboard.html")
+	accessTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "access.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -83,11 +84,13 @@ func main() {
 		loginTemplate,
 		registerTemplate,
 		dashboardTemplate,
+		accessTemplate,
 	)
 
 	// Global middleware - order matters!
-	r.Use(handlers.TemplateContext())       // This should be first to set template data
-	r.Use(authMiddleware.TemplateContext()) // If you have this in ee/auth
+	r.Use(handlers.TemplateContext())         // This should be first to set template data
+	r.Use(handlers.AccessControlMiddleware()) // Access control middleware
+	r.Use(authMiddleware.TemplateContext())   // If you have this in ee/auth
 
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
@@ -114,6 +117,8 @@ func main() {
 	r.GET("/logout", authHandler.HandleLogout)
 
 	// Public routes that work with or without auth
+	r.GET("/access", handlers.ShowAccessForm)
+	r.POST("/access", handlers.AccessControlMiddleware())
 	r.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)
 	r.GET("/status/:id", uploadHandler.GetStatus)
 	r.GET("/download/:id", downloadHandler.HandleDownload)
