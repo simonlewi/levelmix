@@ -28,7 +28,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
                             <p class="text-gray-400 mb-2">Click to upload or drag and drop</p>
-                            <p class="text-gray-500 text-sm">MP3 files up to 300MB</p>
+                            <p class="text-gray-500 text-sm">
+                                {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
+                                    MP3 and WAV files up to 5GB
+                                {{else}}
+                                    MP3 files up to 300MB
+                                {{end}}
+                            </p>
                         </div>
                         
                         <!-- Selected file info (hidden initially) -->
@@ -49,7 +55,7 @@
                     <input type="file" 
                            id="file-input"
                            name="audio_file" 
-                           accept=".mp3" 
+                           accept="{{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}.mp3,.wav{{else}}.mp3{{end}}" 
                            required
                            class="hidden"
                            onchange="handleFileSelect(this)">
@@ -153,6 +159,11 @@ let currentProgress = 0;
 let targetProgress = 0;
 let progressAnimationId = null;
 
+// Get user tier from template (rendered server-side)
+const userTier = parseInt('{{if and .IsLoggedIn .user}}{{.user.SubscriptionTier}}{{else}}0{{end}}');
+const isLoggedIn = '{{.IsLoggedIn}}' === 'true';
+const isPremiumUser = isLoggedIn && (userTier === 2 || userTier === 3);
+
 // File selection handler
 function handleFileSelect(input) {
     const file = input.files[0];
@@ -206,12 +217,30 @@ document.addEventListener('DOMContentLoaded', function() {
             dropArea.classList.remove('drag-over');
             
             const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type.startsWith('audio/')) {
-                const fileInput = document.getElementById('file-input');
-                fileInput.files = files;
-                handleFileSelect(fileInput);
-            } else if (files.length > 0) {
-                alert('Please upload an audio file (MP3)');
+            if (files.length > 0) {
+                const file = files[0];
+                const fileType = file.type;
+                const fileName = file.name.toLowerCase();
+                
+                // Check file type based on user tier
+                let isValidFile = false;
+                if (isPremiumUser) {
+                    isValidFile = fileType.startsWith('audio/') || fileName.endsWith('.mp3') || fileName.endsWith('.wav');
+                } else {
+                    isValidFile = fileType.startsWith('audio/mpeg') || fileName.endsWith('.mp3');
+                }
+                
+                if (isValidFile) {
+                    const fileInput = document.getElementById('file-input');
+                    fileInput.files = files;
+                    handleFileSelect(fileInput);
+                } else {
+                    if (isPremiumUser) {
+                        alert('Please upload an MP3 or WAV file');
+                    } else {
+                        alert('Please upload an MP3 file (WAV support available with Premium)');
+                    }
+                }
             }
         });
     }

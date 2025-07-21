@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/hibiken/asynq"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
@@ -40,8 +41,16 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("failed to update job status: %w", err)
 	}
 
+	// Get audio file info to determine format
+	audioFile, err := p.metadataStorage.GetAudioFile(ctx, task.FileID)
+	if err != nil {
+		errMsg := err.Error()
+		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
+		return fmt.Errorf("failed to get audio file info: %w", err)
+	}
+
 	// Download file from S3 to local temp
-	inputFile, err := p.downloadFileForProcessing(ctx, task.FileID)
+	inputFile, err := p.downloadFileForProcessing(ctx, task.FileID, audioFile.Format)
 	if err != nil {
 		errMsg := err.Error()
 		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
@@ -58,10 +67,10 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	}
 
 	// Process audio
-	outputFile := p.getOutputFilePath(task.FileID, task.JobID)
+	outputFile := p.getOutputFilePath(task.FileID, task.JobID, audioFile.Format)
 	defer os.Remove(outputFile) // Clean up temp file
 
-	outputOptions := p.getOutputOptions(task.IsPremium)
+	outputOptions := p.getOutputOptions(task.IsPremium, audioFile.Format)
 	if err := NormalizeLoudness(inputFile, outputFile, task.TargetLUFS, loudnessInfo, outputOptions); err != nil {
 		errMsg := err.Error()
 		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
@@ -106,9 +115,14 @@ func (p *Processor) validateTask(task ProcessTask) error {
 	return nil
 }
 
-func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID string) (string, error) {
-	// Create temp file
-	tempFile, err := os.CreateTemp("", "levelmix_input_*.mp3")
+func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, format string) (string, error) {
+	// Create temp file with appropriate extension
+	ext := ".mp3"
+	if format == "wav" {
+		ext = ".wav"
+	}
+
+	tempFile, err := os.CreateTemp("", "levelmix_input_*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -160,25 +174,65 @@ func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath st
 	return p.audioStorage.Upload(ctx, processedKey, file)
 }
 
-func (p *Processor) getOutputFilePath(fileID, jobID string) string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("levelmix_output_%s_%s.mp3", fileID, jobID))
-}
+func (p *Processor) getOutputOptions(isPremium bool, inputFormat string) OutputOptions {
+	// Determine output format based on input and user tier
+	outputFormat := inputFormat
 
-func (p *Processor) getOutputOptions(isPremium bool) OutputOptions {
-	if isPremium {
+	// Free users always get MP3 output regardless of input
+	if !isPremium {
+		outputFormat = "mp3"
+	}
+
+	switch strings.ToLower(outputFormat) {
+	case "wav":
+		if isPremium {
+			return OutputOptions{
+				Codec: "pcm_s16le", // High quality uncompressed WAV
+				ExtraOptions: []string{
+					"-ar", "44100", // 44.1kHz sample rate
+					"-ac", "2", // Stereo
+				},
+			}
+		}
+		fallthrough // Fall through to MP3 for free users
+
+	case "mp3":
+		if isPremium {
+			return OutputOptions{
+				Codec:   "libmp3lame",
+				Bitrate: "320k",
+				ExtraOptions: []string{
+					"-q:a", "0", // Highest quality VBR
+				},
+			}
+		}
 		return OutputOptions{
-			Codec:   "libmp3lame", // High quality MP3
-			Bitrate: "320k",       // Premium bitrate
+			Codec:   "libmp3lame",
+			Bitrate: "320k", // Standard quality for free users
+		}
+
+	default:
+		// Default to MP3 for unknown formats
+		return OutputOptions{
+			Codec:   "libmp3lame",
+			Bitrate: "320k",
 		}
 	}
-
-	return OutputOptions{
-		Codec:   "libmp3lame", // Standard MP3
-		Bitrate: "320k",       // Standard bitrate
-	}
 }
 
-//
+func (p *Processor) getOutputFilePath(fileID, jobID, inputFormat string) string {
+	// Determine output extension based on input format and processing rules
+	outputExt := ".mp3" // Default to MP3
+
+	switch strings.ToLower(inputFormat) {
+	case "wav":
+		outputExt = ".wav"
+	case "mp3":
+		outputExt = ".mp3"
+	}
+
+	return filepath.Join(os.TempDir(), fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
+}
 
 func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {
 	srv := asynq.NewServer(
