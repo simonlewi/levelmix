@@ -26,10 +26,10 @@
         <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-400 truncate">
-                    Uploads This Month
+                    Uploads This Week
                 </dt>
                 <dd class="mt-1 text-3xl font-semibold text-white">
-                    {{.stats.UploadsThisMonth}}
+                    {{.stats.UploadsThisWeek}}
                     {{if gt .uploadLimit 0}}
                         <span class="text-sm text-gray-500">/ {{.uploadLimit}}</span>
                     {{else}}
@@ -71,7 +71,7 @@
         {{else}}
             <div class="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
                 <p class="text-sm text-yellow-400">
-                    You've reached your monthly upload limit. 
+                    You've reached your weekly upload limit. 
                     <a href="/pricing" class="font-medium underline hover:text-yellow-300">Upgrade your plan</a> for more uploads.
                 </p>
             </div>

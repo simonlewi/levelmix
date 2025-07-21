@@ -21,7 +21,7 @@ type ProcessingJob struct {
 	AudioFileID  string
 	UserID       string
 	Status       string
-	ErrorMessage string
+	ErrorMessage *string
 	OutputS3Key  string
 	StartedAt    *time.Time
 	CompletedAt  *time.Time
@@ -42,13 +42,12 @@ type User struct {
 }
 
 type UserUploadStats struct {
-	ID                         string // Add ID field for updates
 	UserID                     string
 	TotalUploads               int
 	TotalProcessingTimeSeconds int
-	UploadsThisMonth           int
+	UploadsThisWeek            int
 	LastUploadAt               *time.Time
-	MonthResetAt               time.Time
+	WeekResetAt                time.Time
 }
 
 // Job status constants

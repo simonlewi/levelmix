@@ -13,8 +13,13 @@ func NewPricingHandler() *PricingHandler {
 }
 
 func (h *PricingHandler) ShowPricing(c *gin.Context) {
-	c.HTML(http.StatusOK, "pricing.html", gin.H{
+	templateData := gin.H{
 		"CurrentPage": "pricing",
 		"PageTitle":   "Pricing",
-	})
+	}
+
+	// IMPORTANT: Use GetTemplateData to add common variables like IsLoggedIn
+	templateData = GetTemplateData(c, templateData)
+
+	c.HTML(http.StatusOK, "pricing.html", templateData)
 }

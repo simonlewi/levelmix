@@ -9,9 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time" // Import time package
 
 	"github.com/hibiken/asynq"
-	ee_storage "github.com/simonlewi/levelmix/ee/storage"
+	ee_storage "github.com/simonlewi/levelmix/ee/storage" // Assuming this is your S3 storage
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -37,24 +38,42 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("task validation failed: %w", err)
 	}
 
-	if err := p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "processing", nil); err != nil {
-		return fmt.Errorf("failed to update job status: %w", err)
+	// Fetch the job to update its start time
+	job, err := p.metadataStorage.GetJob(ctx, task.JobID)
+	if err != nil {
+		// Log and fail if we can't get the job, as we need it to track times
+		return fmt.Errorf("failed to retrieve job %s for processing: %w", task.JobID, err)
+	}
+
+	// Update job status to processing and set start time
+	now := time.Now()
+	job.Status = "processing"
+	job.StartedAt = &now // Use StartedAt as per your struct
+	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
+		log.Printf("Failed to update job %s status to processing with start time: %v", job.ID, err)
+		// Decide if you want to fail the task or just log and proceed.
+		// For now, we'll log and proceed, but this might lead to inaccurate processing times if update fails.
 	}
 
 	// Get audio file info to determine format
 	audioFile, err := p.metadataStorage.GetAudioFile(ctx, task.FileID)
 	if err != nil {
 		errMsg := err.Error()
-		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
-		return fmt.Errorf("failed to get audio file info: %w", err)
+		// Update job status to failed before returning
+		job.Status = "failed"
+		job.ErrorMessage = &errMsg
+		p.metadataStorage.UpdateJob(ctx, job) // Try to update job with error
+		return fmt.Errorf("failed to get audio file info for file %s: %w", task.FileID, err)
 	}
 
 	// Download file from S3 to local temp
 	inputFile, err := p.downloadFileForProcessing(ctx, task.FileID, audioFile.Format)
 	if err != nil {
 		errMsg := err.Error()
-		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
-		return fmt.Errorf("failed to download file: %w", err)
+		job.Status = "failed"
+		job.ErrorMessage = &errMsg
+		p.metadataStorage.UpdateJob(ctx, job)
+		return fmt.Errorf("failed to download file %s: %w", task.FileID, err)
 	}
 	defer os.Remove(inputFile) // Clean up temp file
 
@@ -62,8 +81,10 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	loudnessInfo, err := AnalyzeLoudness(inputFile)
 	if err != nil {
 		errMsg := err.Error()
-		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
-		return fmt.Errorf("loudness analysis failed: %w", err)
+		job.Status = "failed"
+		job.ErrorMessage = &errMsg
+		p.metadataStorage.UpdateJob(ctx, job)
+		return fmt.Errorf("loudness analysis failed for file %s: %w", task.FileID, err)
 	}
 
 	// Process audio
@@ -73,31 +94,72 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	outputOptions := p.getOutputOptions(task.IsPremium, audioFile.Format)
 	if err := NormalizeLoudness(inputFile, outputFile, task.TargetLUFS, loudnessInfo, outputOptions); err != nil {
 		errMsg := err.Error()
-		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
-		return fmt.Errorf("loudness normalization failed: %w", err)
+		job.Status = "failed"
+		job.ErrorMessage = &errMsg
+		p.metadataStorage.UpdateJob(ctx, job)
+		return fmt.Errorf("loudness normalization failed for file %s: %w", task.FileID, err)
 	}
 
 	// Upload processed file back to S3
 	if err := p.uploadProcessedFile(ctx, task.FileID, outputFile); err != nil {
 		errMsg := err.Error()
-		p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "failed", &errMsg)
-		return fmt.Errorf("failed to upload processed file: %w", err)
+		job.Status = "failed"
+		job.ErrorMessage = &errMsg
+		p.metadataStorage.UpdateJob(ctx, job)
+		return fmt.Errorf("failed to upload processed file %s: %w", task.FileID, err)
 	}
 
-	// Update job status to completed
-	if err := p.metadataStorage.UpdateJobStatus(ctx, task.JobID, "completed", nil); err != nil {
-		return fmt.Errorf("failed to update job status: %w", err)
+	// Update job status to completed and set completion time
+	completedNow := time.Now()
+	job.Status = "completed"
+	job.CompletedAt = &completedNow // Use CompletedAt as per your struct
+	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
+		log.Printf("Failed to update job %s status to completed with end time: %v", job.ID, err)
+		// Log and proceed, as the core task is done, but stats might be off
 	}
 
-	// Update audio file status
+	// Update audio file status (this was already there)
 	if err := p.metadataStorage.UpdateStatus(ctx, task.FileID, "completed"); err != nil {
-		return fmt.Errorf("failed to update file status: %w", err)
+		log.Printf("Failed to update file %s status to completed: %v", task.FileID, err)
+		// Log and proceed
 	}
+
+	// --- START: Logic to update TotalProcessingTimeSeconds ---
+	if task.UserID != "" { // Only update stats for authenticated users
+		stats, err := p.metadataStorage.GetUserStats(ctx, task.UserID)
+		if err != nil {
+			log.Printf("Could not retrieve user stats for user %s to update processing time: %v", task.UserID, err)
+			// If stats don't exist, create a default one to avoid nil pointer dereference
+			stats = &storage.UserUploadStats{
+				UserID:                     task.UserID,
+				UploadsThisWeek:            0,
+				WeekResetAt:                time.Now(),
+				TotalUploads:               0,
+				TotalProcessingTimeSeconds: 0,
+			}
+			if err := p.metadataStorage.CreateUserStats(ctx, stats); err != nil {
+				log.Printf("Failed to create default user stats for user %s: %v", task.UserID, err)
+			}
+		}
+
+		// Calculate duration and add to total using your struct's StartedAt and CompletedAt
+		if job.StartedAt != nil && job.CompletedAt != nil { // Check for nil pointers
+			duration := job.CompletedAt.Sub(*job.StartedAt).Seconds()
+			stats.TotalProcessingTimeSeconds += int(duration) // Convert to int seconds
+		} else {
+			log.Printf("Warning: StartedAt or CompletedAt is nil for job %s. Cannot calculate accurate duration.", job.ID)
+		}
+
+		if err := p.metadataStorage.UpdateUserStats(ctx, stats); err != nil {
+			log.Printf("Failed to update user stats with processing time for user %s: %v", task.UserID, err)
+		}
+	}
+	// --- END: Logic to update TotalProcessingTimeSeconds ---
 
 	return nil
 }
 
-// Helper functions
+// Helper functions (unchanged)
 
 func (p *Processor) validateTask(task ProcessTask) error {
 	if task.JobID == "" {

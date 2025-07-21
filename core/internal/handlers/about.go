@@ -13,8 +13,13 @@ func NewAboutHandler() *AboutHandler {
 }
 
 func (h *AboutHandler) ShowAbout(c *gin.Context) {
-	c.HTML(http.StatusOK, "about.html", gin.H{
+	templateData := gin.H{
 		"CurrentPage": "about",
-		"PageTitle":   "About",
-	})
+		"PageTitle":   "About Us",
+	}
+
+	// IMPORTANT: Use GetTemplateData to add common variables like IsLoggedIn
+	templateData = GetTemplateData(c, templateData)
+
+	c.HTML(http.StatusOK, "about.html", templateData)
 }
