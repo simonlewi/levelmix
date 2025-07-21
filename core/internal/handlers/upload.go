@@ -40,8 +40,23 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
-	// Validate file
-	if err := h.validateFile(fileHeader); err != nil {
+	var userID *string
+	isPremium := false
+	userTier := 1
+
+	if user, exists := c.Get("user"); exists {
+		if u, ok := user.(*storage.User); ok {
+			userID = &u.ID
+			userTier = u.SubscriptionTier
+			isPremium = u.SubscriptionTier > 1 // Premium/Pro users
+			log.Printf("Authenticated user uploading: %s (tier: %d)", *userID, u.SubscriptionTier)
+		}
+	} else {
+		log.Printf("Anonymous upload - no personal data stored")
+	}
+
+	// Validate file with tier-based rules
+	if err := h.validateFile(fileHeader, userTier); err != nil {
 		h.returnError(c, err.Error())
 		return
 	}
@@ -56,28 +71,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
-	var userID *string
-	isPremium := false
-	userTier := 1 // Default to free tier
-
-	if user, exists := c.Get("user"); exists {
-		if u, ok := user.(*storage.User); ok {
-			userID = &u.ID
-			userTier = u.SubscriptionTier
-			isPremium = u.SubscriptionTier > 1 //Premium/Pro users
-
-			// Check upload limits for authenticated users
-			if err := h.checkUploadLimits(c, u); err != nil {
-				h.returnError(c, err.Error())
-				return
-			}
-
-			log.Printf("Authenticated user uploading: %s (tier: %d)", *userID, u.SubscriptionTier)
-		}
-	} else {
-		log.Printf("Anonymous upload - no personal data stored")
-	}
-
+	// Validate custom LUFS usage - only Premium/Pro users can use custom values
 	if h.isCustomLUFS(targetLUFS) && userTier < 2 {
 		h.returnError(c, "Custom LUFS targets are only available for Premium and Professional users")
 		return
@@ -145,7 +139,6 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	job := &storage.ProcessingJob{
 		ID:          jobID,
 		AudioFileID: fileID,
-		UserID:      taskUserID,
 		Status:      "queued",
 		CreatedAt:   time.Now(),
 	}
@@ -325,16 +318,28 @@ func (h *UploadHandler) cleanup(ctx *gin.Context, fileID string) {
 	h.metadata.DeleteAudioFile(ctx.Request.Context(), fileID)
 }
 
-func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader) error {
+func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader, userTier int) error {
 	// Check if file is provided
 	if fileHeader == nil {
 		return fmt.Errorf("no file provided")
 	}
 
-	// Check file size (300MB limit)
-	maxSize := int64(300 * 1024 * 1024)
+	// Dynamic file size limits based on user tier
+	var maxSize int64
+	switch userTier {
+	case 1: // Free tier
+		maxSize = int64(300 * 1024 * 1024) // 300MB
+	case 2, 3: // Premium/Pro tiers
+		maxSize = int64(5 * 1024 * 1024 * 1024) // 5GB (effectively unlimited for most use cases)
+	default:
+		maxSize = int64(300 * 1024 * 1024) // Default to free tier
+	}
+
 	if fileHeader.Size > maxSize {
-		return fmt.Errorf("file too large (max 300MB)")
+		if userTier == 1 {
+			return fmt.Errorf("file too large (max 300MB). Upgrade to Premium for larger files")
+		}
+		return fmt.Errorf("file too large (max %dGB)", maxSize/(1024*1024*1024))
 	}
 
 	// Check minimum file size (1KB to avoid empty files)
@@ -343,10 +348,22 @@ func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader) error {
 		return fmt.Errorf("file too small (min 1KB)")
 	}
 
-	// Check file extension
+	// Check file extension based on user tier
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	if ext != ".mp3" {
-		return fmt.Errorf("only MP3 files are supported")
+
+	switch userTier {
+	case 1: // Free tier - MP3 only
+		if ext != ".mp3" {
+			return fmt.Errorf("only MP3 files are supported. Upgrade to Premium for WAV support")
+		}
+	case 2, 3: // Premium/Pro tiers - MP3 and WAV
+		if ext != ".mp3" && ext != ".wav" {
+			return fmt.Errorf("only MP3 and WAV files are supported")
+		}
+	default:
+		if ext != ".mp3" {
+			return fmt.Errorf("only MP3 files are supported")
+		}
 	}
 
 	// Check filename length

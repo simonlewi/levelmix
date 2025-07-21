@@ -1,8 +1,11 @@
+// Updated normalizer.go to handle both MP3 and WAV files
 package audio
 
 import (
 	"fmt"
 	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -36,21 +39,47 @@ func NormalizeLoudness(
 		"-af", filterChain,
 	}
 
+	// Determine output format based on file extension or options
+	outputExt := strings.ToLower(filepath.Ext(outputFile))
+
 	if options.Codec != "" {
 		args = append(args, "-c:a", options.Codec)
 	} else {
-		args = append(args, "-c:a", "pcm_s16le")
+		switch outputExt {
+		case ".mp3":
+			args = append(args, "-c:a", "libmp3lame")
+		case ".wav":
+			args = append(args, "-c:a", "pcm_s16le")
+		case ".flac":
+			args = append(args, "-c:a", "flac")
+		default:
+			// Default to high-quality PCM for unknown formats
+			args = append(args, "-c:a", "pcm_s16le")
+		}
 	}
 
 	if options.Bitrate != "" {
 		args = append(args, "-b:a", options.Bitrate)
+	} else {
+		// Auto-select bitrate based on format
+		switch outputExt {
+		case ".mp3":
+			args = append(args, "-b:a", "320k")
+		case ".wav", ".flac":
+			// Lossless formats don't need bitrate
+		}
 	}
+
+	// Set sample rate to maintain quality
+	args = append(args, "-ar", "44100")
 
 	if len(options.ExtraOptions) > 0 {
 		args = append(args, options.ExtraOptions...)
 	}
 
-	args = append(args, outputFile)
+	// Overwrite output file if it exists
+	args = append(args, "-y", outputFile)
+
 	cmd := exec.Command("ffmpeg", args...)
 	return cmd.Run()
 }
