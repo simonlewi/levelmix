@@ -20,13 +20,13 @@ func getTierName(tier int) string {
 func getUploadLimit(tier int) int {
 	switch tier {
 	case 1:
-		return 1 // Number of uploads per week for Free tier
+		return -1 // Number of uploads per week for Free tier, unlimited for beta testing
 	case 2:
 		return 5 // Number of uploads per week for Premium tier
 	case 3:
-		return -1 // Number of uploads per week for Professional tier
+		return 20 // Number of uploads per week for Professional tier
 	default:
-		return 1
+		return -1 // Unlimited for beta testing
 	}
 }
 
