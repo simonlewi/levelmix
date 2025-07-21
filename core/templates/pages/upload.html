@@ -57,13 +57,53 @@
                     <div class="mb-6">
                         <label class="block text-sm font-medium mb-2">Target LUFS:</label>
                         <select name="target_lufs" 
+                                id="lufs-select"
                                 class="block w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
                             <option value="-14">Streaming (-14 LUFS)</option>
                             <option value="-16">Podcast (-16 LUFS)</option>
                             <option value="-23">Radio (-23 LUFS)</option>
                             <option value="-7" selected>Club Mix (-7 LUFS)</option>
                             <option value="-5">Festival Mix (-5 LUFS)</option>
+                            {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
+                            <option value="custom">Custom LUFS 
+                                <span class="text-purple-300">({{if eq .user.SubscriptionTier 2}}Premium{{else}}Pro{{end}})</span>
+                            </option>
+                            {{end}}
                         </select>
+                        
+                        <!-- Custom LUFS Input (hidden initially) -->
+                        {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
+                        <div id="custom-lufs-input" class="hidden mt-4 p-4 bg-gray-700 rounded-lg border border-purple-500/50">
+                            <label for="custom_lufs_value" class="block text-sm font-medium text-gray-300 mb-2">
+                                Custom LUFS Target
+                            </label>
+                            <div class="flex items-center space-x-4">
+                                <input type="number" 
+                                       id="custom_lufs_value" 
+                                       name="custom_lufs_value" 
+                                       min="-30" 
+                                       max="-2" 
+                                       step="0.1" 
+                                       value="-10"
+                                       class="block w-24 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent">
+                                <span class="text-gray-400 text-sm">Range: -30 to -2 LUFS</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">
+                                Lower values = quieter output. Higher values = louder output.
+                            </p>
+                        </div>
+                        {{else if .IsLoggedIn}}
+                        <!-- Upgrade prompt for free users -->
+                        <div class="mt-4 p-4 bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border border-purple-500/30 rounded-lg">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0-6v2m0-6V9a3 3 0 013-3h0a3 3 0 013 3v0a3 3 0 01-3 3H9a3 3 0 01-3-3V9a3 3 0 013-3h0a3 3 0 013 3z"></path>
+                                </svg>
+                                <span class="text-purple-300 text-sm font-medium">Custom LUFS targets available with </span>
+                                <a href="/pricing" class="text-purple-400 hover:text-purple-300 underline ml-1">Premium</a>
+                            </div>
+                        </div>
+                        {{end}}
                     </div>
                     
                     <button type="submit" 
@@ -146,6 +186,9 @@ function removeFile() {
 // Initialize drag and drop when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     const dropArea = document.getElementById('drop-area');
+    const lufsSelect = document.getElementById('lufs-select');
+    const customInput = document.getElementById('custom-lufs-input');
+    const uploadForm = document.getElementById('upload-form');
     
     if (dropArea) {
         dropArea.addEventListener('dragover', (e) => {
@@ -169,6 +212,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleFileSelect(fileInput);
             } else if (files.length > 0) {
                 alert('Please upload an audio file (MP3)');
+            }
+        });
+    }
+    
+    // Handle custom LUFS option toggle
+    if (lufsSelect && customInput) {
+        lufsSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customInput.classList.remove('hidden');
+            } else {
+                customInput.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Handle form submission with custom LUFS validation
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            const lufsSelect = document.getElementById('lufs-select');
+            const customValue = document.getElementById('custom_lufs_value');
+            
+            if (lufsSelect && lufsSelect.value === 'custom' && customValue) {
+                const value = parseFloat(customValue.value);
+                if (isNaN(value) || value < -30 || value > -2) {
+                    e.preventDefault();
+                    alert('Please enter a valid LUFS value between -30 and -2');
+                    return;
+                }
+                // Update the select value to the custom value for form submission
+                lufsSelect.value = customValue.value;
             }
         });
     }

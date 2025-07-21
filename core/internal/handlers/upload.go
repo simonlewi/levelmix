@@ -52,16 +52,18 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Get target LUFS
 	targetLUFS, err := h.parseTargetLUFS(c.PostForm("target_lufs"))
 	if err != nil {
-		h.returnError(c, "Invalid LUFS target value")
+		h.returnError(c, err.Error())
 		return
 	}
 
 	var userID *string
 	isPremium := false
+	userTier := 1 // Default to free tier
 
 	if user, exists := c.Get("user"); exists {
 		if u, ok := user.(*storage.User); ok {
 			userID = &u.ID
+			userTier = u.SubscriptionTier
 			isPremium = u.SubscriptionTier > 1 //Premium/Pro users
 
 			// Check upload limits for authenticated users
@@ -74,6 +76,11 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		}
 	} else {
 		log.Printf("Anonymous upload - no personal data stored")
+	}
+
+	if h.isCustomLUFS(targetLUFS) && userTier < 2 {
+		h.returnError(c, "Custom LUFS targets are only available for Premium and Professional users")
+		return
 	}
 
 	// Open uploaded file
@@ -290,14 +297,20 @@ func (h *UploadHandler) parseTargetLUFS(lufsStr string) (float64, error) {
 		return audio.DefaultLUFS, nil
 	}
 
-	parsed, err := strconv.ParseFloat(lufsStr, 64)
-	if err != nil {
-		return 0, err
+	// Handle "custom" value - this shouldn't happen with the new frontend,
+	// but keeping for backwards compatibility
+	if lufsStr == "custom" {
+		return audio.DefaultLUFS, nil
 	}
 
-	// Validate LUFS range (typical range is -30 to 0)
-	if parsed < -30 || parsed > 0 {
-		return 0, fmt.Errorf("LUFS target must be between -30 and 0")
+	parsed, err := strconv.ParseFloat(lufsStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid LUFS value: %s", lufsStr)
+	}
+
+	// Validate LUFS range (expanded range for custom values)
+	if parsed < -30 || parsed > -2 {
+		return 0, fmt.Errorf("LUFS target must be between -30 and -2, got %.1f", parsed)
 	}
 
 	return parsed, nil
@@ -372,7 +385,7 @@ func getProgressFromStatus(status string) int {
 	}
 }
 
-// Helper function for upload limits (moved from dashboard handler if needed)
+// Helper function for upload limits
 func getUploadLimit(tier int) int {
 	switch tier {
 	case 1:
@@ -384,4 +397,16 @@ func getUploadLimit(tier int) int {
 	default:
 		return 1
 	}
+}
+
+func (h *UploadHandler) isCustomLUFS(lufs float64) bool {
+	presets := []float64{-14.0, -16.0, -7.0, -5.0, -23.0}
+
+	for _, preset := range presets {
+		if lufs == preset {
+			return false
+		}
+	}
+
+	return true
 }

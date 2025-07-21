@@ -50,7 +50,7 @@ func main() {
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
-	dashboardHandler := handlers.NewDashboardHandler(metadataStorage) // You need to create this
+	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
 
 	// Initialize auth
 	authHandler := ee_auth.NewHandler(metadataStorage)
@@ -88,9 +88,9 @@ func main() {
 	)
 
 	// Global middleware - order matters!
-	r.Use(handlers.TemplateContext())         // This should be first to set template data
-	r.Use(handlers.AccessControlMiddleware()) // Access control middleware
-	r.Use(authMiddleware.TemplateContext())   // If you have this in ee/auth
+	r.Use(handlers.TemplateContext()) // This should be first to set template data
+	r.Use(handlers.AccessControlMiddleware())
+	r.Use(authMiddleware.TemplateContext())
 
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
@@ -102,11 +102,17 @@ func main() {
 		}))
 	})
 
-	r.GET("/upload", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "upload.html", handlers.GetTemplateData(c, gin.H{
+	r.GET("/upload", authMiddleware.OptionalAuth(), func(c *gin.Context) {
+		templateData := handlers.GetTemplateData(c, gin.H{
 			"CurrentPage": "upload",
 			"PageTitle":   "Upload",
-		}))
+		})
+
+		if user, exists := c.Get("user"); exists {
+			templateData["user"] = user
+		}
+
+		c.HTML(http.StatusOK, "upload.html", templateData)
 	})
 
 	// Authentication routes
@@ -116,7 +122,7 @@ func main() {
 	r.POST("/register", authHandler.HandleRegister)
 	r.GET("/logout", authHandler.HandleLogout)
 
-	// Public routes that work with or without auth
+	// Public routes
 	r.GET("/access", handlers.ShowAccessForm)
 	r.POST("/access", handlers.AccessControlMiddleware())
 	r.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)

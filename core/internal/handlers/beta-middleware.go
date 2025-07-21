@@ -7,10 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AccessControlMiddleware checks if the user has provided the correct access password
 func AccessControlMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Check if access control is enabled
 		accessPassword := os.Getenv("BETA_KEY")
 		if accessPassword == "" {
 			// No access control configured, allow through
@@ -32,7 +30,6 @@ func AccessControlMiddleware() gin.HandlerFunc {
 				// Set access cookie (valid for 24 hours)
 				c.SetCookie("access_granted", "true", 86400, "/", "", false, true)
 
-				// Redirect to intended destination or home
 				redirect := c.PostForm("redirect")
 				if redirect == "" {
 					redirect = "/"
