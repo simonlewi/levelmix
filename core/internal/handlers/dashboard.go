@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+	"time" // Import time package for Weekday and Date functions
 
 	"github.com/gin-gonic/gin"
 
@@ -34,6 +35,34 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 		// Create default stats if not found
 		stats = &storage.UserUploadStats{
 			UserID: user.ID,
+			// Initialize weekly stats for new users
+			UploadsThisWeek: 0,
+			WeekResetAt:     time.Now(), // Set to current time, will be adjusted by checkUploadLimits if needed
+		}
+		// Attempt to create the default stats in DB if they don't exist
+		// This ensures WeekResetAt is persisted for new users
+		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
+			// Log error but proceed, as we have default stats in memory
+			// Consider more robust error handling if this is critical
+		}
+	}
+
+	// Ensure weekly stats are up-to-date before displaying
+	// This logic is similar to checkUploadLimits but for display purposes
+	now := time.Now()
+	weekday := now.Weekday()
+	if weekday == time.Sunday {
+		weekday = 7 // Treat Sunday as the 7th day for consistent week start
+	}
+	daysSinceMonday := weekday - time.Monday
+	currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
+
+	if stats.WeekResetAt.Before(currentWeekStart) {
+		stats.UploadsThisWeek = 0
+		stats.WeekResetAt = currentWeekStart
+		// Update in DB if reset occurred
+		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
+			log.Printf("Failed to update user stats on weekly reset in DashboardHandler: %v", err)
 		}
 	}
 
@@ -60,25 +89,32 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 	tierName := getTierName(user.SubscriptionTier)
 	uploadLimit := getUploadLimit(user.SubscriptionTier)
 
+	// Calculate uploads remaining based on weekly stats
 	uploadsRemaining := uploadLimit
-	if uploadLimit > 0 {
-		uploadsRemaining = uploadLimit - stats.UploadsThisMonth
+	if uploadLimit > 0 { // Check if it's not an unlimited plan
+		uploadsRemaining = uploadLimit - stats.UploadsThisWeek // Use UploadsThisWeek
 		if uploadsRemaining < 0 {
 			uploadsRemaining = 0
 		}
 	}
 
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+	templateData := gin.H{
 		"CurrentPage":      "dashboard",
 		"PageTitle":        "Dashboard",
 		"user":             user,
-		"stats":            stats,
+		"stats":            stats, // stats now contains updated weekly counts
 		"jobs":             jobsWithFiles,
 		"tierName":         tierName,
 		"uploadLimit":      uploadLimit,
 		"uploadsRemaining": uploadsRemaining,
 		"processingTime":   formatDuration(stats.TotalProcessingTimeSeconds),
-	})
+		// No need to explicitly pass "uploadsThisWeek" as it's part of "stats"
+	}
+
+	// IMPORTANT: Use GetTemplateData to add common variables like IsLoggedIn
+	templateData = GetTemplateData(c, templateData)
+
+	c.HTML(http.StatusOK, "dashboard.html", templateData)
 }
 
 func (h *DashboardHandler) GetHistory(c *gin.Context) {
@@ -102,30 +138,4 @@ func (h *DashboardHandler) GetHistory(c *gin.Context) {
 	c.HTML(http.StatusOK, "history_rows.html", gin.H{
 		"jobs": jobs,
 	})
-}
-
-func getTierName(tier int) string {
-	switch tier {
-	case 1:
-		return "Free"
-	case 2:
-		return "Premium"
-	case 3:
-		return "Professional"
-	default:
-		return "Free"
-	}
-}
-
-func formatDuration(seconds int) string {
-	hours := seconds / 3600
-	minutes := (seconds % 3600) / 60
-	secs := seconds % 60
-
-	if hours > 0 {
-		return fmt.Sprintf("%dh %dm %ds", hours, minutes, secs)
-	} else if minutes > 0 {
-		return fmt.Sprintf("%dm %ds", minutes, secs)
-	}
-	return fmt.Sprintf("%ds", secs)
 }

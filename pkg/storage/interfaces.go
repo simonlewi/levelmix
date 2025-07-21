@@ -20,10 +20,14 @@ type MetadataStorage interface {
 	CreateAudioFile(ctx context.Context, file *AudioFile) error
 	GetAudioFile(ctx context.Context, fileID string) (*AudioFile, error)
 	UpdateStatus(ctx context.Context, fileID string, status string) error
+	DeleteAudioFile(ctx context.Context, fileID string) error
+
+	// Processing Job operations
 	CreateJob(ctx context.Context, job *ProcessingJob) error
 	UpdateJobStatus(ctx context.Context, jobID, status string, errorMsg *string) error
 	GetJobByFileID(ctx context.Context, fileID string) (*ProcessingJob, error)
-	DeleteAudioFile(ctx context.Context, fileID string) error
+	GetJob(ctx context.Context, jobID string) (*ProcessingJob, error) // Added: Get a job by its ID
+	UpdateJob(ctx context.Context, job *ProcessingJob) error          // Added: Update an entire job object
 
 	// User operations
 	CreateUser(ctx context.Context, user *User) error
@@ -31,6 +35,7 @@ type MetadataStorage interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
 
+	// User stats operations
 	CreateUserStats(ctx context.Context, stats *UserUploadStats) error
 	GetUserStats(ctx context.Context, userID string) (*UserUploadStats, error)
 	UpdateUserStats(ctx context.Context, stats *UserUploadStats) error
