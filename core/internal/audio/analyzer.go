@@ -64,7 +64,7 @@ func AnalyzeLoudness(inputFile string) (*LoudnessInfo, error) {
 
 	cmd := exec.Command("ffmpeg",
 		"-i", inputFile,
-		"-af", "loudnorm=print_format=json:I=-16:TP=-1.5:LRA=11",
+		"-af", "loudnorm=print_format=json:I=-16:TP=-1.5:LRA=10",
 		"-f", "null", "-")
 
 	log.Printf("FFmpeg command: %s", strings.Join(cmd.Args, " "))

@@ -31,7 +31,7 @@ func NormalizeLoudness(
 	info *LoudnessInfo,
 	options OutputOptions,
 ) error {
-	filterChain := fmt.Sprintf("loudnorm=I=%f:TP=-1.5:LRA=11:measured_I=%f:measured_TP=%f:measured_LRA=%f:measured_thresh=%f:linear=true,alimiter=limit=0.5:attack=5:release=50:level=disabled",
+	filterChain := fmt.Sprintf("loudnorm=I=%f:TP=-1.5:LRA=11:measured_I=%f:measured_TP=%f:measured_LRA=%f:measured_thresh=%f:linear=true,",
 		targetLUFS, info.InputI, info.InputTP, info.InputLRA, info.InputThresh)
 
 	args := []string{
