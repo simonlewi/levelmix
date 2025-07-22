@@ -154,6 +154,62 @@
             {{end}}
         </div>
     </div>
+
+    <!-- Account Settings Section -->
+    <div class="mt-8 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-700">
+            <h3 class="text-lg leading-6 font-medium text-white">
+                Account Settings
+            </h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-medium text-white">Email Address</h4>
+                    <p class="text-sm text-gray-400">{{.user.Email}}</p>
+                </div>
+                {{if eq .user.AuthProvider "email"}}
+                <a href="/account/change-email" class="text-sm text-cyan-400 hover:text-cyan-300">
+                    Change
+                </a>
+                {{end}}
+            </div>
+            
+            {{if eq .user.AuthProvider "email"}}
+            <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div>
+                    <h4 class="text-sm font-medium text-white">Password</h4>
+                    <p class="text-sm text-gray-400">Last updated on account creation</p>
+                </div>
+                <a href="/account/change-password" class="text-sm text-cyan-400 hover:text-cyan-300">
+                    Change
+                </a>
+            </div>
+            {{end}}
+            
+            <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div>
+                    <h4 class="text-sm font-medium text-white">Subscription</h4>
+                    <p class="text-sm text-gray-400">{{.tierName}} plan</p>
+                </div>
+                {{if ne .tierName "Professional"}}
+                <a href="/pricing" class="text-sm text-cyan-400 hover:text-cyan-300">
+                    Upgrade
+                </a>
+                {{end}}
+            </div>
+            
+            <div class="pt-4 border-t border-gray-700">
+                <h4 class="text-sm font-medium text-red-400 mb-2">Danger Zone</h4>
+                <a href="/account/delete" class="inline-flex items-center px-4 py-2 border border-red-500 text-sm font-medium rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete Account
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>

@@ -1,0 +1,102 @@
+{{template "base.html" .}}
+
+{{define "delete_account_content"}}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            
+            <h2 class="text-center text-3xl font-bold text-red-400">
+                Delete Your Account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-400">
+                This action cannot be undone
+            </p>
+        </div>
+        
+        {{if .error}}
+        <div class="rounded-lg bg-red-900/20 border border-red-500/50 p-4">
+            <div class="text-sm text-red-400">
+                {{if eq .error "password_required"}}
+                    Please enter your password to confirm
+                {{else if eq .error "invalid_password"}}
+                    Incorrect password
+                {{else if eq .error "server_error"}}
+                    An error occurred. Please try again
+                {{else if eq .error "deletion_failed"}}
+                    Failed to delete account. Please contact support
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+        
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 space-y-4">
+            <h3 class="text-lg font-medium text-white">What will be deleted:</h3>
+            <ul class="space-y-2 text-sm text-gray-300">
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-red-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Your account and profile information
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-red-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    All uploaded and processed audio files
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-red-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Processing history and statistics
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-red-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Any active subscriptions
+                </li>
+            </ul>
+        </div>
+        
+        <form class="space-y-6" action="/account/delete" method="POST" onsubmit="return confirmDeletion()">
+            {{if eq .user.AuthProvider "email"}}
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300">
+                    Enter your password to confirm
+                </label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required
+                       class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent sm:text-sm"
+                       placeholder="Your password">
+            </div>
+            {{else}}
+            <div class="text-sm text-gray-400 text-center">
+                You signed up using {{.user.AuthProvider}}. Click below to confirm account deletion.
+            </div>
+            {{end}}
+
+            <div class="flex space-x-4">
+                <a href="/dashboard"
+                   class="flex-1 py-3 px-4 border border-gray-600 text-gray-300 text-center rounded-lg hover:bg-gray-800 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="flex-1 py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-colors font-medium">
+                    Delete My Account
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function confirmDeletion() {
+    return confirm("Are you absolutely sure you want to delete your account? This action cannot be undone.");
+}
+</script>
+{{end}}

@@ -16,6 +16,7 @@ import (
 	"github.com/simonlewi/levelmix/core/internal/handlers"
 	ee_auth "github.com/simonlewi/levelmix/ee/auth"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
+	"github.com/simonlewi/levelmix/pkg/email"
 )
 
 func main() {
@@ -41,6 +42,22 @@ func main() {
 		log.Fatal("Failed to create metadata storage:", err)
 	}
 
+	var emailService email.EmailService
+
+	// Check if we're in development or production
+	if os.Getenv("EMAIL_SERVICE") == "mock" || os.Getenv("RESEND_API_KEY") == "" {
+		log.Println("Using mock email service (emails will be logged)")
+		emailService = email.NewMockEmailService()
+	} else {
+		emailService, err = email.NewResendService()
+		if err != nil {
+			log.Printf("Failed to initialize email service, falling back to mock: %v", err)
+			emailService = email.NewMockEmailService()
+		} else {
+			log.Println("Email service initialized successfully")
+		}
+	}
+
 	// Initialize queue
 	qm := audio.NewQueueManager(os.Getenv("REDIS_URL"))
 	defer qm.Shutdown()
@@ -51,9 +68,11 @@ func main() {
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
+	accountHandler := handlers.NewAccountHandler(metadataStorage, audioStorage)
+	passwordRecoveryHandler := ee_auth.NewPasswordRecoveryHandler(metadataStorage, emailService)
 
 	// Initialize auth
-	authHandler := ee_auth.NewHandler(metadataStorage)
+	authHandler := ee_auth.NewHandler(metadataStorage, emailService)
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
 
 	// Set up graceful shutdown
@@ -73,6 +92,9 @@ func main() {
 	registerTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "register.html")
 	dashboardTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "dashboard.html")
 	accessTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "access.html")
+	deleteAccountTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "delete-account.html")
+	forgotPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "forgot-password.html")
+	resetPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "reset-password.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -85,6 +107,9 @@ func main() {
 		registerTemplate,
 		dashboardTemplate,
 		accessTemplate,
+		deleteAccountTemplate,
+		forgotPasswordTemplate,
+		resetPasswordTemplate,
 	)
 
 	// Global middleware - order matters!
@@ -131,13 +156,23 @@ func main() {
 	r.GET("/results/:id", downloadHandler.ShowResults)
 	r.GET("/about", aboutHandler.ShowAbout)
 	r.GET("/pricing", pricingHandler.ShowPricing)
+	r.GET("/forgot-password", passwordRecoveryHandler.ShowForgotPassword)
+	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
+	r.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
+	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
 
 	// Protected routes
 	protected := r.Group("/")
 	protected.Use(authMiddleware.RequireAuth())
 	{
 		protected.GET("/dashboard", dashboardHandler.ShowDashboard)
-		// Add other protected routes here
+		protected.GET("/account/delete", accountHandler.ShowDeleteConfirmation)
+		protected.POST("/account/delete", accountHandler.HandleDeleteAccount)
+		// Future routes for changing email/password can be added here
+		// protected.GET("/account/change-email", accountHandler.ShowChangeEmail)
+		// protected.POST("/account/change-email", accountHandler.HandleChangeEmail)
+		// protected.GET("/account/change-password", accountHandler.ShowChangePassword)
+		// protected.POST("/account/change-password", accountHandler.HandleChangePassword)
 	}
 
 	// Start server
