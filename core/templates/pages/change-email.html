@@ -1,0 +1,105 @@
+{{template "base.html" .}}
+
+{{define "change_email_content"}}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Change Your Email
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-400">
+                Update your account email address
+            </p>
+        </div>
+        
+        {{if .success}}
+        <div class="rounded-lg bg-green-900/20 border border-green-500/50 p-4">
+            <div class="flex">
+                <svg class="w-5 h-5 text-green-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm text-green-400">
+                    Email successfully updated! A confirmation has been sent to your new email address.
+                </div>
+            </div>
+        </div>
+        {{end}}
+        
+        {{if .error}}
+        <div class="rounded-lg bg-red-900/20 border border-red-500/50 p-4">
+            <div class="text-sm text-red-400">
+                {{if eq .error "missing_fields"}}
+                    Please fill in all fields
+                {{else if eq .error "email_mismatch"}}
+                    Email addresses do not match
+                {{else if eq .error "same_email"}}
+                    New email is the same as your current email
+                {{else if eq .error "invalid_email"}}
+                    Please enter a valid email address
+                {{else if eq .error "invalid_password"}}
+                    Current password is incorrect
+                {{else if eq .error "email_exists"}}
+                    An account with this email already exists
+                {{else if eq .error "update_failed"}}
+                    Failed to update email. Please try again
+                {{else if eq .error "server_error"}}
+                    An error occurred. Please try again
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+        
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
+            <div class="flex items-center mb-4">
+                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                </svg>
+                <span class="text-sm text-gray-300">Current email: <span class="text-white font-medium">{{.user.Email}}</span></span>
+            </div>
+        </div>
+        
+        <form class="mt-8 space-y-6" action="/account/change-email" method="POST">
+            <div class="space-y-4">
+                <div>
+                    <label for="new_email" class="block text-sm font-medium text-gray-300">
+                        New Email Address
+                    </label>
+                    <input id="new_email" name="new_email" type="email" autocomplete="email" required
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm"
+                           placeholder="your.new@email.com">
+                </div>
+                
+                <div>
+                    <label for="confirm_email" class="block text-sm font-medium text-gray-300">
+                        Confirm New Email
+                    </label>
+                    <input id="confirm_email" name="confirm_email" type="email" autocomplete="email" required
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm"
+                           placeholder="your.new@email.com">
+                </div>
+                
+                <div>
+                    <label for="current_password" class="block text-sm font-medium text-gray-300">
+                        Current Password
+                    </label>
+                    <input id="current_password" name="current_password" type="password" autocomplete="current-password" required
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm"
+                           placeholder="Enter your current password">
+                    <p class="mt-1 text-xs text-gray-500">Required for security verification</p>
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <a href="/dashboard"
+                   class="flex-1 py-3 px-4 border border-gray-600 text-gray-300 text-center rounded-lg hover:bg-gray-800 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-cyan-400 to-purple-400 text-gray-900 font-medium rounded-lg hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
+                    Update Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}
