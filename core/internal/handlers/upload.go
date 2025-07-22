@@ -16,6 +16,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/pkg/storage"
+	// Ensure pkg/types and pkg/utils are imported if they contain necessary structs/functions
+	// For this specific file, they are not directly used in the modified lines,
+	// but are kept as they were in your original file.
+	// "github.com/simonlewi/levelmix/pkg/types"
+	// "github.com/simonlewi/levelmix/pkg/utils"
 )
 
 type UploadHandler struct {
@@ -40,7 +45,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
-	var userIDFromContext *string // Renamed to avoid confusion with job.UserID
+	var userIDFromContext *string
 	isPremium := false
 	userTier := 1
 	var currentUser *storage.User
@@ -52,16 +57,16 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 			userTier = u.SubscriptionTier
 			isPremium = u.SubscriptionTier > 1
 			currentUser = u
-			log.Printf("UploadHandler: User ID from context: '%s' (Tier: %d)", *userIDFromContext, u.SubscriptionTier) // Added log
+			log.Printf("UploadHandler: User ID from context: '%s' (Tier: %d)", *userIDFromContext, u.SubscriptionTier)
 		}
 	} else {
-		log.Printf("UploadHandler: Anonymous upload - no personal data stored in context") // Added log
+		log.Printf("UploadHandler: Anonymous upload - no personal data stored in context")
 	}
 
 	// Only check limits for authenticated users. Anonymous users are handled by validateFile's default tier.
 	if currentUser != nil {
 		if err := h.checkUploadLimits(c, currentUser); err != nil {
-			log.Printf("UploadHandler: Upload limit check failed for user %s: %v", *userIDFromContext, err) // Added log
+			log.Printf("UploadHandler: Upload limit check failed for user %s: %v", *userIDFromContext, err)
 			h.returnError(c, err.Error())
 			return
 		}
@@ -69,8 +74,15 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 
 	// Validate file with tier-based rules (size, format)
 	if err := h.validateFile(fileHeader, userTier); err != nil {
-		log.Printf("UploadHandler: File validation failed: %v", err) // Added log
+		log.Printf("UploadHandler: File validation failed: %v", err)
 		h.returnError(c, err.Error())
+		return
+	}
+
+	// Determine file format from extension for storage
+	fileFormat := getFileExtension(fileHeader.Filename)
+	if fileFormat == "" {
+		h.returnError(c, "Could not determine audio format from file extension.")
 		return
 	}
 
@@ -80,14 +92,14 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Get target LUFS
 	targetLUFS, err := h.parseTargetLUFS(c.PostForm("target_lufs"))
 	if err != nil {
-		log.Printf("UploadHandler: LUFS parsing failed: %v", err) // Added log
+		log.Printf("UploadHandler: LUFS parsing failed: %v", err)
 		h.returnError(c, err.Error())
 		return
 	}
 
 	// Validate custom LUFS usage - only Premium/Pro users can use custom values
 	if h.isCustomLUFS(targetLUFS) && userTier < 2 {
-		log.Printf("UploadHandler: Custom LUFS attempted by non-premium user (Tier: %d)", userTier) // Added log
+		log.Printf("UploadHandler: Custom LUFS attempted by non-premium user (Tier: %d)", userTier)
 		h.returnError(c, "Custom LUFS targets are only available for Premium and Professional users")
 		return
 	}
@@ -95,16 +107,22 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Open uploaded file
 	file, err := fileHeader.Open()
 	if err != nil {
-		log.Printf("UploadHandler: Failed to open file header: %v", err) // Added log
+		log.Printf("UploadHandler: Failed to open file header: %v", err)
 		h.returnError(c, "Failed to process file")
 		return
 	}
 	defer file.Close()
 
-	// Upload to S3
-	log.Printf("UploadHandler: Attempting to upload file %s to S3", fileID) // Added log
-	if err := h.storage.Upload(c.Request.Context(), fileID, file); err != nil {
-		log.Printf("UploadHandler: S3 upload failed for file %s: %v", fileID, err) // Added log
+	// Upload to S3 - NOW PASSES THE FORMAT
+	log.Printf("UploadHandler: Attempting to upload file %s (%s) to S3", fileID, fileFormat)
+	if err := h.storage.Upload(c.Request.Context(), fileID, file, fileFormat); err != nil {
+		log.Printf("UploadHandler: S3 upload failed for file %s: %v", fileID, err)
+		// Clean up metadata if S3 upload fails
+		h.metadata.DeleteAudioFile(c.Request.Context(), fileID)
+		// Need to pass full key to delete from S3
+		h.storage.Delete(c.Request.Context(), h.storage.GetUploadKey(fileID, fileFormat))
+		// Assuming DeleteJob exists and takes jobID
+		// h.metadata.DeleteJob(c.Request.Context(), jobID)
 		h.returnError(c, "Failed to store file")
 		return
 	}
@@ -112,18 +130,19 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Store metadata
 	audioFile := &storage.AudioFile{
 		ID:               fileID,
-		UserID:           userIDFromContext, // Use the ID from context
+		UserID:           userIDFromContext,
 		OriginalFilename: fileHeader.Filename,
 		FileSize:         fileHeader.Size,
-		Format:           getFileExtension(fileHeader.Filename),
+		Format:           fileFormat, // Use the determined fileFormat
 		Status:           "uploaded",
 		LUFSTarget:       targetLUFS,
 		CreatedAt:        time.Now(),
 	}
 
 	if err := h.metadata.CreateAudioFile(c.Request.Context(), audioFile); err != nil {
-		log.Printf("UploadHandler: Failed to save audio file metadata for %s: %v", fileID, err) // Added log
-		h.storage.Delete(c.Request.Context(), fileID)
+		log.Printf("UploadHandler: Failed to save audio file metadata for %s: %v", fileID, err)
+		// Ensure cleanup uses the correct key with format
+		h.storage.Delete(c.Request.Context(), h.storage.GetUploadKey(fileID, fileFormat))
 		h.returnError(c, "Failed to save file metadata")
 		return
 	}
@@ -132,22 +151,22 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	jobID := generateID()
 	jobUserID := ""
 	if userIDFromContext != nil {
-		jobUserID = *userIDFromContext // This is the string ID that goes into ProcessingJob
+		jobUserID = *userIDFromContext
 	}
 
 	job := &storage.ProcessingJob{
 		ID:          jobID,
 		AudioFileID: fileID,
-		UserID:      jobUserID, // This is the UserID that will be inserted into Turso
+		UserID:      jobUserID,
 		Status:      "queued",
 		CreatedAt:   time.Now(),
 	}
 
-	log.Printf("UploadHandler: Creating job record for file %s with jobID %s and UserID '%s'", fileID, jobID, job.UserID) // Added log
+	log.Printf("UploadHandler: Creating job record for file %s with jobID %s and UserID '%s'", fileID, jobID, job.UserID)
 
 	if err := h.metadata.CreateJob(c.Request.Context(), job); err != nil {
-		log.Printf("UploadHandler: Failed to create job record for %s: %v", fileID, err) // Added log
-		h.cleanup(c, fileID)
+		log.Printf("UploadHandler: Failed to create job record for %s: %v", fileID, err)
+		h.cleanup(c, fileID, fileFormat) // Pass fileFormat to cleanup
 		h.returnError(c, "Failed to create processing job")
 		return
 	}
@@ -156,14 +175,14 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		JobID:      jobID,
 		FileID:     fileID,
 		TargetLUFS: targetLUFS,
-		UserID:     jobUserID, // Pass the same UserID to the task
+		UserID:     jobUserID,
 		IsPremium:  isPremium,
 	}
 
-	log.Printf("UploadHandler: Enqueueing processing task for job %s", jobID) // Added log
+	log.Printf("UploadHandler: Enqueueing processing task for job %s", jobID)
 	if err := h.queue.EnqueueProcessing(c.Request.Context(), task); err != nil {
-		log.Printf("UploadHandler: Failed to queue processing task for job %s: %v", jobID, err) // Added log
-		h.cleanup(c, fileID)
+		log.Printf("UploadHandler: Failed to queue processing task for job %s: %v", jobID, err)
+		h.cleanup(c, fileID, fileFormat) // Pass fileFormat to cleanup
 		h.returnError(c, "Failed to queue processing")
 		return
 	}
@@ -172,7 +191,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	if currentUser != nil {
 		stats, err := h.metadata.GetUserStats(c.Request.Context(), currentUser.ID)
 		if err != nil {
-			log.Printf("UploadHandler: Could not retrieve user stats for %s, creating new: %v", currentUser.ID, err) // Added log
+			log.Printf("UploadHandler: Could not retrieve user stats for %s, creating new: %v", currentUser.ID, err)
 			stats = &storage.UserUploadStats{
 				UserID:                     currentUser.ID,
 				UploadsThisWeek:            0,
@@ -181,7 +200,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 				TotalProcessingTimeSeconds: 0,
 			}
 			if createErr := h.metadata.CreateUserStats(c.Request.Context(), stats); createErr != nil {
-				log.Printf("UploadHandler: Failed to create initial user stats for %s: %v", currentUser.ID, createErr) // Added log
+				log.Printf("UploadHandler: Failed to create initial user stats for %s: %v", currentUser.ID, createErr)
 			}
 		}
 
@@ -197,14 +216,18 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
 
 		if stats.WeekResetAt.Before(currentWeekStart) {
-			stats.UploadsThisWeek = 1
+			log.Printf("checkUploadLimits: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", currentUser.ID, stats.WeekResetAt, currentWeekStart)
+			stats.UploadsThisWeek = 0
 			stats.WeekResetAt = currentWeekStart
+			if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
+				log.Printf("checkUploadLimits: Failed to update user stats on weekly reset for %s: %v", currentUser.ID, err)
+			}
 		}
 
 		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
-			log.Printf("UploadHandler: Failed to update user stats for %s after upload: %v", currentUser.ID, err) // Added log
+			log.Printf("UploadHandler: Failed to update user stats with processing time for user %s: %v", currentUser.ID, err)
 		} else {
-			log.Printf("UploadHandler: User stats updated for %s. UploadsThisWeek: %d, TotalUploads: %d", currentUser.ID, stats.UploadsThisWeek, stats.TotalUploads) // Added log
+			log.Printf("UploadHandler: User stats updated for %s. UploadsThisWeek: %d, TotalUploads: %d", currentUser.ID, stats.UploadsThisWeek, stats.TotalUploads)
 		}
 	}
 
@@ -269,9 +292,7 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) error {
 	stats, err := h.metadata.GetUserStats(c.Request.Context(), user.ID)
 	if err != nil {
-		log.Printf("checkUploadLimits: No stats found for user %s, initializing default. Error: %v", user.ID, err) // Added log
-		// If no stats found, user is within limits (or it's their first upload this week/ever)
-		// Initialize stats if they don't exist
+		log.Printf("checkUploadLimits: No stats found for user %s, initializing default. Error: %v", user.ID, err)
 		stats = &storage.UserUploadStats{
 			UserID:                     user.ID,
 			UploadsThisWeek:            0,
@@ -280,14 +301,14 @@ func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) er
 			TotalProcessingTimeSeconds: 0,
 		}
 		if createErr := h.metadata.CreateUserStats(c.Request.Context(), stats); createErr != nil {
-			log.Printf("checkUploadLimits: Failed to create initial user stats for %s: %v", user.ID, createErr) // Added log
+			log.Printf("checkUploadLimits: Failed to create initial user stats for %s: %v", user.ID, createErr)
 		}
 	}
 
 	uploadLimit := getUploadLimit(user.SubscriptionTier)
 	if uploadLimit == -1 {
-		log.Printf("checkUploadLimits: User %s has unlimited uploads.", user.ID) // Added log
-		return nil                                                               // Unlimited
+		log.Printf("checkUploadLimits: User %s has unlimited uploads.", user.ID)
+		return nil
 	}
 
 	now := time.Now()
@@ -299,7 +320,7 @@ func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) er
 	currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
 
 	if stats.WeekResetAt.Before(currentWeekStart) {
-		log.Printf("checkUploadLimits: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", user.ID, stats.WeekResetAt, currentWeekStart) // Added log
+		log.Printf("checkUploadLimits: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", user.ID, stats.WeekResetAt, currentWeekStart)
 		stats.UploadsThisWeek = 0
 		stats.WeekResetAt = currentWeekStart
 		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
@@ -308,11 +329,11 @@ func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) er
 	}
 
 	if stats.UploadsThisWeek >= uploadLimit {
-		log.Printf("checkUploadLimits: User %s reached weekly upload limit (%d/%d).", user.ID, stats.UploadsThisWeek, uploadLimit) // Added log
+		log.Printf("checkUploadLimits: User %s reached weekly upload limit (%d/%d).", user.ID, stats.UploadsThisWeek, uploadLimit)
 		return fmt.Errorf("weekly upload limit reached (%d/%d), upgrade your plan for more uploads", stats.UploadsThisWeek, uploadLimit)
 	}
 
-	log.Printf("checkUploadLimits: User %s is within limits (%d/%d).", user.ID, stats.UploadsThisWeek, uploadLimit) // Added log
+	log.Printf("checkUploadLimits: User %s is within limits (%d/%d).", user.ID, stats.UploadsThisWeek, uploadLimit)
 	return nil
 }
 
@@ -388,9 +409,9 @@ func (h *UploadHandler) parseTargetLUFS(lufsStr string) (float64, error) {
 }
 
 // cleanup removes uploaded file and metadata on error
-func (h *UploadHandler) cleanup(ctx *gin.Context, fileID string) {
+func (h *UploadHandler) cleanup(ctx *gin.Context, fileID string, fileFormat string) {
 	// Try to delete the uploaded file (ignore errors)
-	h.storage.Delete(ctx.Request.Context(), fileID)
+	h.storage.Delete(ctx.Request.Context(), h.storage.GetUploadKey(fileID, fileFormat))
 
 	// Try to delete metadata (ignore errors)
 	h.metadata.DeleteAudioFile(ctx.Request.Context(), fileID)

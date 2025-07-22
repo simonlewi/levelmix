@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -62,20 +64,67 @@ func (h *DownloadHandler) HandleDownload(c *gin.Context) {
 		return
 	}
 
+	// Get the job to determine the output format
+	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve job information"})
+		return
+	}
+
+	// Determine the output format
+	// Use the output_format field from the job
+	outputFormat := audioFile.Format // Default to original format
+	if job.OutputFormat != "" {
+		outputFormat = job.OutputFormat
+	} else if job.OutputS3Key != "" {
+		// Backward compatibility: if OutputFormat is not set but OutputS3Key is
+		outputFormat = job.OutputS3Key
+	}
+
+	// For free users, output is always MP3
+	if audioFile.UserID == nil {
+		outputFormat = "mp3"
+	} else if audioFile.UserID != nil {
+		// Check user tier to determine if they should get MP3 or original format
+		user, err := h.metadata.GetUser(c.Request.Context(), *audioFile.UserID)
+		if err == nil && user.SubscriptionTier == 1 {
+			outputFormat = "mp3"
+		}
+	}
+
+	// Build the correct filename with extension
 	originalName := audioFile.OriginalFilename
 	nameWithoutExt := strings.TrimSuffix(originalName, filepath.Ext(originalName))
-	downloadFilename := nameWithoutExt + "_normalized.mp3"
+	downloadFilename := fmt.Sprintf("%s_normalized.%s", nameWithoutExt, outputFormat)
 
-	// Get file from S3
-	reader, err := h.storage.Download(c.Request.Context(), "processed/"+fileID)
+	// Get file from S3 with the correct key
+	var reader io.ReadCloser
+	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
+		// Use the S3Storage method to get the correct key
+		processedKey := s3Storage.GetProcessedKey(fileID, outputFormat)
+		reader, err = h.storage.Download(c.Request.Context(), processedKey)
+	} else {
+		// Fallback for non-S3 storage
+		reader, err = h.storage.Download(c.Request.Context(), "processed/"+fileID)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve file"})
 		return
 	}
 	defer reader.Close()
 
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", downloadFilename))
-	c.Header("Content-Type", "audio/mpeg")
+	// Set appropriate content type based on format
+	contentType := "audio/mpeg" // Default to MP3
+	switch outputFormat {
+	case "wav":
+		contentType = "audio/wav"
+	case "flac":
+		contentType = "audio/flac"
+	}
 
-	c.DataFromReader(http.StatusOK, -1, "audio/mpeg", reader, nil)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", downloadFilename))
+	c.Header("Content-Type", contentType)
+
+	c.DataFromReader(http.StatusOK, -1, contentType, reader, nil)
 }
