@@ -9,10 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time" // Import time package
+	"time"
 
 	"github.com/hibiken/asynq"
-	ee_storage "github.com/simonlewi/levelmix/ee/storage" // Assuming this is your S3 storage
+	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -41,28 +41,24 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	// Fetch the job to update its start time
 	job, err := p.metadataStorage.GetJob(ctx, task.JobID)
 	if err != nil {
-		// Log and fail if we can't get the job, as we need it to track times
 		return fmt.Errorf("failed to retrieve job %s for processing: %w", task.JobID, err)
 	}
 
 	// Update job status to processing and set start time
 	now := time.Now()
 	job.Status = "processing"
-	job.StartedAt = &now // Use StartedAt as per your struct
+	job.StartedAt = &now
 	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
 		log.Printf("Failed to update job %s status to processing with start time: %v", job.ID, err)
-		// Decide if you want to fail the task or just log and proceed.
-		// For now, we'll log and proceed, but this might lead to inaccurate processing times if update fails.
 	}
 
 	// Get audio file info to determine format
 	audioFile, err := p.metadataStorage.GetAudioFile(ctx, task.FileID)
 	if err != nil {
 		errMsg := err.Error()
-		// Update job status to failed before returning
 		job.Status = "failed"
 		job.ErrorMessage = &errMsg
-		p.metadataStorage.UpdateJob(ctx, job) // Try to update job with error
+		p.metadataStorage.UpdateJob(ctx, job)
 		return fmt.Errorf("failed to get audio file info for file %s: %w", task.FileID, err)
 	}
 
@@ -75,7 +71,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		p.metadataStorage.UpdateJob(ctx, job)
 		return fmt.Errorf("failed to download file %s: %w", task.FileID, err)
 	}
-	defer os.Remove(inputFile) // Clean up temp file
+	defer os.Remove(inputFile)
 
 	// Analyze loudness
 	loudnessInfo, err := AnalyzeLoudness(inputFile)
@@ -87,9 +83,12 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("loudness analysis failed for file %s: %w", task.FileID, err)
 	}
 
+	// Determine the output format based on input and user tier
+	outputFormat := p.determineOutputFormat(task.IsPremium, audioFile.Format)
+
 	// Process audio
-	outputFile := p.getOutputFilePath(task.FileID, task.JobID, audioFile.Format)
-	defer os.Remove(outputFile) // Clean up temp file
+	outputFile := p.getOutputFilePath(task.FileID, task.JobID, outputFormat)
+	defer os.Remove(outputFile)
 
 	outputOptions := p.getOutputOptions(task.IsPremium, audioFile.Format)
 	if err := NormalizeLoudness(inputFile, outputFile, task.TargetLUFS, loudnessInfo, outputOptions); err != nil {
@@ -100,8 +99,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("loudness normalization failed for file %s: %w", task.FileID, err)
 	}
 
-	// Upload processed file back to S3
-	if err := p.uploadProcessedFile(ctx, task.FileID, outputFile); err != nil {
+	// Upload processed file back to S3 with the correct output format
+	if err := p.uploadProcessedFile(ctx, task.FileID, outputFile, outputFormat); err != nil {
 		errMsg := err.Error()
 		job.Status = "failed"
 		job.ErrorMessage = &errMsg
@@ -109,27 +108,27 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("failed to upload processed file %s: %w", task.FileID, err)
 	}
 
+	// Store the output format in the job for later retrieval
+	job.OutputFormat = outputFormat // Store the output format in the new field
+
 	// Update job status to completed and set completion time
 	completedNow := time.Now()
 	job.Status = "completed"
-	job.CompletedAt = &completedNow // Use CompletedAt as per your struct
+	job.CompletedAt = &completedNow
 	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
 		log.Printf("Failed to update job %s status to completed with end time: %v", job.ID, err)
-		// Log and proceed, as the core task is done, but stats might be off
 	}
 
-	// Update audio file status (this was already there)
+	// Update audio file status
 	if err := p.metadataStorage.UpdateStatus(ctx, task.FileID, "completed"); err != nil {
 		log.Printf("Failed to update file %s status to completed: %v", task.FileID, err)
-		// Log and proceed
 	}
 
-	// --- START: Logic to update TotalProcessingTimeSeconds ---
-	if task.UserID != "" { // Only update stats for authenticated users
+	// Update processing time stats for authenticated users
+	if task.UserID != "" {
 		stats, err := p.metadataStorage.GetUserStats(ctx, task.UserID)
 		if err != nil {
-			log.Printf("Could not retrieve user stats for user %s to update processing time: %v", task.UserID, err)
-			// If stats don't exist, create a default one to avoid nil pointer dereference
+			log.Printf("Could not retrieve user stats for user %s: %v", task.UserID, err)
 			stats = &storage.UserUploadStats{
 				UserID:                     task.UserID,
 				UploadsThisWeek:            0,
@@ -142,24 +141,29 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 			}
 		}
 
-		// Calculate duration and add to total using your struct's StartedAt and CompletedAt
-		if job.StartedAt != nil && job.CompletedAt != nil { // Check for nil pointers
+		if job.StartedAt != nil && job.CompletedAt != nil {
 			duration := job.CompletedAt.Sub(*job.StartedAt).Seconds()
-			stats.TotalProcessingTimeSeconds += int(duration) // Convert to int seconds
-		} else {
-			log.Printf("Warning: StartedAt or CompletedAt is nil for job %s. Cannot calculate accurate duration.", job.ID)
+			stats.TotalProcessingTimeSeconds += int(duration)
 		}
 
 		if err := p.metadataStorage.UpdateUserStats(ctx, stats); err != nil {
 			log.Printf("Failed to update user stats with processing time for user %s: %v", task.UserID, err)
 		}
 	}
-	// --- END: Logic to update TotalProcessingTimeSeconds ---
 
 	return nil
 }
 
-// Helper functions (unchanged)
+// determineOutputFormat decides the output format based on user tier and input format
+func (p *Processor) determineOutputFormat(isPremium bool, inputFormat string) string {
+	// Free users always get MP3 output regardless of input
+	if !isPremium {
+		return "mp3"
+	}
+
+	// Premium users get the same format as input (wav stays wav, mp3 stays mp3)
+	return strings.ToLower(inputFormat)
+}
 
 func (p *Processor) validateTask(task ProcessTask) error {
 	if task.JobID == "" {
@@ -168,9 +172,7 @@ func (p *Processor) validateTask(task ProcessTask) error {
 	if task.FileID == "" {
 		return fmt.Errorf("file ID is required")
 	}
-	if task.UserID == "" {
-		return fmt.Errorf("user ID is required")
-	}
+	// Note: UserID can be empty for anonymous uploads
 	if task.TargetLUFS < -50 || task.TargetLUFS > 0 {
 		return fmt.Errorf("target LUFS must be between -50 and 0, got %f", task.TargetLUFS)
 	}
@@ -191,12 +193,19 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 	tempFileName := tempFile.Name()
 	tempFile.Close()
 
-	uploadKey := "uploads/" + fileID
+	// Use the S3Storage method to get the correct key with extension
+	var uploadKey string
+	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
+		uploadKey = s3Storage.GetUploadKey(fileID, format)
+	} else {
+		// Fallback for non-S3 storage
+		uploadKey = "uploads/" + fileID
+	}
 
 	log.Printf("Downloading file from S3: %s", uploadKey)
 	reader, err := p.audioStorage.Download(ctx, uploadKey)
 	if err != nil {
-		os.Remove(tempFileName) // Clean up on error
+		os.Remove(tempFileName)
 		return "", fmt.Errorf("failed to download from S3: %w", err)
 	}
 	defer reader.Close()
@@ -215,11 +224,10 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 	}
 
 	log.Printf("Successfully downloaded file to: %s", tempFileName)
-
 	return tempFileName, nil
 }
 
-func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath string) error {
+func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath, outputFormat string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to open processed file: %w", err)
@@ -228,35 +236,27 @@ func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath st
 
 	// Cast to the concrete S3Storage type if available
 	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
-		return s3Storage.UploadProcessed(ctx, fileID, file)
+		return s3Storage.UploadProcessed(ctx, fileID, file, outputFormat)
 	}
 
 	// Fallback to upload to S3 in processed/ folder
 	processedKey := "processed/" + fileID
-	return p.audioStorage.Upload(ctx, processedKey, file)
+	return p.audioStorage.Upload(ctx, processedKey, file, outputFormat)
 }
 
 func (p *Processor) getOutputOptions(isPremium bool, inputFormat string) OutputOptions {
 	// Determine output format based on input and user tier
-	outputFormat := inputFormat
-
-	// Free users always get MP3 output regardless of input
-	if !isPremium {
-		outputFormat = "mp3"
-	}
+	outputFormat := p.determineOutputFormat(isPremium, inputFormat)
 
 	switch strings.ToLower(outputFormat) {
 	case "wav":
-		if isPremium {
-			return OutputOptions{
-				Codec: "pcm_s16le", // High quality uncompressed WAV
-				ExtraOptions: []string{
-					"-ar", "44100", // 44.1kHz sample rate
-					"-ac", "2", // Stereo
-				},
-			}
+		return OutputOptions{
+			Codec: "pcm_s16le", // High quality uncompressed WAV
+			ExtraOptions: []string{
+				"-ar", "44100", // 44.1kHz sample rate
+				"-ac", "2", // Stereo
+			},
 		}
-		fallthrough // Fall through to MP3 for free users
 
 	case "mp3":
 		if isPremium {
@@ -282,11 +282,11 @@ func (p *Processor) getOutputOptions(isPremium bool, inputFormat string) OutputO
 	}
 }
 
-func (p *Processor) getOutputFilePath(fileID, jobID, inputFormat string) string {
-	// Determine output extension based on input format and processing rules
+func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string {
+	// Determine output extension based on the output format
 	outputExt := ".mp3" // Default to MP3
 
-	switch strings.ToLower(inputFormat) {
+	switch strings.ToLower(outputFormat) {
 	case "wav":
 		outputExt = ".wav"
 	case "mp3":
@@ -300,7 +300,7 @@ func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.Se
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: redisAddr},
 		asynq.Config{
-			Concurrency: 10, // Number of concurrent workers
+			Concurrency: 10,
 			Queues: map[string]int{
 				QueuePremium:  6,
 				QueueStandard: 3,

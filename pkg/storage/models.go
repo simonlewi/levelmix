@@ -23,6 +23,7 @@ type ProcessingJob struct {
 	Status       string
 	ErrorMessage *string
 	OutputS3Key  string
+	OutputFormat string // New field to track the output format
 	StartedAt    *time.Time
 	CompletedAt  *time.Time
 	CreatedAt    time.Time

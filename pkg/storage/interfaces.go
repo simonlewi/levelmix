@@ -1,3 +1,4 @@
+// pkg/storage/interfaces.go
 package storage
 
 import (
@@ -6,15 +7,17 @@ import (
 	"time"
 )
 
-// AudioStorage defines the interface for audio file storage operations
+// AudioStorage handles file storage operations
 type AudioStorage interface {
-	Upload(ctx context.Context, fileID string, reader io.Reader) error
+	Upload(ctx context.Context, key string, reader io.Reader, format string) error
 	Download(ctx context.Context, key string) (io.ReadCloser, error)
-	GetPresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
 	Delete(ctx context.Context, key string) error
+	GetPresignedURL(ctx context.Context, key string, duration time.Duration, format string) (string, error)
+	GetUploadKey(fileID string, format string) string
+	GetProcessedKey(fileID string, format string) string
 }
 
-// MetadataStorage defines the interface for metadata operations
+// MetadataStorage handles database operations
 type MetadataStorage interface {
 	// Audio file operations
 	CreateAudioFile(ctx context.Context, file *AudioFile) error
@@ -22,12 +25,12 @@ type MetadataStorage interface {
 	UpdateStatus(ctx context.Context, fileID string, status string) error
 	DeleteAudioFile(ctx context.Context, fileID string) error
 
-	// Processing Job operations
+	// Job operations
 	CreateJob(ctx context.Context, job *ProcessingJob) error
-	UpdateJobStatus(ctx context.Context, jobID, status string, errorMsg *string) error
+	GetJob(ctx context.Context, jobID string) (*ProcessingJob, error)
 	GetJobByFileID(ctx context.Context, fileID string) (*ProcessingJob, error)
-	GetJob(ctx context.Context, jobID string) (*ProcessingJob, error) // Added: Get a job by its ID
-	UpdateJob(ctx context.Context, job *ProcessingJob) error          // Added: Update an entire job object
+	UpdateJobStatus(ctx context.Context, jobID, status string, errorMsg *string) error
+	UpdateJob(ctx context.Context, job *ProcessingJob) error
 
 	// User operations
 	CreateUser(ctx context.Context, user *User) error
@@ -41,10 +44,11 @@ type MetadataStorage interface {
 	GetUserStats(ctx context.Context, userID string) (*UserUploadStats, error)
 	UpdateUserStats(ctx context.Context, stats *UserUploadStats) error
 
+	// User jobs
 	GetUserJobs(ctx context.Context, userID string, limit, offset int) ([]*ProcessingJob, error)
 }
 
-// StorageFactory defines the interface for creating storage instances
+// StorageFactory creates storage instances
 type StorageFactory interface {
 	CreateAudioStorage() (AudioStorage, error)
 	CreateMetadataStorage() (MetadataStorage, error)
