@@ -229,6 +229,10 @@
                     {{template "forgot_password_content" .}}
                 {{else if eq .CurrentPage "reset_password"}}
                     {{template "reset_password_content" .}}
+                {{else if eq .CurrentPage "change_email"}}
+                    {{template "change_email_content" .}}
+                {{else if eq .CurrentPage "change_password"}}
+                    {{template "change_password_content" .}}
                 {{end}}
             {{end}}
         </div>

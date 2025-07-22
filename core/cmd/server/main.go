@@ -72,8 +72,8 @@ func main() {
 	passwordRecoveryHandler := ee_auth.NewPasswordRecoveryHandler(metadataStorage, emailService)
 
 	// Initialize auth
-	authHandler := ee_auth.NewHandler(metadataStorage, emailService)
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
+	authHandler := ee_auth.NewHandler(metadataStorage, authMiddleware)
 
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -95,6 +95,8 @@ func main() {
 	deleteAccountTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "delete-account.html")
 	forgotPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "forgot-password.html")
 	resetPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "reset-password.html")
+	changeEmailTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "change-email.html")
+	changePasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "change-password.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -110,6 +112,8 @@ func main() {
 		deleteAccountTemplate,
 		forgotPasswordTemplate,
 		resetPasswordTemplate,
+		changeEmailTemplate,
+		changePasswordTemplate,
 	)
 
 	// Global middleware - order matters!
@@ -168,11 +172,10 @@ func main() {
 		protected.GET("/dashboard", dashboardHandler.ShowDashboard)
 		protected.GET("/account/delete", accountHandler.ShowDeleteConfirmation)
 		protected.POST("/account/delete", accountHandler.HandleDeleteAccount)
-		// Future routes for changing email/password can be added here
-		// protected.GET("/account/change-email", accountHandler.ShowChangeEmail)
-		// protected.POST("/account/change-email", accountHandler.HandleChangeEmail)
-		// protected.GET("/account/change-password", accountHandler.ShowChangePassword)
-		// protected.POST("/account/change-password", accountHandler.HandleChangePassword)
+		protected.GET("/account/change-email", accountHandler.ShowChangeEmail)
+		protected.POST("/account/change-email", accountHandler.HandleChangeEmail)
+		protected.GET("/account/change-password", accountHandler.ShowChangePassword)
+		protected.POST("/account/change-password", accountHandler.HandleChangePassword)
 	}
 
 	// Start server
