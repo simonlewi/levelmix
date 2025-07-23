@@ -156,7 +156,7 @@ func (h *AccountHandler) ShowChangeEmail(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "change-email.html", GetTemplateData(c, gin.H{
-		"CurrentPage": "change_email",
+		"CurrentPage": "change-email",
 		"PageTitle":   "Change Email",
 		"user":        user,
 		"error":       c.Query("error"),
@@ -276,7 +276,7 @@ func (h *AccountHandler) ShowChangePassword(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "change-password.html", GetTemplateData(c, gin.H{
-		"CurrentPage": "change_password",
+		"CurrentPage": "change-password",
 		"PageTitle":   "Change Password",
 		"user":        user,
 		"error":       c.Query("error"),

@@ -223,15 +223,15 @@
                     {{template "dashboard_content" .}}
                 {{else if eq .CurrentPage "access"}}
                     {{template "access_content" .}}
-                {{else if eq .CurrentPage "delete_account"}}
+                {{else if eq .CurrentPage "delete-account"}}
                     {{template "delete_account_content" .}}
-                {{else if eq .CurrentPage "forgot_password"}}
+                {{else if eq .CurrentPage "forgot-password"}}
                     {{template "forgot_password_content" .}}
-                {{else if eq .CurrentPage "reset_password"}}
+                {{else if eq .CurrentPage "reset-password"}}
                     {{template "reset_password_content" .}}
-                {{else if eq .CurrentPage "change_email"}}
+                {{else if eq .CurrentPage "change-email"}}
                     {{template "change_email_content" .}}
-                {{else if eq .CurrentPage "change_password"}}
+                {{else if eq .CurrentPage "change-password"}}
                     {{template "change_password_content" .}}
                 {{end}}
             {{end}}
