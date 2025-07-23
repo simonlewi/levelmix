@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/resendlabs/resend-go"
 )
@@ -35,9 +36,17 @@ func NewResendService() (EmailService, error) {
 		return nil, fmt.Errorf("RESEND_API_KEY environment variable not set")
 	}
 
+	// DEBUG: Check if key looks correct
+	log.Printf("API Key loaded - starts with: %s, length: %d",
+		apiKey[:4], len(apiKey))
+
+	if !strings.HasPrefix(apiKey, "re_") {
+		return nil, fmt.Errorf("API key should start with 're_'")
+	}
+
 	fromEmail := os.Getenv("EMAIL_FROM")
 	if fromEmail == "" {
-		fromEmail = "noreply@levelmix.io" // Default from email
+		fromEmail = "onboarding@resend.dev" // Default from email
 	}
 
 	fromName := os.Getenv("EMAIL_FROM_NAME")
