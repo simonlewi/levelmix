@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: levelmix-worker
+  namespace: levelmix
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: levelmix-worker
+  template:
+    metadata:
+      labels:
+        app: levelmix-worker
+    spec:
+      containers:
+      - name: worker
+        image: gcr.io/YOUR_PROJECT_ID/levelmix-worker:latest
+        envFrom:
+        - configMapRef:
+            name: levelmix-config
+        - secretRef:
+            name: levelmix-secrets
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: temp-audio
+          mountPath: /tmp/levelmix
+      volumes:
+      - name: temp-audio
+        emptyDir:
+          sizeLimit: 10Gi
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: levelmix-worker-hpa
+  namespace: levelmix
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: levelmix-worker
+  minReplicas: 5
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
