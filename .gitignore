@@ -62,3 +62,6 @@ config/*/dev.yaml
 
 # Enterprise documentation
 docs/ee
+
+# Kubernetes files
+deployments/k8s/secrets.yaml

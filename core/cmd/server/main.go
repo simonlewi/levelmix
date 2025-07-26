@@ -70,6 +70,7 @@ func main() {
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
 	accountHandler := handlers.NewAccountHandler(metadataStorage, audioStorage)
 	passwordRecoveryHandler := ee_auth.NewPasswordRecoveryHandler(metadataStorage, emailService)
+	healthHandler := handlers.NewHealthHandler(metadataStorage, os.Getenv("REDIS_URL"))
 
 	// Initialize auth
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
@@ -164,6 +165,7 @@ func main() {
 	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
 	r.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
+	r.GET("/health", healthHandler.HealthCheck)
 
 	// Protected routes
 	protected := r.Group("/")

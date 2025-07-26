@@ -1,0 +1,52 @@
+# Build stage
+FROM golang:1.23.10-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the worker
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o worker ./core/cmd/worker
+
+# Final stage
+FROM alpine:latest
+
+# Install runtime dependencies including FFmpeg
+RUN apk --no-cache add ca-certificates tzdata ffmpeg
+
+# Create non-root user
+RUN addgroup -g 1000 -S app && \
+    adduser -u 1000 -S app -G app
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary from builder
+COPY --from=builder /app/worker .
+
+# Create temp directory for audio processing
+RUN mkdir -p /tmp/levelmix && chown -R app:app /tmp/levelmix
+
+# Change ownership
+RUN chown -R app:app /app
+
+# Switch to non-root user
+USER app
+
+# Health check (workers don't expose ports, so we check if process is running)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD pgrep worker || exit 1
+
+# Run the worker
+CMD ["./worker"]

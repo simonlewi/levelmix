@@ -1,0 +1,51 @@
+steps:
+  # Build web server image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/levelmix-web:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/levelmix-web:latest',
+      '-f', 'Dockerfile.web',
+      '.'
+    ]
+
+  # Build worker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/levelmix-worker:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/levelmix-worker:latest',
+      '-f', 'Dockerfile.worker',
+      '.'
+    ]
+
+  # Push web image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/levelmix-web:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/levelmix-web:latest']
+
+  # Push worker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/levelmix-worker:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/levelmix-worker:latest']
+
+  # Deploy to GKE
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    args:
+    - run
+    - --filename=k8s/
+    - --image=gcr.io/$PROJECT_ID/levelmix-web:$COMMIT_SHA
+    - --image=gcr.io/$PROJECT_ID/levelmix-worker:$COMMIT_SHA
+    - --cluster=levelmix-cluster
+    - --location=us-central1
+    - --namespace=levelmix
+
+images:
+  - 'gcr.io/$PROJECT_ID/levelmix-web:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/levelmix-web:latest'
+  - 'gcr.io/$PROJECT_ID/levelmix-worker:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/levelmix-worker:latest'
+
+timeout: 1200s
