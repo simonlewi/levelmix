@@ -60,43 +60,73 @@ LevelMix automates this technical process, allowing creators to:
    # Edit .env with your configuration
    ```
 
-4. **Run database migrations**
+4. **Set up the database**
    ```bash
-   go run cmd/migrate/main.go
+   # Create your Turso database
+   turso db create levelmix-dev
+   
+   # Apply the database schema
+   turso db shell levelmix-dev < schema.sql
+   
+   # Get your database URL and token
+   turso db show levelmix-dev
+   # Update your .env file with the connection details
    ```
 
-5. **Start the application**
+5. **Start Redis (if running locally)**
    ```bash
-   go run cmd/server/main.go
+   redis-server
    ```
 
-6. **Visit the application**
+6. **Start the application**
+   ```bash
+   go run core/cmd/server/main.go
+   ```
+
+7. **Start the worker (in a separate terminal)**
+   ```bash
+   go run core/cmd/worker/main.go
+   ```
+
+8. **Visit the application**
    Open your browser to `http://localhost:8080`
 
 ### Environment Variables
 
+Create a `.env` file in the project root with the following configuration:
+
 ```env
-# Database
-DATABASE_URL=your_turso_database_url
-DATABASE_TOKEN=your_turso_token
+# Application Settings
+APP_URL=http://localhost:8080
+PORT=8080
+GIN_MODE=debug
+SESSION_SECRET=your-very-long-random-session-secret-here
 
-# AWS S3
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-AWS_REGION=your_aws_region
-AWS_BUCKET_NAME=your_s3_bucket
+# Beta Access (remove or leave empty for production)
+BETA_KEY=your-beta-key-here
 
-# Redis
+# Database (Turso)
+TURSO_DB_URL=libsql://your-database.turso.io
+TURSO_AUTH_TOKEN=your-turso-auth-token
+
+# Storage (AWS S3)
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=levelmix-audio-files
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+
+# Queue (Redis)
 REDIS_URL=redis://localhost:6379
 
-# Authentication
-JWT_SECRET=your_jwt_secret
-GOOGLE_CLIENT_ID=your_google_oauth_client_id
-GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+# Email Service (Resend)
+EMAIL_SERVICE=resend
+RESEND_API_KEY=your-resend-api-key
+EMAIL_FROM=your-email-address-here
+EMAIL_FROM_NAME=YourName
 
-# Application
-PORT=8080
-ENVIRONMENT=development
+# Monitoring (optional but recommended)
+SENTRY_DSN=your-sentry-dsn
+DATADOG_API_KEY=your-datadog-api-key
 ```
 
 ## Usage
@@ -105,44 +135,28 @@ ENVIRONMENT=development
 
 1. **Upload Audio File**
    - Visit the LevelMix homepage
-   - Drag and drop your MP3 file (up to 300MB)
+   - Drag and drop your MP3 file (up to 300MB for free users)
    - Or click to select file from your computer
 
 2. **Choose Target Level**
    - Select from preset LUFS targets:
      - **Streaming** (-14 LUFS): Perfect for Spotify, Apple Music, etc.
-     - **Broadcast** (-23 LUFS): EBU R128 standard for TV/radio
-     - **Club Ready** (-7 LUFS): High-energy EDM for club systems
-     - **Max Impact** (-5 LUFS): Very loud EDM masters
+     - **Podcast** (-16 LUFS): Optimized for podcast platforms
+     - **Radio** (-23 LUFS): EBU R128 standard for TV/radio
+     - **Club Mix** (-7 LUFS): High-energy for club systems
+     - **Festival Mix** (-5 LUFS): Maximum impact EDM masters
+     - **Custom LUFS** (Premium/Pro only): Set your own target level
 
 3. **Process & Download**
    - Monitor real-time processing progress
-   - Preview your normalized audio
-   - Download the processed file
-
-### API Usage
-
-LevelMix also provides a REST API for programmatic access:
-
-```bash
-# Upload and process a file
-curl -X POST \
-  -F "file=@your-audio.mp3" \
-  -F "target_lufs=-14.0" \
-  http://localhost:8080/api/v1/files/upload
-
-# Check processing status
-curl http://localhost:8080/api/v1/jobs/{job_id}/status
-
-# Download processed file
-curl http://localhost:8080/api/v1/jobs/{job_id}/download
-```
+   - Download the processed file when complete
+   - Access your processing history in the dashboard (registered users)
 
 ### Subscription Tiers
 
-- **Free Tier**: 1 upload per month, MP3 format only
-- **Premium Tier**: 4 uploads per month, MP3 + WAV support, priority processing
-- **Professional Tier**: Unlimited uploads, multiple formats, batch processing, API access
+- **Free Tier**: 1 upload per week, MP3 format only, up to 300MB
+- **Premium Tier**: 5 uploads per week, MP3 + WAV support, priority processing, custom LUFS targets
+- **Professional Tier**: 20 uploads per week, multiple formats, batch processing, priority support
 
 ## Contributing
 
@@ -160,8 +174,8 @@ We welcome contributions to LevelMix! Here's how you can help:
    # Install development dependencies
    go mod download
    
-   # Install pre-commit hooks
-   pre-commit install
+   # Install golangci-lint for code quality
+   go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
    
    # Run tests
    go test ./...
@@ -196,42 +210,26 @@ We welcome contributions to LevelMix! Here's how you can help:
 
 ```
 levelmix/
-├── LICENSE
-├── build/              # Compiled binaries
-│   └── levelmix
-├── build.sh           # Build script
-├── config/            # Configuration files
-├── core/              # Core (Community Edition) functionality
-│   ├── cmd/           # Core command-line applications
-│   ├── internal/      # Core internal packages
-│   ├── static/        # Core static assets
-│   ├── templates/     # Core HTML templates
-│   └── tmp/           # Temporary files
-├── deployments/       # Deployment configurations
-│   ├── docker/        # Docker configurations
-│   └── k8s/          # Kubernetes configurations
-├── docs/              # Documentation
-│   ├── ce/           # Community Edition docs
-│   └── ee/           # Enterprise Edition docs
-├── ee/                # Enterprise Edition functionality
-│   ├── cmd/           # Enterprise command-line applications
-│   ├── internal/      # Enterprise internal packages
-│   ├── static/        # Enterprise static assets
-│   ├── storage/       # Enterprise storage configurations
-│   └── templates/     # Enterprise HTML templates
-├── migrations/        # Database migrations
-│   ├── ce/           # Community Edition migrations
-│   └── ee/           # Enterprise Edition migrations
-├── pkg/               # Public packages
-│   └── storage/       # Storage utilities
-├── tests/             # Test files
-│   ├── ce/           # Community Edition tests
-│   └── ee/           # Enterprise Edition tests
-├── go.mod             # Go module definition
-├── go.sum             # Go module checksums
-├── package.json       # Node.js dependencies (for TailwindCSS)
-├── postcss.config.mjs # PostCSS configuration
-└── tmp/               # Temporary build files
+├── core/                    # Core application
+│   ├── cmd/
+│   │   ├── server/         # Main web server
+│   │   └── worker/         # Background audio processor
+│   ├── internal/
+│   │   ├── audio/          # Audio processing logic
+│   │   └── handlers/       # HTTP request handlers
+│   ├── static/             # Static assets (CSS, images)
+│   └── templates/          # HTML templates
+├── ee/                     # Enterprise Edition features
+│   ├── auth/              # Authentication system
+│   └── storage/           # Storage implementations
+├── pkg/                   # Shared packages
+│   ├── email/             # Email service
+│   └── storage/           # Storage interfaces
+├── deployments/           # Deployment configurations
+├── scripts/               # Utility scripts
+├── go.mod                 # Go module definition
+├── schema.sql             # Database schema
+└── README.md
 ```
 
 ### Areas for Contribution
@@ -239,10 +237,11 @@ levelmix/
 - 🐛 **Bug fixes** and performance improvements
 - 📚 **Documentation** enhancements
 - 🎨 **UI/UX** improvements
-- 🔧 **New audio formats** support
+- 🔧 **New audio formats** support (FLAC, AAC, etc.)
 - 🚀 **Performance optimizations**
 - 🧪 **Testing** coverage expansion
 - 🔒 **Security** enhancements
+- 🎛️ **Additional audio processing features**
 
 ### Code Style
 
@@ -251,12 +250,57 @@ levelmix/
 - Add comments for complex logic
 - Keep functions small and focused
 - Write tests for new functionality
+- Follow the existing project structure
 
 ### Getting Help
 
 - 📋 **Issues**: Report bugs or request features via GitHub Issues
 - 💬 **Discussions**: Join community discussions for questions and ideas
 - 📧 **Contact**: Reach out to maintainers for major contributions
+
+## Development
+
+### Running in Development Mode
+
+1. **Start Redis**
+   ```bash
+   redis-server
+   ```
+
+2. **Start the web server**
+   ```bash
+   go run core/cmd/server/main.go
+   ```
+
+3. **Start the worker (separate terminal)**
+   ```bash
+   go run core/cmd/worker/main.go
+   ```
+
+### Testing Audio Processing
+
+1. Create a test MP3 file or use any existing audio file
+2. Upload through the web interface at `http://localhost:8080/upload`
+3. Monitor the processing in the worker logs
+4. Download the normalized result
+
+### Database Management
+
+The application uses Turso (SQLite-compatible) as its database. The schema is defined in `schema.sql`:
+
+```bash
+# Connect to your database
+turso db shell your-database-name
+
+# Run a query
+SELECT * FROM users LIMIT 5;
+
+# View tables
+.tables
+
+# View schema for a table
+.schema users
+```
 
 ---
 
