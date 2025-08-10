@@ -20,13 +20,11 @@ func main() {
 
 	// Load environment variables
 	log.Printf("Project root: %s", projectRoot)
-	envPath := filepath.Join(projectRoot, ".env.production")
-	log.Printf("Worker looking for .env.production file at: %s", envPath)
 
-	if err := godotenv.Load(envPath); err != nil {
-		log.Printf("Error loading .env.production file to worker: %v", err)
+	if err := godotenv.Load(".env.production", filepath.Join(projectRoot, ".env.production"), ".env"); err != nil {
+		log.Printf("No .env file found for worker: %v", err)
 	} else {
-		log.Println(".env.production file loaded successfully to worker")
+		log.Println(".env file loaded successfully to worker")
 	}
 
 	// Initialize storage
