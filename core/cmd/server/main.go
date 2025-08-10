@@ -24,7 +24,7 @@ func main() {
 	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
 
 	// Load environment variables
-	envPath := filepath.Join(projectRoot, ".env")
+	envPath := filepath.Join(projectRoot, ".env.production")
 	if err := godotenv.Load(envPath); err != nil {
 		log.Println("No .env file found")
 	}
