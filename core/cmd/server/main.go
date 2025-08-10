@@ -27,7 +27,7 @@ func main() {
 	log.Printf("Project root: %s", projectRoot)
 
 	if err := godotenv.Load(".env.production", filepath.Join(projectRoot, ".env.production"), ".env"); err != nil {
-		log.Printf("No .env file found for server: %v", err)
+		log.Printf("Error loading .env file to server: %v", err)
 	} else {
 		log.Println(".env file loaded successfully to server")
 	}
