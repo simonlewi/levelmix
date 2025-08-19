@@ -24,12 +24,15 @@ func main() {
 	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
 
 	// Load environment variables
-	log.Printf("Project root: %s", projectRoot)
-
-	if err := godotenv.Load(".env.production", filepath.Join(projectRoot, ".env.production"), ".env"); err != nil {
-		log.Printf("Error loading .env file to server: %v", err)
+	envPath := filepath.Join(projectRoot, ".env")
+	if _, err := os.Stat(envPath); err == nil {
+		if err := godotenv.Load(envPath); err != nil {
+			log.Printf("Error loading .env file to server: %v", err)
+		} else {
+			log.Println(".env file loaded successfully to server")
+		}
 	} else {
-		log.Println(".env file loaded successfully to server")
+		log.Println("No .env file found, using environment variables from system/Docker")
 	}
 
 	// Initialize storage
@@ -120,6 +123,8 @@ func main() {
 		changePasswordTemplate,
 	)
 
+	r.GET("/health", healthHandler.HealthCheck)
+
 	// Global middleware - order matters!
 	r.Use(handlers.TemplateContext()) // This should be first to set template data
 	r.Use(handlers.AccessControlMiddleware())
@@ -168,7 +173,6 @@ func main() {
 	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
 	r.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
-	r.GET("/health", healthHandler.HealthCheck)
 
 	// Protected routes
 	protected := r.Group("/")
