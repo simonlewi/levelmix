@@ -46,7 +46,7 @@ USER app
 
 # Health check (workers don't expose ports, so we check if process is running)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD pgrep worker || exit 1
+    CMD ps aux | grep worker | grep -v grep || exit 1
 
 # Run the worker
 CMD ["./worker"]
