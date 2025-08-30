@@ -3,9 +3,11 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -30,10 +32,11 @@ func (h *HealthHandler) HealthCheck(c *gin.Context) {
 		"checks": gin.H{},
 	}
 
+	overallHealthy := true
+
 	// Check database connectivity
-	dbHealthy := true
 	if err := h.checkDatabase(ctx); err != nil {
-		dbHealthy = false
+		overallHealthy = false
 		health["checks"].(gin.H)["database"] = gin.H{
 			"status": "unhealthy",
 			"error":  err.Error(),
@@ -44,9 +47,21 @@ func (h *HealthHandler) HealthCheck(c *gin.Context) {
 		}
 	}
 
-	// Add more checks as needed (Redis, S3, etc.)
+	if err := h.checkRedis(ctx); err != nil {
+		overallHealthy = false
+		health["checks"].(gin.H)["redis"] = gin.H{
+			"status": "unhealthy",
+			"error":  err.Error(),
+		}
+	} else {
+		health["checks"].(gin.H)["redis"] = gin.H{
+			"status": "healthy",
+		}
+	}
 
-	if !dbHealthy {
+	// Add more checks as needed (S3, etc.)
+
+	if !overallHealthy {
 		health["status"] = "unhealthy"
 		c.JSON(http.StatusServiceUnavailable, health)
 		return
@@ -56,11 +71,27 @@ func (h *HealthHandler) HealthCheck(c *gin.Context) {
 }
 
 func (h *HealthHandler) checkDatabase(ctx context.Context) error {
-	// Simple database connectivity check
-	// You might want to implement a Ping method in your storage interface
 	_, err := h.metadata.GetUser(ctx, "health-check-non-existent-user")
 	if err != nil && err.Error() != "sql: no rows in result set" {
 		return err
 	}
 	return nil
+}
+
+func (h *HealthHandler) checkRedis(ctx context.Context) error {
+	addr := h.redis
+	if addr == "" {
+		addr = "localhost:6379"
+	}
+
+	client := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       0,
+	})
+	defer client.Close()
+
+	// Test connection with PING
+	_, err := client.Ping(ctx).Result()
+	return err
 }

@@ -298,7 +298,7 @@ func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string
 
 func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {
 	srv := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: redisAddr},
+		asynq.RedisClientOpt{Addr: redisAddr, Password: os.Getenv("REDIS_PASSWORD")},
 		asynq.Config{
 			Concurrency: 10,
 			Queues: map[string]int{
