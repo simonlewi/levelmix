@@ -10,7 +10,6 @@ build/
 
 # Environment & secrets
 .env
-.env.*
 config.*.json
 !config.example.json
 secrets/
@@ -42,6 +41,7 @@ coverage/
 # Local development files
 *.local
 docker-compose.override.yml
+docker-compose.yml
 
 # Audio files
 *.mp3

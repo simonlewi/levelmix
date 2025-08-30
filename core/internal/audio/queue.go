@@ -3,6 +3,7 @@ package audio
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -24,7 +25,10 @@ type ProcessTask struct {
 }
 
 func NewQueue(redisAddr string) *asynq.Client {
-	return asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
+	return asynq.NewClient(asynq.RedisClientOpt{
+		Addr:     redisAddr,
+		Password: os.Getenv("REDIS_PASSWORD"),
+	})
 }
 
 type QueueManager struct {
@@ -33,7 +37,10 @@ type QueueManager struct {
 
 func NewQueueManager(redisAddr string) *QueueManager {
 	return &QueueManager{
-		client: asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr}),
+		client: asynq.NewClient(asynq.RedisClientOpt{
+			Addr:     redisAddr,
+			Password: os.Getenv("REDIS_PASSWORD"),
+		}),
 	}
 }
 
