@@ -1,12 +1,14 @@
 package main
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 
 	"github.com/gin-gonic/gin"
@@ -88,6 +90,9 @@ func main() {
 
 	r := gin.Default()
 
+	// Configure trusted proxies based on environment
+	configureTrustedProxies(r)
+
 	// Load templates
 	baseTemplate := filepath.Join(projectRoot, "core", "templates", "base.html")
 	homeTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "home.html")
@@ -123,35 +128,11 @@ func main() {
 		changePasswordTemplate,
 	)
 
-	r.GET("/health", healthHandler.HealthCheck)
-
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
 
-	// Global middleware - order matters!
-	r.Use(handlers.TemplateContext()) // This should be first to set template data
-	r.Use(handlers.AccessControlMiddleware())
-	r.Use(authMiddleware.TemplateContext())
-
-	// Public routes
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "home.html", handlers.GetTemplateData(c, gin.H{
-			"CurrentPage": "home",
-		}))
-	})
-
-	r.GET("/upload", authMiddleware.OptionalAuth(), func(c *gin.Context) {
-		templateData := handlers.GetTemplateData(c, gin.H{
-			"CurrentPage": "upload",
-			"PageTitle":   "Upload",
-		})
-
-		if user, exists := c.Get("user"); exists {
-			templateData["user"] = user
-		}
-
-		c.HTML(http.StatusOK, "upload.html", templateData)
-	})
+	// Health check
+	r.GET("/health", healthHandler.HealthCheck)
 
 	// Authentication routes
 	r.GET("/login", authHandler.ShowLogin)
@@ -160,22 +141,54 @@ func main() {
 	r.POST("/register", authHandler.HandleRegister)
 	r.GET("/logout", authHandler.HandleLogout)
 
-	// Public routes
+	// Access control routes
 	r.GET("/access", handlers.ShowAccessForm)
 	r.POST("/access", handlers.AccessControlMiddleware())
-	r.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)
-	r.GET("/status/:id", uploadHandler.GetStatus)
-	r.GET("/download/:id", downloadHandler.HandleDownload)
-	r.GET("/results/:id", downloadHandler.ShowResults)
-	r.GET("/about", aboutHandler.ShowAbout)
-	r.GET("/pricing", pricingHandler.ShowPricing)
+
+	// Password recovery routes (no access control needed)
 	r.GET("/forgot-password", passwordRecoveryHandler.ShowForgotPassword)
 	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
 	r.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
 
-	// Protected routes
+	// API routes that don't need access control
+	r.GET("/status/:id", uploadHandler.GetStatus)
+	r.GET("/download/:id", downloadHandler.HandleDownload)
+	r.GET("/results/:id", downloadHandler.ShowResults)
+
+	// Public routes that need access control
+	publicProtected := r.Group("/")
+	publicProtected.Use(handlers.TemplateContext())
+	publicProtected.Use(handlers.AccessControlMiddleware())
+	publicProtected.Use(authMiddleware.TemplateContext())
+	{
+		publicProtected.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "home.html", handlers.GetTemplateData(c, gin.H{
+				"CurrentPage": "home",
+			}))
+		})
+
+		publicProtected.GET("/upload", authMiddleware.OptionalAuth(), func(c *gin.Context) {
+			templateData := handlers.GetTemplateData(c, gin.H{
+				"CurrentPage": "upload",
+				"PageTitle":   "Upload",
+			})
+
+			if user, exists := c.Get("user"); exists {
+				templateData["user"] = user
+			}
+
+			c.HTML(http.StatusOK, "upload.html", templateData)
+		})
+
+		publicProtected.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)
+		publicProtected.GET("/about", aboutHandler.ShowAbout)
+		publicProtected.GET("/pricing", pricingHandler.ShowPricing)
+	}
+
+	// Protected routes (need authentication)
 	protected := r.Group("/")
+	protected.Use(handlers.TemplateContext())
 	protected.Use(authMiddleware.RequireAuth())
 	{
 		protected.GET("/dashboard", dashboardHandler.ShowDashboard)
@@ -204,4 +217,42 @@ func main() {
 
 	<-quit
 	log.Println("Shutting down server...")
+}
+
+// configureTrustedProxies sets up proxy trust configuration based on environment
+func configureTrustedProxies(r *gin.Engine) {
+	trustedProxies := os.Getenv("TRUSTED_PROXIES")
+
+	if trustedProxies == "" {
+		// No proxies configured - direct deployment
+		log.Println("No trusted proxies configured - disabling proxy trust")
+		r.SetTrustedProxies(nil)
+		return
+	}
+
+	// Parse comma-separated proxy IPs/CIDRs
+	proxies := strings.Split(trustedProxies, ",")
+	for i, proxy := range proxies {
+		proxies[i] = strings.TrimSpace(proxy)
+	}
+
+	log.Printf("Configuring trusted proxies for Traefik: %v", proxies)
+	if err := r.SetTrustedProxies(proxies); err != nil {
+		log.Printf("Warning: Failed to set trusted proxies: %v", err)
+		// Fall back to disabling proxy trust
+		r.SetTrustedProxies(nil)
+		return
+	}
+
+	// Configure additional middleware for Traefik headers
+	r.Use(func(c *gin.Context) {
+		// Traefik forwards the original protocol
+		if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
+			if proto == "https" {
+				c.Request.TLS = &tls.ConnectionState{}
+			}
+		}
+
+		c.Next()
+	})
 }
