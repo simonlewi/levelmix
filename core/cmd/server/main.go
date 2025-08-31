@@ -125,13 +125,13 @@ func main() {
 
 	r.GET("/health", healthHandler.HealthCheck)
 
+	// Static files
+	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
+
 	// Global middleware - order matters!
 	r.Use(handlers.TemplateContext()) // This should be first to set template data
 	r.Use(handlers.AccessControlMiddleware())
 	r.Use(authMiddleware.TemplateContext())
-
-	// Static files
-	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
 
 	// Public routes
 	r.GET("/", func(c *gin.Context) {
