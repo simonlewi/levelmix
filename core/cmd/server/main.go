@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -206,17 +208,28 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Server starting on http://localhost:%s", port)
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: r,
+	}
 
 	go func() {
-		if err := r.Run(":" + port); err != nil {
-			log.Printf("Server error: %v", err)
-			quit <- syscall.SIGTERM
+		// Service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
 		}
 	}()
 
 	<-quit
 	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
+	}
+
+	log.Println("Server exiting")
 }
 
 // configureTrustedProxies sets up proxy trust configuration based on environment
