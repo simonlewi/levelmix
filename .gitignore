@@ -6,10 +6,10 @@ vendor/
 dist/
 build/
 *.min.js
-*.min.css
 
 # Environment & secrets
 .env
+.env.production
 config.*.json
 !config.example.json
 secrets/
@@ -65,3 +65,10 @@ docs/ee
 
 # Kubernetes files
 deployments/k8s/secrets.yaml
+
+# Node.js specific
+npm-debug.log*
+package-lock.json
+
+# Include our built CSS file explicitly
+!core/static/css/output.css

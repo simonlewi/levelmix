@@ -1,7 +1,14 @@
 {
+  "scripts": {
+    "build-css": "postcss ./core/static/css/main.css -o ./core/static/css/output.css --watch",
+    "build-css-prod": "postcss ./core/static/css/main.css -o ./core/static/css/output.css"
+  },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.8",
     "postcss": "^8.5.4",
     "tailwindcss": "^4.1.8"
+  },
+  "devDependencies": {
+    "postcss-cli": "^11.0.0"
   }
 }

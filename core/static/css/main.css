@@ -1,1 +1,103 @@
 @import "tailwindcss";
+
+/* Custom styles converted for Tailwind v4 */
+.state-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+.hero-image {
+  background-image: url('/static/images/party-crowd.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  min-height: 500px;
+}
+
+.hero-overlay {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(55, 65, 81, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+}
+
+.upload-gradient {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(58, 168, 163, 0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(58, 168, 163, 0); }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: conic-gradient(from 90deg, rgb(6, 182, 212) 0deg, transparent 360deg);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
+  animation: spin 1s linear infinite;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  transition: width 0.5s ease;
+}
+
+.drop-area {
+  transition: all 0.3s ease;
+}
+
+.drop-area.drag-over {
+  border-color: #06b6d4;
+  background-color: rgba(6, 182, 212, 0.1);
+}
+
+.checkmark {
+  animation: checkmark-appear 0.5s ease-in-out;
+}
+
+@keyframes checkmark-appear {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
