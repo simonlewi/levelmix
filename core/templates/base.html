@@ -6,6 +6,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <title>{{if .PageTitle}}{{.PageTitle}} - LevelMix{{else}}LevelMix - Audio Normalization{{end}}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/favicon/apple-touch-icon.png">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/static/images/favicon/site.webmanifest">
+    <meta name="theme-color" content="#06b6d4">
+
     <style>
         /* Smooth transitions between states */
         .state-transition {
@@ -180,20 +191,20 @@
             <a href="/upload" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
             <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
             <a href="/about" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
-            <div class="pt-4 border-t border-gray-700 space-y-3">
+            <div class="pt-4 border-t border-gray-700 space-y-4">
                 {{if .IsLoggedIn}}
                     <a href="/dashboard" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "dashboard"}}text-cyan-400{{end}}">Dashboard</a>
-                    <a href="/logout" class="w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
+                    <a href="/logout" class="block w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
                         Logout
                     </a>
-                    <a href="/dashboard" class="w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center">
+                    <a href="/dashboard" class="block w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center">
                         Dashboard
                     </a>
                 {{else}}
-                    <a href="/login" class="w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
+                    <a href="/login" class="block w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
                         Log In
                     </a>
-                    <a href="/register" class="w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center">
+                    <a href="/register" class="block w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center mt-3">
                         Get Started
                     </a>
                 {{end}}
