@@ -3,12 +3,19 @@ package handlers
 import (
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func AccessControlMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Skip access control for static files
+		if strings.HasPrefix(c.Request.URL.Path, "/static/") {
+			c.Next()
+			return
+		}
+
 		accessPassword := os.Getenv("BETA_KEY")
 		if accessPassword == "" {
 			// No access control configured, allow through
