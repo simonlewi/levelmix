@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
@@ -257,7 +256,7 @@ func configureTrustedProxies(r *gin.Engine) {
 		return
 	}
 
-	// Configure additional middleware for Traefik headers
+	/* Configure additional middleware for Traefik headers
 	r.Use(func(c *gin.Context) {
 		// Traefik forwards the original protocol
 		if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
@@ -267,5 +266,5 @@ func configureTrustedProxies(r *gin.Engine) {
 		}
 
 		c.Next()
-	})
+	}) */
 }
