@@ -113,7 +113,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// Upload to S3 - NOW PASSES THE FORMAT
+	// Upload to S3
 	log.Printf("UploadHandler: Attempting to upload file %s (%s) to S3", fileID, fileFormat)
 	if err := h.storage.Upload(c.Request.Context(), fileID, file, fileFormat); err != nil {
 		log.Printf("UploadHandler: S3 upload failed for file %s: %v", fileID, err)

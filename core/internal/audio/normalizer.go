@@ -31,7 +31,7 @@ func NormalizeLoudness(
 	info *LoudnessInfo,
 	options OutputOptions,
 ) error {
-	filterChain := fmt.Sprintf("loudnorm=I=%f:TP=-1.5:LRA=11:measured_I=%f:measured_TP=%f:measured_LRA=%f:measured_thresh=%f:linear=true,",
+	filterChain := fmt.Sprintf("loudnorm=I=%f:TP=-1.5:LRA=11:measured_I=%f:measured_TP=%f:measured_LRA=%f:measured_thresh=%f:linear=true",
 		targetLUFS, info.InputI, info.InputTP, info.InputLRA, info.InputThresh)
 
 	args := []string{
@@ -81,5 +81,6 @@ func NormalizeLoudness(
 	args = append(args, "-y", outputFile)
 
 	cmd := exec.Command("ffmpeg", args...)
+
 	return cmd.Run()
 }
