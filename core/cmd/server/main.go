@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
@@ -132,36 +133,37 @@ func main() {
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
 
-	// Health check
+	// Health check - must be before any middleware for Docker/Traefik
 	r.GET("/health", healthHandler.HealthCheck)
 
-	// Authentication routes
-	r.GET("/login", authHandler.ShowLogin)
+	// API endpoints without middleware
 	r.POST("/login", authHandler.HandleLogin)
-	r.GET("/register", authHandler.ShowRegister)
 	r.POST("/register", authHandler.HandleRegister)
-	r.GET("/logout", authHandler.HandleLogout)
-
-	// Access control routes
-	r.GET("/access", handlers.ShowAccessForm)
-	r.POST("/access", handlers.AccessControlMiddleware())
-
-	// Password recovery routes (no access control needed)
-	r.GET("/forgot-password", passwordRecoveryHandler.ShowForgotPassword)
 	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
-	r.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
-
-	// API routes that don't need access control
 	r.GET("/status/:id", uploadHandler.GetStatus)
 	r.GET("/download/:id", downloadHandler.HandleDownload)
-	r.GET("/results/:id", downloadHandler.ShowResults)
 
-	// Public routes that need access control
+	// Public routes with template context
+	public := r.Group("/")
+	public.Use(handlers.TemplateContext())
+	public.Use(authMiddleware.TemplateContext())
+	{
+		public.GET("/login", authHandler.ShowLogin)
+		public.GET("/register", authHandler.ShowRegister)
+		public.GET("/logout", authHandler.HandleLogout)
+		public.GET("/forgot-password", passwordRecoveryHandler.ShowForgotPassword)
+		public.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
+		public.GET("/access", handlers.ShowAccessForm)
+		public.POST("/access", handlers.AccessControlMiddleware())
+		public.GET("/results/:id", downloadHandler.ShowResults)
+	}
+
+	// Public routes with access control (beta key)
 	publicProtected := r.Group("/")
 	publicProtected.Use(handlers.TemplateContext())
-	publicProtected.Use(handlers.AccessControlMiddleware())
 	publicProtected.Use(authMiddleware.TemplateContext())
+	publicProtected.Use(handlers.AccessControlMiddleware())
 	{
 		publicProtected.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "home.html", handlers.GetTemplateData(c, gin.H{
@@ -187,9 +189,10 @@ func main() {
 		publicProtected.GET("/pricing", pricingHandler.ShowPricing)
 	}
 
-	// Protected routes (need authentication)
+	// Protected routes requiring authentication
 	protected := r.Group("/")
 	protected.Use(handlers.TemplateContext())
+	protected.Use(authMiddleware.TemplateContext())
 	protected.Use(authMiddleware.RequireAuth())
 	{
 		protected.GET("/dashboard", dashboardHandler.ShowDashboard)
@@ -251,14 +254,14 @@ func configureTrustedProxies(r *gin.Engine) {
 	log.Printf("Configuring trusted proxies for Traefik: %v", proxies)
 	if err := r.SetTrustedProxies(proxies); err != nil {
 		log.Printf("Warning: Failed to set trusted proxies: %v", err)
-		// Fall back to disabling proxy trust
 		r.SetTrustedProxies(nil)
 		return
 	}
 
-	/* Configure additional middleware for Traefik headers
+	r.ForwardedByClientIP = true
+
+	//Configure additional middleware for Traefik headers
 	r.Use(func(c *gin.Context) {
-		// Traefik forwards the original protocol
 		if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
 			if proto == "https" {
 				c.Request.TLS = &tls.ConnectionState{}
@@ -266,5 +269,5 @@ func configureTrustedProxies(r *gin.Engine) {
 		}
 
 		c.Next()
-	}) */
+	})
 }

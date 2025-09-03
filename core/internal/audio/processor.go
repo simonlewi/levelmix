@@ -83,6 +83,9 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("loudness analysis failed for file %s: %w", task.FileID, err)
 	}
 
+	log.Printf("Loudness analysis completed successfully, proceeding to normalization...")
+	log.Printf("Target LUFS: %f, Input format: %s", task.TargetLUFS, audioFile.Format)
+
 	// Determine the output format based on input and user tier
 	outputFormat := p.determineOutputFormat(task.IsPremium, audioFile.Format)
 
