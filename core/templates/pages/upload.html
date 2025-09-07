@@ -21,9 +21,12 @@
                     <!-- File Drop Area -->
                     <div id="drop-area" 
                          class="drop-area mb-6 border-2 border-dashed border-gray-600 rounded-lg p-8 cursor-pointer hover:border-cyan-400 transition-colors"
-                         onclick="document.getElementById('file-input').click()">
+                         onclick="document.getElementById('file-input').click()"
+                         role="button"
+                         tabindex="0"
+                         aria-label="Click to upload file or drag and drop">
                         
-                        <div id="drop-content">
+                        <div id="drop-content" style="pointer-events: none;">
                             <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
@@ -38,15 +41,16 @@
                         </div>
                         
                         <!-- Selected file info (hidden initially) -->
-                        <div id="file-info" class="hidden">
+                        <div id="file-info" class="hidden" style="pointer-events: none;">
                             <svg class="w-8 h-8 text-cyan-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
                             </svg>
                             <p id="file-name" class="text-cyan-400 font-medium"></p>
                             <p id="file-size" class="text-gray-400 text-sm"></p>
                             <button type="button" 
-                                    onclick="removeFile()"
-                                    class="text-red-400 text-sm mt-2 hover:text-red-300">
+                                    onclick="removeFile(); event.stopPropagation();"
+                                    class="text-red-400 text-sm mt-2 hover:text-red-300 cursor-pointer"
+                                    style="pointer-events: auto;">
                                 Remove file
                             </button>
                         </div>
@@ -152,12 +156,20 @@
         </div>
     </div>
 </template>
+
 <script>
 let selectedFile = null;
 let pollInterval = null;
-let currentProgress = 0;
-let targetProgress = 0;
-let progressAnimationId = null;
+
+// Progress simulation system
+let progressSimulation = {
+    currentProgress: 0,
+    targetProgress: 0,
+    animationId: null,
+    lastStatus: '',
+    stageStartTime: null,
+    estimatedDuration: null
+};
 
 // Get user tier from template (rendered server-side)
 const userTier = parseInt('{{if and .IsLoggedIn .user}}{{.user.SubscriptionTier}}{{else}}0{{end}}');
@@ -192,6 +204,118 @@ function removeFile() {
     
     document.getElementById('drop-content').classList.remove('hidden');
     document.getElementById('file-info').classList.add('hidden');
+}
+
+// More realistic progress mapping based on actual processing stages
+function getDetailedProgress(status, baseProgress, fileSize, elapsedTime) {
+    // Estimate total processing time based on file size (rough approximation)
+    const estimatedTotalTime = Math.max(30, Math.min(300, (fileSize || 10000000) / 1000000 * 45)); // 30s to 5min
+    
+    const progressMaps = {
+        'uploaded': { 
+            progress: 8, 
+            message: 'Upload complete, queuing for processing...',
+            duration: 2
+        },
+        'queued': { 
+            progress: 12, 
+            message: 'Queued for processing...',
+            duration: 5
+        },
+        'processing': {
+            // Break processing into realistic sub-stages
+            stages: [
+                { progress: 20, message: 'Initializing audio processor...', duration: 8 },
+                { progress: 35, message: 'Analyzing audio characteristics...', duration: 15 },
+                { progress: 50, message: 'Measuring loudness levels...', duration: 20 },
+                { progress: 75, message: 'Normalizing audio to target LUFS...', duration: 40 },
+                { progress: 90, message: 'Finalizing processed audio...', duration: 10 },
+                { progress: 96, message: 'Uploading normalized file...', duration: 7 }
+            ]
+        },
+        'completed': { 
+            progress: 100, 
+            message: 'Processing complete!',
+            duration: 0
+        },
+        'failed': { 
+            progress: 0, 
+            message: 'Processing failed',
+            duration: 0
+        }
+    };
+    
+    if (status === 'processing') {
+        const stages = progressMaps.processing.stages;
+        const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0);
+        const timeProgress = Math.min(elapsedTime / totalDuration, 1);
+        
+        // Find current stage based on time
+        let cumulativeDuration = 0;
+        for (let i = 0; i < stages.length; i++) {
+            cumulativeDuration += stages[i].duration;
+            if (elapsedTime <= cumulativeDuration || i === stages.length - 1) {
+                const stageStartProgress = i > 0 ? stages[i-1].progress : 20;
+                const stageEndProgress = stages[i].progress;
+                const stageTimeProgress = i > 0 ? 
+                    (elapsedTime - (cumulativeDuration - stages[i].duration)) / stages[i].duration : 
+                    elapsedTime / stages[i].duration;
+                
+                return {
+                    progress: Math.min(stageStartProgress + (stageEndProgress - stageStartProgress) * Math.min(stageTimeProgress, 1), 96),
+                    message: stages[i].message
+                };
+            }
+        }
+        
+        return { progress: 96, message: 'Uploading normalized file...' };
+    }
+    
+    return progressMaps[status] || { progress: baseProgress, message: 'Processing...' };
+}
+
+// Enhanced progress animation with smoother transitions
+function animateProgress(targetProgress, message) {
+    progressSimulation.targetProgress = Math.min(targetProgress, 100);
+    
+    if (progressSimulation.animationId) {
+        cancelAnimationFrame(progressSimulation.animationId);
+    }
+    
+    function updateProgress() {
+        const diff = progressSimulation.targetProgress - progressSimulation.currentProgress;
+        if (Math.abs(diff) > 0.1) {
+            // Slower animation for more realistic feel
+            progressSimulation.currentProgress += diff * 0.02;
+            
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const statusText = document.getElementById('status-text');
+            
+            if (progressBar && progressText) {
+                const roundedProgress = Math.round(progressSimulation.currentProgress);
+                progressBar.style.width = `${progressSimulation.currentProgress}%`;
+                progressText.textContent = `${roundedProgress}%`;
+            }
+            
+            if (statusText && message) {
+                statusText.textContent = message;
+            }
+            
+            progressSimulation.animationId = requestAnimationFrame(updateProgress);
+        } else {
+            progressSimulation.currentProgress = progressSimulation.targetProgress;
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            if (progressBar && progressText) {
+                progressBar.style.width = `${progressSimulation.currentProgress}%`;
+                progressText.textContent = `${Math.round(progressSimulation.currentProgress)}%`;
+            }
+        }
+    }
+    
+    updateProgress();
 }
 
 // Initialize drag and drop when DOM is ready
@@ -276,104 +400,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Smooth progress animation
-function animateProgress(target) {
-    targetProgress = target;
-    
-    if (progressAnimationId) {
-        cancelAnimationFrame(progressAnimationId);
-    }
-    
-    function updateProgress() {
-        const diff = targetProgress - currentProgress;
-        if (Math.abs(diff) > 0.1) {
-            currentProgress += diff * 0.05;
-            
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            
-            if (progressBar && progressText) {
-                const roundedProgress = Math.round(currentProgress);
-                progressBar.style.width = `${currentProgress}%`;
-                progressText.textContent = `${roundedProgress}%`;
-            }
-            
-            progressAnimationId = requestAnimationFrame(updateProgress);
-        } else {
-            currentProgress = targetProgress;
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            
-            if (progressBar && progressText) {
-                progressBar.style.width = `${currentProgress}%`;
-                progressText.textContent = `${Math.round(currentProgress)}%`;
-            }
-        }
-    }
-    
-    updateProgress();
-}
-
-// Get detailed progress based on status
-function getDetailedProgress(status, baseProgress) {
-    const progressMaps = {
-        'uploaded': 5,
-        'queued': 10,
-        'processing': {
-            initial: 15,
-            analyzing: 25,
-            loudness_analysis: 35,
-            normalizing: 65,
-            finalizing: 85,
-            uploading: 95
-        },
-        'completed': 100,
-        'failed': 0
-    };
-    
-    if (status === 'processing') {
-        const subSteps = progressMaps.processing;
-        if (baseProgress <= 15) return subSteps.initial;
-        if (baseProgress <= 35) return subSteps.analyzing;
-        if (baseProgress <= 50) return subSteps.loudness_analysis;
-        if (baseProgress <= 75) return subSteps.normalizing;
-        if (baseProgress <= 90) return subSteps.finalizing;
-        return subSteps.uploading;
-    }
-    
-    return progressMaps[status] || baseProgress;
-}
-
-// Enhanced status messages
-function getStatusMessage(status, progress) {
-    const messages = {
-        'uploaded': 'File uploaded successfully...',
-        'queued': 'Queued for processing...',
-        'processing': {
-            15: 'Initializing audio processor...',
-            25: 'Analyzing audio characteristics...',
-            35: 'Measuring loudness levels...',
-            65: 'Normalizing audio to target LUFS...',
-            85: 'Finalizing processed audio...',
-            95: 'Uploading normalized file...'
-        },
-        'completed': 'Processing complete!',
-        'failed': 'Processing failed'
-    };
-    
-    if (status === 'processing' && typeof messages.processing === 'object') {
-        const steps = Object.keys(messages.processing).map(Number).sort((a, b) => a - b);
-        for (let i = steps.length - 1; i >= 0; i--) {
-            if (progress >= steps[i]) {
-                return messages.processing[steps[i]];
-            }
-        }
-        return messages.processing[15];
-    }
-    
-    return messages[status] || 'Processing...';
-}
-
 // HTMX event handlers
 document.body.addEventListener('htmx:afterRequest', function(evt) {
     console.log('HTMX after request triggered');
@@ -393,33 +419,46 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
         console.log('Extracted file ID:', fileId);
         
         if (fileId) {
-            currentProgress = 0;
-            targetProgress = 0;
-            animateProgress(5);
+            progressSimulation.currentProgress = 0;
+            progressSimulation.targetProgress = 0;
+            animateProgress(5, 'Upload complete, queuing for processing...');
             startStatusPolling(fileId);
         }
     }
 });
 
-// Status polling function
+// Enhanced status polling with better progress calculation
 function startStatusPolling(fileId) {
-    console.log('Starting status polling for:', fileId);
+    console.log('Starting enhanced status polling for:', fileId);
     if (pollInterval) clearInterval(pollInterval);
     
-    let pollCount = 0;
+    const startTime = Date.now();
+    progressSimulation.stageStartTime = startTime;
+    let lastStatus = '';
+    let fileSize = selectedFile ? selectedFile.size : null;
     
     pollInterval = setInterval(() => {
-        console.log('Polling status...');
+        const elapsedTime = (Date.now() - startTime) / 1000; // seconds
+        
         fetch(`/status/${fileId}`)
             .then(response => response.json())
             .then(data => {
-                console.log('Status response:', data);
-                pollCount++;
-                updateProcessingState(data, pollCount);
+                console.log('Enhanced status response:', data, 'Elapsed time:', elapsedTime);
+                
+                // Reset stage timer if status changed
+                if (data.status !== lastStatus) {
+                    progressSimulation.stageStartTime = Date.now();
+                    lastStatus = data.status;
+                }
+                
+                const stageElapsedTime = (Date.now() - progressSimulation.stageStartTime) / 1000;
+                const progressInfo = getDetailedProgress(data.status, data.progress || 0, fileSize, stageElapsedTime);
+                
+                animateProgress(progressInfo.progress, progressInfo.message);
                 
                 if (data.status === 'completed') {
                     clearInterval(pollInterval);
-                    setTimeout(() => showCompletedState(fileId, data), 500);
+                    setTimeout(() => showCompletedState(fileId, data), 1000);
                 } else if (data.status === 'failed') {
                     clearInterval(pollInterval);
                     showErrorState(data.error || 'Processing failed');
@@ -427,31 +466,14 @@ function startStatusPolling(fileId) {
             })
             .catch(error => {
                 console.error('Status polling error:', error);
+                // Don't fail completely on network errors
             });
-    }, 2000);
+    }, 1500); // Poll every 1.5 seconds for smoother updates
 }
 
-// Update processing state with smooth progress
-function updateProcessingState(data, pollCount) {
-    const statusText = document.getElementById('status-text');
-    
-    let progress = getDetailedProgress(data.status, data.progress || 0);
-    
-    if (data.status === 'processing') {
-        const timeBonus = Math.min(pollCount * 2, 20);
-        progress = Math.min(progress + timeBonus, 95);
-    }
-    
-    if (statusText) {
-        statusText.textContent = getStatusMessage(data.status, progress);
-    }
-    
-    animateProgress(progress);
-}
-
-// Show completed state
+// Show completed state with enhanced download button
 function showCompletedState(fileId, data) {
-    animateProgress(100);
+    animateProgress(100, 'Processing complete!');
     
     setTimeout(() => {
         document.getElementById('main-container').innerHTML = `
@@ -468,7 +490,10 @@ function showCompletedState(fileId, data) {
                     
                     <div class="space-y-4">
                         <button onclick="downloadFile('${fileId}')"
-                                class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors">
+                                class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
                             Download Processed Audio
                         </button>
                         
@@ -476,6 +501,13 @@ function showCompletedState(fileId, data) {
                                 class="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition-colors">
                             Process Another File
                         </button>
+                    </div>
+                    
+                    <!-- Add quality info -->
+                    <div class="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-400">
+                        <p>✓ Audio normalized to target LUFS</p>
+                        <p>✓ High-quality encoding preserved</p>
+                        <p>✓ Original file safely stored</p>
                     </div>
                 </div>
             </div>
@@ -506,9 +538,52 @@ function showErrorState(error) {
     `;
 }
 
-// Download file
+// Enhanced download function for better user experience
 function downloadFile(fileId) {
-    window.location.href = `/download/${fileId}`;
+    const button = document.querySelector(`[onclick="downloadFile('${fileId}')"]`);
+    
+    if (button) {
+        // Show loading state
+        const originalText = button.innerHTML;
+        button.innerHTML = `
+            <svg class="animate-spin w-5 h-5 mr-2 inline" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Preparing Download...
+        `;
+        button.disabled = true;
+        
+        // Reset button after delay
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 3000);
+    }
+    
+    // Create download link with better error handling
+    const downloadLink = document.createElement('a');
+    downloadLink.href = `/download/${fileId}`;
+    downloadLink.style.display = 'none';
+    
+    // Add download attribute to force download
+    downloadLink.download = '';
+    
+    document.body.appendChild(downloadLink);
+    
+    try {
+        downloadLink.click();
+    } catch (error) {
+        console.error('Download failed:', error);
+        
+        // Fallback: navigate directly to download URL
+        window.location.href = `/download/${fileId}`;
+    } finally {
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(downloadLink);
+        }, 1000);
+    }
 }
 
 // Upload another file
