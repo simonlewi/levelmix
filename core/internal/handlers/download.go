@@ -3,10 +3,15 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
@@ -55,6 +60,7 @@ func (h *DownloadHandler) HandleDownload(c *gin.Context) {
 
 	audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), fileID)
 	if err != nil {
+		log.Printf("Failed to get audio file %s: %v", fileID, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
 		return
 	}
@@ -64,67 +70,129 @@ func (h *DownloadHandler) HandleDownload(c *gin.Context) {
 		return
 	}
 
-	// Get the job to determine the output format
+	// Get job information to determine output format
 	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve job information"})
+		log.Printf("Failed to get job for file %s: %v", fileID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve processing information"})
 		return
 	}
 
-	// Determine the output format
-	// Use the output_format field from the job
-	outputFormat := audioFile.Format // Default to original format
+	// Determine output format with proper fallback
+	outputFormat := "mp3" // Default fallback
 	if job.OutputFormat != "" {
 		outputFormat = job.OutputFormat
-	} else if job.OutputS3Key != "" {
-		// Backward compatibility: if OutputFormat is not set but OutputS3Key is
-		outputFormat = job.OutputS3Key
-	}
-
-	// For free users, output is always MP3
-	if audioFile.UserID == nil {
-		outputFormat = "mp3"
-	} else if audioFile.UserID != nil {
-		// Check user tier to determine if they should get MP3 or original format
-		user, err := h.metadata.GetUser(c.Request.Context(), *audioFile.UserID)
-		if err == nil && user.SubscriptionTier == 1 {
-			outputFormat = "mp3"
+	} else {
+		// Determine based on user tier
+		if audioFile.UserID != nil {
+			user, err := h.metadata.GetUser(c.Request.Context(), *audioFile.UserID)
+			if err == nil && user.SubscriptionTier > 1 {
+				outputFormat = audioFile.Format // Premium users get original format
+			}
 		}
 	}
 
-	// Build the correct filename with extension
+	// Generate download filename
 	originalName := audioFile.OriginalFilename
 	nameWithoutExt := strings.TrimSuffix(originalName, filepath.Ext(originalName))
 	downloadFilename := fmt.Sprintf("%s_normalized.%s", nameWithoutExt, outputFormat)
 
-	// Get file from S3 with the correct key
-	var reader io.ReadCloser
-	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
-		// Use the S3Storage method to get the correct key
-		processedKey := s3Storage.GetProcessedKey(fileID, outputFormat)
-		reader, err = h.storage.Download(c.Request.Context(), processedKey)
-	} else {
-		// Fallback for non-S3 storage
-		reader, err = h.storage.Download(c.Request.Context(), "processed/"+fileID)
+	// Determine content type
+	var contentType string
+	switch strings.ToLower(outputFormat) {
+	case "wav":
+		contentType = "audio/wav"
+	case "flac":
+		contentType = "audio/flac"
+	case "mp3":
+		contentType = "audio/mpeg"
+	default:
+		contentType = "audio/mpeg"
 	}
 
+	log.Printf("Initiating download for file %s, format: %s, filename: %s", fileID, outputFormat, downloadFilename)
+
+	// Try presigned URL first (best performance)
+	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
+		// Create presigned URL with download headers to force download instead of streaming
+		processedKey := s3Storage.GetProcessedKey(fileID, outputFormat)
+
+		presigner := s3.NewPresignClient(s3Storage.GetClient())
+
+		request, err := presigner.PresignGetObject(c.Request.Context(), &s3.GetObjectInput{
+			Bucket:                     aws.String(s3Storage.GetBucket()),
+			Key:                        aws.String(processedKey),
+			ResponseContentDisposition: aws.String(fmt.Sprintf("attachment; filename=\"%s\"", downloadFilename)),
+			ResponseContentType:        aws.String(contentType),
+		}, s3.WithPresignExpires(1*time.Hour))
+
+		if err == nil {
+			log.Printf("Using presigned URL with download headers for: %s", fileID)
+			c.Redirect(http.StatusTemporaryRedirect, request.URL)
+			return
+		}
+		log.Printf("Presigned URL generation failed, falling back to direct download: %v", err)
+	}
+
+	// Fallback to direct download with proper headers
+	h.directDownload(c, fileID, downloadFilename, contentType, outputFormat)
+}
+
+func (h *DownloadHandler) directDownload(c *gin.Context, fileID, filename, contentType, outputFormat string) {
+	log.Printf("Using direct download for file %s", fileID)
+
+	// Get the correct S3 key
+	var processedKey string
+	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
+		processedKey = s3Storage.GetProcessedKey(fileID, outputFormat)
+	} else {
+		processedKey = "processed/" + fileID
+	}
+
+	// Get file reader
+	reader, err := h.storage.Download(c.Request.Context(), processedKey)
 	if err != nil {
+		log.Printf("Failed to download file %s: %v", fileID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve file"})
 		return
 	}
 	defer reader.Close()
 
-	// Set appropriate content type based on format
-	contentType := "audio/mpeg" // Default to MP3
-	switch outputFormat {
-	case "wav":
-		contentType = "audio/wav"
-	case "flac":
-		contentType = "audio/flac"
+	// Try to get content length from S3 metadata
+	var contentLength int64 = -1
+	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
+		// Get object info for Content-Length header
+		if info, err := s3Storage.GetObjectInfo(c.Request.Context(), processedKey); err == nil {
+			contentLength = info.Size
+		}
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", downloadFilename))
+	// Set comprehensive headers for better Chrome support
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
 	c.Header("Content-Type", contentType)
+	c.Header("Accept-Ranges", "bytes")
+	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Header("Pragma", "no-cache")
+	c.Header("Expires", "0")
 
-	c.DataFromReader(http.StatusOK, -1, contentType, reader, nil)
+	// Set Content-Length if known (crucial for Chrome progress)
+	if contentLength > 0 {
+		c.Header("Content-Length", strconv.FormatInt(contentLength, 10))
+		log.Printf("Set Content-Length: %d for file %s", contentLength, fileID)
+	}
+
+	// Stream with proper buffering
+	c.Stream(func(w io.Writer) bool {
+		buffer := make([]byte, 64*1024) // 64KB buffer
+		n, err := reader.Read(buffer)
+		if err != nil {
+			if err != io.EOF {
+				log.Printf("Error streaming file %s: %v", fileID, err)
+			}
+			return false
+		}
+
+		_, writeErr := w.Write(buffer[:n])
+		return writeErr == nil
+	})
 }

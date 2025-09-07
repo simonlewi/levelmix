@@ -83,11 +83,46 @@
         /* File drop area */
         .drop-area {
             transition: all 0.3s ease;
+            cursor: pointer !important;
         }
         
         .drop-area.drag-over {
             border-color: #06b6d4;
             background-color: rgba(6, 182, 212, 0.1);
+        }
+
+        .drop-area:hover {
+            cursor: pointer !important;
+            border-color: #06b6d4;
+            background-color: rgba(6, 182, 212, 0.1);
+        }
+
+        /* Ensure all child elements inherit pointer cursor */
+        .drop-area * {
+            cursor: pointer !important;
+        }
+
+        /* File input styling */
+        #file-input {
+            cursor: pointer;
+        }
+
+        /* Button styling */
+        #upload-btn:not(:disabled) {
+            cursor: pointer;
+        }
+
+        #upload-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        /* All buttons should have pointer cursor */
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
         }
         
         /* Success checkmark animation */
