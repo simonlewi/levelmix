@@ -73,7 +73,7 @@ func main() {
 	defer qm.Shutdown()
 
 	// Initialize handlers
-	uploadHandler := handlers.NewUploadHandler(audioStorage, metadataStorage, qm)
+	uploadHandler := handlers.NewUploadHandler(audioStorage, metadataStorage, qm, os.Getenv("REDIS_URL"))
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
