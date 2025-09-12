@@ -40,17 +40,6 @@ func NewProcessor(audioStorage storage.AudioStorage, metadataStorage storage.Met
 	}
 }
 
-// getOptimalTempDir returns the fastest available temp directory
-func getOptimalTempDir() string {
-	// Check if /dev/shm exists (Linux RAM disk)
-	if _, err := os.Stat("/dev/shm"); err == nil {
-		return "/dev/shm"
-	}
-
-	// Fallback to system temp
-	return os.TempDir()
-}
-
 func (p *Processor) updateProgress(ctx context.Context, jobID string, progress int, status string) {
 	if p.redisClient != nil {
 		key := fmt.Sprintf("progress:%s", jobID)
@@ -155,7 +144,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	}
 
 	// Store the output format in the job for later retrieval
-	job.OutputFormat = outputFormat // Store the output format in the new field
+	job.OutputFormat = outputFormat
 
 	// Update job status to completed and set completion time
 	completedNow := time.Now()
@@ -228,14 +217,13 @@ func (p *Processor) validateTask(task ProcessTask) error {
 }
 
 func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, format string) (string, error) {
-	// Create temp file in optimal location (RAM disk if available)
+	// Create temp file using system temp directory
 	ext := ".mp3"
 	if format == "wav" {
 		ext = ".wav"
 	}
 
-	tempDir := getOptimalTempDir()
-	tempFile, err := os.CreateTemp(tempDir, "levelmix_input_*"+ext)
+	tempFile, err := os.CreateTemp("", "levelmix_input_*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -251,7 +239,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		uploadKey = "uploads/" + fileID
 	}
 
-	log.Printf("Downloading file from S3 to RAM disk: %s", uploadKey)
+	log.Printf("Downloading file from S3: %s", uploadKey)
 	reader, err := p.audioStorage.Download(ctx, uploadKey)
 	if err != nil {
 		os.Remove(tempFileName)
@@ -272,7 +260,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		return "", fmt.Errorf("failed to copy file content: %w", err)
 	}
 
-	log.Printf("Successfully downloaded file to RAM disk: %s", tempFileName)
+	log.Printf("Successfully downloaded file to: %s", tempFileName)
 	return tempFileName, nil
 }
 
@@ -342,8 +330,7 @@ func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string
 		outputExt = ".mp3"
 	}
 
-	tempDir := getOptimalTempDir()
-	return filepath.Join(tempDir, fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
+	return filepath.Join(os.TempDir(), fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
 }
 
 func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {
