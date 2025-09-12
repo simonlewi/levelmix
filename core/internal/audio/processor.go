@@ -8,10 +8,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
@@ -19,12 +21,45 @@ import (
 type Processor struct {
 	audioStorage    storage.AudioStorage
 	metadataStorage storage.MetadataStorage
+	redisClient     *redis.Client
 }
 
-func NewProcessor(audioStorage storage.AudioStorage, metadataStorage storage.MetadataStorage) *Processor {
+func NewProcessor(audioStorage storage.AudioStorage, metadataStorage storage.MetadataStorage, redisURL string) *Processor {
+	var redisClient *redis.Client
+	if redisURL != "" {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr:     redisURL,
+			Password: os.Getenv("REDIS_PASSWORD"),
+		})
+	}
+
 	return &Processor{
 		audioStorage:    audioStorage,
 		metadataStorage: metadataStorage,
+		redisClient:     redisClient,
+	}
+}
+
+// getOptimalTempDir returns the fastest available temp directory
+func getOptimalTempDir() string {
+	// Check if /dev/shm exists (Linux RAM disk)
+	if _, err := os.Stat("/dev/shm"); err == nil {
+		return "/dev/shm"
+	}
+
+	// Fallback to system temp
+	return os.TempDir()
+}
+
+func (p *Processor) updateProgress(ctx context.Context, jobID string, progress int, status string) {
+	if p.redisClient != nil {
+		key := fmt.Sprintf("progress:%s", jobID)
+		data := map[string]interface{}{
+			"progress": progress,
+			"status":   status,
+		}
+		p.redisClient.HMSet(ctx, key, data)
+		p.redisClient.Expire(ctx, key, 30*time.Minute)
 	}
 }
 
@@ -43,6 +78,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	if err != nil {
 		return fmt.Errorf("failed to retrieve job %s for processing: %w", task.JobID, err)
 	}
+
+	p.updateProgress(ctx, job.ID, 10, "processing")
 
 	// Update job status to processing and set start time
 	now := time.Now()
@@ -73,6 +110,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	}
 	defer os.Remove(inputFile)
 
+	p.updateProgress(ctx, job.ID, 30, "analyzing")
+
 	// Analyze loudness
 	loudnessInfo, err := AnalyzeLoudness(inputFile)
 	if err != nil {
@@ -82,6 +121,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		p.metadataStorage.UpdateJob(ctx, job)
 		return fmt.Errorf("loudness analysis failed for file %s: %w", task.FileID, err)
 	}
+
+	p.updateProgress(ctx, job.ID, 50, "normalizing")
 
 	log.Printf("Loudness analysis completed successfully, proceeding to normalization...")
 	log.Printf("Target LUFS: %f, Input format: %s", task.TargetLUFS, audioFile.Format)
@@ -102,6 +143,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("loudness normalization failed for file %s: %w", task.FileID, err)
 	}
 
+	p.updateProgress(ctx, job.ID, 80, "uploading")
+
 	// Upload processed file back to S3 with the correct output format
 	if err := p.uploadProcessedFile(ctx, task.FileID, outputFile, outputFormat); err != nil {
 		errMsg := err.Error()
@@ -121,6 +164,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
 		log.Printf("Failed to update job %s status to completed with end time: %v", job.ID, err)
 	}
+
+	p.updateProgress(ctx, job.ID, 100, "completed")
 
 	// Update audio file status
 	if err := p.metadataStorage.UpdateStatus(ctx, task.FileID, "completed"); err != nil {
@@ -183,13 +228,14 @@ func (p *Processor) validateTask(task ProcessTask) error {
 }
 
 func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, format string) (string, error) {
-	// Create temp file with appropriate extension
+	// Create temp file in optimal location (RAM disk if available)
 	ext := ".mp3"
 	if format == "wav" {
 		ext = ".wav"
 	}
 
-	tempFile, err := os.CreateTemp("", "levelmix_input_*"+ext)
+	tempDir := getOptimalTempDir()
+	tempFile, err := os.CreateTemp(tempDir, "levelmix_input_*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -205,7 +251,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		uploadKey = "uploads/" + fileID
 	}
 
-	log.Printf("Downloading file from S3: %s", uploadKey)
+	log.Printf("Downloading file from S3 to RAM disk: %s", uploadKey)
 	reader, err := p.audioStorage.Download(ctx, uploadKey)
 	if err != nil {
 		os.Remove(tempFileName)
@@ -226,7 +272,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		return "", fmt.Errorf("failed to copy file content: %w", err)
 	}
 
-	log.Printf("Successfully downloaded file to: %s", tempFileName)
+	log.Printf("Successfully downloaded file to RAM disk: %s", tempFileName)
 	return tempFileName, nil
 }
 
@@ -296,18 +342,23 @@ func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string
 		outputExt = ".mp3"
 	}
 
-	return filepath.Join(os.TempDir(), fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
+	tempDir := getOptimalTempDir()
+	return filepath.Join(tempDir, fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
 }
 
 func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {
+	// Calculate optimal concurrency based on CPU cores
+	maxConcurrency := runtime.NumCPU() * 2
+
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: redisAddr, Password: os.Getenv("REDIS_PASSWORD")},
 		asynq.Config{
-			Concurrency: 10,
+			Concurrency: maxConcurrency,
 			Queues: map[string]int{
-				QueuePremium:  6,
-				QueueStandard: 3,
+				QueuePremium:  maxConcurrency * 6 / 10, // 60% for premium
+				QueueStandard: maxConcurrency * 4 / 10, // 40% for standard
 			},
+			StrictPriority: true, // Premium always gets priority
 		},
 	)
 

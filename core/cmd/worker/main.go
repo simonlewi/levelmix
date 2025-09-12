@@ -43,7 +43,7 @@ func main() {
 		log.Fatal("Failed to create metadata storage:", err)
 	}
 
-	processor := audio.NewProcessor(audioStorage, metadataStorage)
+	processor := audio.NewProcessor(audioStorage, metadataStorage, os.Getenv("REDIS_URL"))
 
 	// Start worker
 	srv, mux := audio.NewWorker(os.Getenv("REDIS_URL"), processor)

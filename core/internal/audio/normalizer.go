@@ -1,13 +1,14 @@
-// Updated normalizer.go to handle both MP3 and WAV files
 package audio
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
+// LUFS constants for different use cases
 const (
 	DefaultLUFS   = -7.0  // Default target LUFS optimized for DJ content
 	MaxImpactLUFS = -5.0  // Higher output for loud content
@@ -25,12 +26,16 @@ type OutputOptions struct {
 	ExtraOptions []string // Any additional FFmpeg options
 }
 
-func NormalizeLoudness(
-	inputFile, outputFile string,
-	targetLUFS float64,
-	info *LoudnessInfo,
-	options OutputOptions,
-) error {
+// NormalizeLoudness performs the second pass using measured values for accurate normalization
+func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *LoudnessInfo, options OutputOptions) error {
+	log.Printf("Starting normalization: %s -> %s (target: %.1f LUFS)", inputFile, outputFile, targetLUFS)
+
+	// Validate LUFS range
+	if targetLUFS < MinLUFS || targetLUFS > MaxLUFS {
+		return fmt.Errorf("target LUFS %.1f is outside valid range (%.1f to %.1f)", targetLUFS, MinLUFS, MaxLUFS)
+	}
+
+	// Use measured values for linear normalization (most accurate method)
 	filterChain := fmt.Sprintf("loudnorm=I=%f:TP=-1.5:LRA=11:measured_I=%f:measured_TP=%f:measured_LRA=%f:measured_thresh=%f:linear=true",
 		targetLUFS, info.InputI, info.InputTP, info.InputLRA, info.InputThresh)
 
@@ -73,6 +78,7 @@ func NormalizeLoudness(
 	// Set sample rate to maintain quality
 	args = append(args, "-ar", "44100")
 
+	// Add any extra options
 	if len(options.ExtraOptions) > 0 {
 		args = append(args, options.ExtraOptions...)
 	}
@@ -80,7 +86,43 @@ func NormalizeLoudness(
 	// Overwrite output file if it exists
 	args = append(args, "-y", outputFile)
 
-	cmd := exec.Command("ffmpeg", args...)
+	log.Printf("FFmpeg normalize command: ffmpeg %s", strings.Join(args, " "))
 
-	return cmd.Run()
+	cmd := exec.Command("ffmpeg", args...)
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		log.Printf("FFmpeg error: %v", err)
+		log.Printf("FFmpeg output: %s", string(output))
+		return fmt.Errorf("normalization failed: %w", err)
+	}
+
+	log.Printf("Normalization completed successfully")
+	return nil
+}
+
+// Utility function to validate LUFS values
+func ValidateLUFS(lufs float64) error {
+	if lufs < MinLUFS || lufs > MaxLUFS {
+		return fmt.Errorf("LUFS value %.1f is outside valid range (%.1f to %.1f)", lufs, MinLUFS, MaxLUFS)
+	}
+	return nil
+}
+
+// Utility function to get preset LUFS value by name
+func GetPresetLUFS(preset string) (float64, error) {
+	switch strings.ToLower(preset) {
+	case "default", "club", "dj":
+		return DefaultLUFS, nil
+	case "streaming", "spotify", "apple":
+		return StreamingLUFS, nil
+	case "podcast":
+		return PodcastLUFS, nil
+	case "broadcast", "radio":
+		return BroadcastLUFS, nil
+	case "festival", "loud", "max":
+		return MaxImpactLUFS, nil
+	default:
+		return 0, fmt.Errorf("unknown preset: %s", preset)
+	}
 }

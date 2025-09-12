@@ -8,12 +8,14 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/pkg/storage"
 	// Ensure pkg/types and pkg/utils are imported if they contain necessary structs/functions
@@ -24,16 +26,25 @@ import (
 )
 
 type UploadHandler struct {
-	storage  storage.AudioStorage
-	metadata storage.MetadataStorage
-	queue    *audio.QueueManager
+	storage     storage.AudioStorage
+	metadata    storage.MetadataStorage
+	queue       *audio.QueueManager
+	redisClient *redis.Client
 }
 
-func NewUploadHandler(s storage.AudioStorage, m storage.MetadataStorage, q *audio.QueueManager) *UploadHandler {
+func NewUploadHandler(s storage.AudioStorage, m storage.MetadataStorage, q *audio.QueueManager, redisURL string) *UploadHandler {
+	var redisClient *redis.Client
+	if redisURL != "" {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr:     redisURL,
+			Password: os.Getenv("REDIS_PASSWORD"),
+		})
+	}
 	return &UploadHandler{
-		storage:  s,
-		metadata: m,
-		queue:    q,
+		storage:     s,
+		metadata:    m,
+		queue:       q,
+		redisClient: redisClient,
 	}
 }
 
@@ -237,32 +248,48 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 }
 
 func (h *UploadHandler) GetStatus(c *gin.Context) {
-	log.Println("*** REAL GetStatus called ***")
 	fileID := c.Param("id")
-	log.Printf("GetStatus called with fileID: '%s'", fileID)
-
 	if fileID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File ID required"})
 		return
 	}
 
-	// Get file info
-	log.Printf("Looking up file in database: %s", fileID)
+	// First check Redis for real-time progress
+	if h.redisClient != nil {
+		key := fmt.Sprintf("progress:%s", fileID)
+		result := h.redisClient.HGetAll(c.Request.Context(), key)
+
+		if data, err := result.Result(); err == nil && len(data) > 0 {
+			progress := 0
+			status := "queued"
+
+			if p, exists := data["progress"]; exists {
+				if parsed, err := strconv.Atoi(p); err == nil {
+					progress = parsed
+				}
+			}
+			if s, exists := data["status"]; exists {
+				status = s
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"status":   status,
+				"progress": progress,
+				"fileID":   fileID,
+			})
+			return
+		}
+	}
+
+	// Fallback to database (existing logic)
 	audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), fileID)
 	if err != nil {
-		log.Printf("ERROR: Database lookup failed: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
 		return
 	}
 
-	log.Printf("Found file: %s, status: %s", fileID, audioFile.Status)
-
-	// Get job info
-	log.Printf("Looking up job for file: %s", fileID)
 	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
 	if err != nil {
-		log.Printf("No job found, returning file status. Error: %v", err)
-		// If no job found, return file status
 		c.JSON(http.StatusOK, gin.H{
 			"status":   audioFile.Status,
 			"progress": 0,
@@ -271,18 +298,14 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Found job: %s, status: %s", job.ID, job.Status)
-
 	progress := getProgressFromStatus(job.Status)
-
 	response := gin.H{
 		"status":   job.Status,
 		"progress": progress,
 		"fileID":   fileID,
 	}
 
-	// Add error message if job failed
-	if job.Status == "failed" && job.ErrorMessage != nil && *job.ErrorMessage != "" {
+	if job.Status == "failed" && job.ErrorMessage != nil {
 		response["error"] = *job.ErrorMessage
 	}
 
