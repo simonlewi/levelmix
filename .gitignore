@@ -71,4 +71,5 @@ npm-debug.log*
 package-lock.json
 
 # Include our built CSS file explicitly
-!core/static/css/output.css
+!core/static/css/output.csstailwindcss-v4
+tailwindcss-*
