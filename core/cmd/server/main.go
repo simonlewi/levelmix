@@ -81,6 +81,7 @@ func main() {
 	accountHandler := handlers.NewAccountHandler(metadataStorage, audioStorage)
 	passwordRecoveryHandler := ee_auth.NewPasswordRecoveryHandler(metadataStorage, emailService)
 	healthHandler := handlers.NewHealthHandler(metadataStorage, os.Getenv("REDIS_URL"))
+	cookieHandler := handlers.NewCookieHandler(metadataStorage)
 
 	// Initialize auth
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
@@ -111,6 +112,8 @@ func main() {
 	resetPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "reset-password.html")
 	changeEmailTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "change-email.html")
 	changePasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "change-password.html")
+	privacyPolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "privacy-policy.html")
+	cookiePolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "cookie-policy.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -128,6 +131,8 @@ func main() {
 		resetPasswordTemplate,
 		changeEmailTemplate,
 		changePasswordTemplate,
+		privacyPolicyTemplate,
+		cookiePolicyTemplate,
 	)
 
 	// Static files
@@ -157,6 +162,9 @@ func main() {
 		public.GET("/access", handlers.ShowAccessForm)
 		public.POST("/access", handlers.AccessControlMiddleware())
 		public.GET("/results/:id", downloadHandler.ShowResults)
+		public.GET("/privacy", cookieHandler.ShowPrivacyPolicy)
+		public.GET("/cookies", cookieHandler.ShowCookiePolicy)
+		public.POST("/api/cookie-consent", cookieHandler.HandleCookieConsent)
 	}
 
 	// Public routes with access control (beta key)
@@ -202,6 +210,9 @@ func main() {
 		protected.POST("/account/change-email", accountHandler.HandleChangeEmail)
 		protected.GET("/account/change-password", accountHandler.ShowChangePassword)
 		protected.POST("/account/change-password", accountHandler.HandleChangePassword)
+		protected.GET("/api/consent/:userID", cookieHandler.GetLatestConsent)
+		protected.GET("/api/consent/:userID/history", cookieHandler.GetUserConsentHistory)
+		protected.DELETE("/api/consent/:userID", cookieHandler.DeleteUserConsentData)
 	}
 
 	// Start server

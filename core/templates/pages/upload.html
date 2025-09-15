@@ -59,7 +59,7 @@
                     <input type="file" 
                            id="file-input"
                            name="audio_file" 
-                           accept="{{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}.mp3,.wav{{else}}.mp3{{end}}" 
+                           accept="audio/*" 
                            required
                            class="hidden"
                            onchange="handleFileSelect(this)">
@@ -360,9 +360,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleFileSelect(fileInput);
                 } else {
                     if (isPremiumUser) {
-                        alert('Please upload an MP3 or WAV file');
+                        alert('Please upload an audio file (MP3 or WAV supported)');
                     } else {
-                        alert('Please upload an MP3 file (WAV support available with Premium)');
+                        alert('Please upload an audio file (MP3 only - WAV support available with Premium)');
                     }
                 }
             }

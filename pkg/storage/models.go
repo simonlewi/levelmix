@@ -23,7 +23,7 @@ type ProcessingJob struct {
 	Status       string
 	ErrorMessage *string
 	OutputS3Key  string
-	OutputFormat string // New field to track the output format
+	OutputFormat string
 	StartedAt    *time.Time
 	CompletedAt  *time.Time
 	CreatedAt    time.Time
@@ -59,3 +59,15 @@ const (
 	StatusCompleted  = "completed"
 	StatusFailed     = "failed"
 )
+
+type CookieConsentRecord struct {
+	ID             string
+	UserID         *string // Nullable for anonymous users
+	Essential      bool
+	Analytics      bool
+	Functional     bool
+	ConsentVersion string
+	UserAgent      string
+	IPAddress      string
+	CreatedAt      time.Time
+}

@@ -476,21 +476,21 @@ func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader, userTier 
 	switch userTier {
 	case 1: // Free tier - MP3 only
 		if ext != ".mp3" {
-			return fmt.Errorf("only MP3 files are supported. Upgrade to Premium for WAV support")
+			return fmt.Errorf("Only MP3 files are supported. Upgrade to Premium for WAV support")
 		}
 	case 2, 3: // Premium/Pro tiers - MP3 and WAV
 		if ext != ".mp3" && ext != ".wav" {
-			return fmt.Errorf("only MP3 and WAV files are supported")
+			return fmt.Errorf("Only MP3 and WAV files are supported")
 		}
 	default:
 		if ext != ".mp3" {
-			return fmt.Errorf("only MP3 files are supported")
+			return fmt.Errorf("Only MP3 files are supported")
 		}
 	}
 
 	// Check filename length
 	if len(fileHeader.Filename) > 255 {
-		return fmt.Errorf("filename too long (max 255 characters)")
+		return fmt.Errorf("Filename too long (max 255 characters)")
 	}
 
 	return nil

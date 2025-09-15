@@ -5,6 +5,14 @@ export default {
     "./core/templates/pages/*.html",
     "./core/static/js/**/*.js",
   ],
+    safelist: [
+    'fixed',
+    'inset-0',
+    'z-50',
+    'bg-black',
+    'bg-opacity-75',
+    'min-h-screen'
+  ],
   theme: {
     extend: {
       colors: {

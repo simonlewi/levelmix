@@ -46,6 +46,12 @@ type MetadataStorage interface {
 
 	// User jobs
 	GetUserJobs(ctx context.Context, userID string, limit, offset int) ([]*ProcessingJob, error)
+
+	// Cookie consent operations (GDPR compliance)
+	StoreCookieConsent(ctx context.Context, record CookieConsentRecord) error
+	GetLatestConsent(ctx context.Context, userID string) (*CookieConsentRecord, error)
+	GetUserConsentHistory(ctx context.Context, userID string) ([]*CookieConsentRecord, error)
+	DeleteUserConsentData(ctx context.Context, userID string) error
 }
 
 // StorageFactory creates storage instances
