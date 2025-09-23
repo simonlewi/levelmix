@@ -58,114 +58,130 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("failed to unmarshal task: %w", err)
 	}
 
+	// Handle backward compatibility
+	if task.FastMode && task.ProcessingMode == "" {
+		task.ProcessingMode = ModeFast
+	}
+	if task.ProcessingMode == "" {
+		task.ProcessingMode = ModePrecise // Default to precise
+	}
+
 	if err := p.validateTask(task); err != nil {
 		return fmt.Errorf("task validation failed: %w", err)
 	}
 
-	// Fetch the job to update its start time
 	job, err := p.metadataStorage.GetJob(ctx, task.JobID)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve job %s for processing: %w", task.JobID, err)
 	}
 
+	log.Printf("Processing job %s in %s mode", task.JobID, task.ProcessingMode)
+
 	p.updateProgress(ctx, job.ID, 10, "processing")
 
-	// Update job status to processing and set start time
 	now := time.Now()
 	job.Status = "processing"
 	job.StartedAt = &now
 	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
-		log.Printf("Failed to update job %s status to processing with start time: %v", job.ID, err)
+		log.Printf("Failed to update job %s status to processing: %v", job.ID, err)
 	}
 
-	// Get audio file info to determine format
 	audioFile, err := p.metadataStorage.GetAudioFile(ctx, task.FileID)
 	if err != nil {
 		errMsg := err.Error()
 		job.Status = "failed"
 		job.ErrorMessage = &errMsg
 		p.metadataStorage.UpdateJob(ctx, job)
-		return fmt.Errorf("failed to get audio file info for file %s: %w", task.FileID, err)
+		return fmt.Errorf("failed to get audio file info: %w", err)
 	}
 
-	// Download file from S3 to local temp
+	// Download file (both modes need local file)
 	inputFile, err := p.downloadFileForProcessing(ctx, task.FileID, audioFile.Format)
 	if err != nil {
 		errMsg := err.Error()
 		job.Status = "failed"
 		job.ErrorMessage = &errMsg
 		p.metadataStorage.UpdateJob(ctx, job)
-		return fmt.Errorf("failed to download file %s: %w", task.FileID, err)
+		return fmt.Errorf("failed to download file: %w", err)
 	}
 	defer os.Remove(inputFile)
 
-	p.updateProgress(ctx, job.ID, 30, "analyzing")
-
-	// Analyze loudness
-	loudnessInfo, err := AnalyzeLoudness(inputFile)
-	if err != nil {
-		errMsg := err.Error()
-		job.Status = "failed"
-		job.ErrorMessage = &errMsg
-		p.metadataStorage.UpdateJob(ctx, job)
-		return fmt.Errorf("loudness analysis failed for file %s: %w", task.FileID, err)
-	}
-
-	p.updateProgress(ctx, job.ID, 50, "normalizing")
-
-	log.Printf("Loudness analysis completed successfully, proceeding to normalization...")
-	log.Printf("Target LUFS: %f, Input format: %s", task.TargetLUFS, audioFile.Format)
-
-	// Determine the output format based on input and user tier
+	// Determine output format and options
 	outputFormat := p.determineOutputFormat(task.IsPremium, audioFile.Format)
-
-	// Process audio
 	outputFile := p.getOutputFilePath(task.FileID, task.JobID, outputFormat)
 	defer os.Remove(outputFile)
-
 	outputOptions := p.getOutputOptions(task.IsPremium, audioFile.Format)
-	if err := NormalizeLoudness(inputFile, outputFile, task.TargetLUFS, loudnessInfo, outputOptions); err != nil {
-		errMsg := err.Error()
-		job.Status = "failed"
-		job.ErrorMessage = &errMsg
-		p.metadataStorage.UpdateJob(ctx, job)
-		return fmt.Errorf("loudness normalization failed for file %s: %w", task.FileID, err)
+
+	// Process based on mode
+	if task.ProcessingMode == ModeFast {
+		log.Printf("Using FAST processing (single-pass) for job %s", task.JobID)
+		p.updateProgress(ctx, job.ID, 30, "fast_normalizing")
+
+		// Single-pass normalization (from fast-processing.go)
+		if err := FastNormalizeLoudness(inputFile, outputFile, task.TargetLUFS, outputOptions); err != nil {
+			errMsg := err.Error()
+			job.Status = "failed"
+			job.ErrorMessage = &errMsg
+			p.metadataStorage.UpdateJob(ctx, job)
+			return fmt.Errorf("fast normalization failed: %w", err)
+		}
+
+	} else {
+		log.Printf("Using PRECISE processing (two-pass) for job %s", task.JobID)
+		p.updateProgress(ctx, job.ID, 30, "analyzing")
+
+		// Two-pass normalization (existing logic)
+		loudnessInfo, err := AnalyzeLoudness(inputFile)
+		if err != nil {
+			errMsg := err.Error()
+			job.Status = "failed"
+			job.ErrorMessage = &errMsg
+			p.metadataStorage.UpdateJob(ctx, job)
+			return fmt.Errorf("loudness analysis failed: %w", err)
+		}
+
+		p.updateProgress(ctx, job.ID, 50, "normalizing")
+
+		if err := NormalizeLoudness(inputFile, outputFile, task.TargetLUFS, loudnessInfo, outputOptions); err != nil {
+			errMsg := err.Error()
+			job.Status = "failed"
+			job.ErrorMessage = &errMsg
+			p.metadataStorage.UpdateJob(ctx, job)
+			return fmt.Errorf("loudness normalization failed: %w", err)
+		}
 	}
 
 	p.updateProgress(ctx, job.ID, 80, "uploading")
 
-	// Upload processed file back to S3 with the correct output format
+	// Upload processed file (same for both modes)
 	if err := p.uploadProcessedFile(ctx, task.FileID, outputFile, outputFormat); err != nil {
 		errMsg := err.Error()
 		job.Status = "failed"
 		job.ErrorMessage = &errMsg
 		p.metadataStorage.UpdateJob(ctx, job)
-		return fmt.Errorf("failed to upload processed file %s: %w", task.FileID, err)
+		return fmt.Errorf("failed to upload processed file: %w", err)
 	}
 
-	// Store the output format in the job for later retrieval
+	// Mark completed (same for both modes)
 	job.OutputFormat = outputFormat
-
-	// Update job status to completed and set completion time
 	completedNow := time.Now()
 	job.Status = "completed"
 	job.CompletedAt = &completedNow
+
 	if err := p.metadataStorage.UpdateJob(ctx, job); err != nil {
-		log.Printf("Failed to update job %s status to completed with end time: %v", job.ID, err)
+		log.Printf("Failed to update job %s to completed: %v", job.ID, err)
 	}
 
 	p.updateProgress(ctx, job.ID, 100, "completed")
 
-	// Update audio file status
 	if err := p.metadataStorage.UpdateStatus(ctx, task.FileID, "completed"); err != nil {
-		log.Printf("Failed to update file %s status to completed: %v", task.FileID, err)
+		log.Printf("Failed to update file status: %v", err)
 	}
 
-	// Update processing time stats for authenticated users
+	// Update user stats (same for both modes)
 	if task.UserID != "" {
 		stats, err := p.metadataStorage.GetUserStats(ctx, task.UserID)
 		if err != nil {
-			log.Printf("Could not retrieve user stats for user %s: %v", task.UserID, err)
 			stats = &storage.UserUploadStats{
 				UserID:                     task.UserID,
 				UploadsThisWeek:            0,
@@ -174,7 +190,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 				TotalProcessingTimeSeconds: 0,
 			}
 			if err := p.metadataStorage.CreateUserStats(ctx, stats); err != nil {
-				log.Printf("Failed to create default user stats for user %s: %v", task.UserID, err)
+				log.Printf("Failed to create user stats: %v", err)
 			}
 		}
 
@@ -184,10 +200,11 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		}
 
 		if err := p.metadataStorage.UpdateUserStats(ctx, stats); err != nil {
-			log.Printf("Failed to update user stats with processing time for user %s: %v", task.UserID, err)
+			log.Printf("Failed to update user stats: %v", err)
 		}
 	}
 
+	log.Printf("Successfully completed %s processing for job %s", task.ProcessingMode, task.JobID)
 	return nil
 }
 
@@ -334,7 +351,6 @@ func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string
 }
 
 func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {
-	// Calculate optimal concurrency based on CPU cores
 	maxConcurrency := runtime.NumCPU() * 2
 
 	srv := asynq.NewServer(
@@ -342,10 +358,11 @@ func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.Se
 		asynq.Config{
 			Concurrency: maxConcurrency,
 			Queues: map[string]int{
-				QueuePremium:  maxConcurrency * 6 / 10, // 60% for premium
-				QueueStandard: maxConcurrency * 4 / 10, // 40% for standard
+				QueueFast:     maxConcurrency * 5 / 10, // 50% for fast processing
+				QueuePremium:  maxConcurrency * 3 / 10, // 30% for premium
+				QueueStandard: maxConcurrency * 2 / 10, // 20% for standard
 			},
-			StrictPriority: true, // Premium always gets priority
+			StrictPriority: true, // Fast -> Premium -> Standard
 		},
 	)
 

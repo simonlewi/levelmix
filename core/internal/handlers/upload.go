@@ -18,11 +18,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/pkg/storage"
-	// Ensure pkg/types and pkg/utils are imported if they contain necessary structs/functions
-	// For this specific file, they are not directly used in the modified lines,
-	// but are kept as they were in your original file.
-	// "github.com/simonlewi/levelmix/pkg/types"
-	// "github.com/simonlewi/levelmix/pkg/utils"
 )
 
 type UploadHandler struct {
@@ -108,6 +103,21 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
+	// Get processing mode (new feature)
+	processingModeStr := c.PostForm("processing_mode")
+	if processingModeStr == "" {
+		processingModeStr = "fast" // Default to fast mode
+	}
+
+	processingMode, err := audio.ValidateProcessingMode(processingModeStr)
+	if err != nil {
+		log.Printf("UploadHandler: Invalid processing mode: %v", err)
+		h.returnError(c, "Invalid processing mode selected")
+		return
+	}
+
+	log.Printf("UploadHandler: Processing mode selected: %s", processingMode)
+
 	// Validate custom LUFS usage - only Premium/Pro users can use custom values
 	if h.isCustomLUFS(targetLUFS) && userTier < 2 {
 		log.Printf("UploadHandler: Custom LUFS attempted by non-premium user (Tier: %d)", userTier)
@@ -183,11 +193,12 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	}
 
 	task := audio.ProcessTask{
-		JobID:      jobID,
-		FileID:     fileID,
-		TargetLUFS: targetLUFS,
-		UserID:     jobUserID,
-		IsPremium:  isPremium,
+		JobID:          jobID,
+		FileID:         fileID,
+		TargetLUFS:     targetLUFS,
+		UserID:         jobUserID,
+		IsPremium:      isPremium,
+		ProcessingMode: processingMode,
 	}
 
 	log.Printf("UploadHandler: Enqueueing processing task for job %s", jobID)
