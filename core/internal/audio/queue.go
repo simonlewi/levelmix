@@ -10,24 +10,6 @@ import (
 	"github.com/hibiken/asynq"
 )
 
-const (
-	TypeAudioProcess = "audio:process"
-	TypeAudioAnalyze = "audio:analyze"
-	QueuePremium     = "audio_premium"
-	QueueStandard    = "audio_standard"
-	QueueFast        = "audio_fast" // New queue for fast processing
-)
-
-type ProcessTask struct {
-	JobID          string         `json:"job_id"`
-	FileID         string         `json:"file_id"`
-	TargetLUFS     float64        `json:"target_lufs"`
-	UserID         string         `json:"user_id"`
-	IsPremium      bool           `json:"is_premium"`
-	ProcessingMode ProcessingMode `json:"processing_mode"` // New field
-	FastMode       bool           `json:"fast_mode"`       // Backward compatibility
-}
-
 func NewQueue(redisAddr string) *asynq.Client {
 	return asynq.NewClient(asynq.RedisClientOpt{
 		Addr:     redisAddr,

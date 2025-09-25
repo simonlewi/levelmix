@@ -5,30 +5,16 @@ import (
 	"log"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
-
-// LUFS constants for different use cases
-const (
-	DefaultLUFS   = -7.0  // Default target LUFS optimized for DJ content
-	MaxImpactLUFS = -5.0  // Higher output for loud content
-	StreamingLUFS = -14.0 // Streaming standard
-	PodcastLUFS   = -16.0 // Podcast standard
-	BroadcastLUFS = -23.0 // Broadcast standard
-
-	MaxLUFS = -2.0  // Prevent clipping
-	MinLUFS = -30.0 // Prevent inaudible output
-)
-
-type OutputOptions struct {
-	Codec        string   // e.g., "pcm_s16le", "flac", "libmp3lame", "aac"
-	Bitrate      string   // e.g., "320k" for MP3
-	ExtraOptions []string // Any additional FFmpeg options
-}
 
 // NormalizeLoudness performs the second pass using measured values for accurate normalization
 func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *LoudnessInfo, options OutputOptions) error {
 	log.Printf("Starting normalization: %s -> %s (target: %.1f LUFS)", inputFile, outputFile, targetLUFS)
+
+	numThreads := runtime.NumCPU()
+	log.Printf("Using %d CPU threads for FFmpeg processing", numThreads)
 
 	// Validate LUFS range
 	if targetLUFS < MinLUFS || targetLUFS > MaxLUFS {
@@ -40,8 +26,17 @@ func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *L
 		targetLUFS, info.InputI, info.InputTP, info.InputLRA, info.InputThresh)
 
 	args := []string{
+		// Input optimization flags
+		"-threads", fmt.Sprintf("%d", numThreads),
+		"-thread_queue_size", "512",
 		"-i", inputFile,
+		// Audio filter
 		"-af", filterChain,
+		// Output optimization flags
+		"-threads", fmt.Sprintf("%d", numThreads),
+		"-preset", "ultrafast",
+		"-movflags", "+faststart",
+		"-max_muxing_queue_size", "9999",
 	}
 
 	// Determine output format based on file extension or options

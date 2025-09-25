@@ -112,43 +112,27 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	defer os.Remove(outputFile)
 	outputOptions := p.getOutputOptions(task.IsPremium, audioFile.Format)
 
-	// Process based on mode
+	// Process using unified function that handles both modes
+	log.Printf("Processing job %s in %s mode", task.JobID, task.ProcessingMode)
+
+	// Update progress based on mode
 	if task.ProcessingMode == ModeFast {
-		log.Printf("Using FAST processing (single-pass) for job %s", task.JobID)
-		p.updateProgress(ctx, job.ID, 30, "fast_normalizing")
-
-		// Single-pass normalization (from fast-processing.go)
-		if err := FastNormalizeLoudness(inputFile, outputFile, task.TargetLUFS, outputOptions); err != nil {
-			errMsg := err.Error()
-			job.Status = "failed"
-			job.ErrorMessage = &errMsg
-			p.metadataStorage.UpdateJob(ctx, job)
-			return fmt.Errorf("fast normalization failed: %w", err)
-		}
-
+		p.updateProgress(ctx, job.ID, 30, "fast_analyzing")
 	} else {
-		log.Printf("Using PRECISE processing (two-pass) for job %s", task.JobID)
 		p.updateProgress(ctx, job.ID, 30, "analyzing")
+	}
 
-		// Two-pass normalization (existing logic)
-		loudnessInfo, err := AnalyzeLoudness(inputFile)
-		if err != nil {
-			errMsg := err.Error()
-			job.Status = "failed"
-			job.ErrorMessage = &errMsg
-			p.metadataStorage.UpdateJob(ctx, job)
-			return fmt.Errorf("loudness analysis failed: %w", err)
-		}
+	// Use the unified processing function from fast-analyzer.go
+	err = ProcessAudioWithMode(inputFile, outputFile, task.TargetLUFS, outputOptions, task.ProcessingMode)
 
-		p.updateProgress(ctx, job.ID, 50, "normalizing")
+	p.updateProgress(ctx, job.ID, 50, "normalizing")
 
-		if err := NormalizeLoudness(inputFile, outputFile, task.TargetLUFS, loudnessInfo, outputOptions); err != nil {
-			errMsg := err.Error()
-			job.Status = "failed"
-			job.ErrorMessage = &errMsg
-			p.metadataStorage.UpdateJob(ctx, job)
-			return fmt.Errorf("loudness normalization failed: %w", err)
-		}
+	if err != nil {
+		errMsg := err.Error()
+		job.Status = "failed"
+		job.ErrorMessage = &errMsg
+		p.metadataStorage.UpdateJob(ctx, job)
+		return fmt.Errorf("normalizing audio failed: %w", err)
 	}
 
 	p.updateProgress(ctx, job.ID, 80, "uploading")
@@ -236,8 +220,11 @@ func (p *Processor) validateTask(task ProcessTask) error {
 func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, format string) (string, error) {
 	// Create temp file using system temp directory
 	ext := ".mp3"
-	if format == "wav" {
+	switch format {
+	case "wav":
 		ext = ".wav"
+	case "flac":
+		ext = ".flac"
 	}
 
 	tempFile, err := os.CreateTemp("", "levelmix_input_*"+ext)
@@ -251,12 +238,26 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 	var uploadKey string
 	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
 		uploadKey = s3Storage.GetUploadKey(fileID, format)
+
+		// Try optimized multipart download
+		err := s3Storage.DownloadToFile(ctx, uploadKey, tempFileName)
+		if err == nil {
+			log.Printf("Successfully used multipart download for %s", uploadKey)
+			return tempFileName, nil
+		}
+		// If DownloadToFile fails or doesn't exist, fall back to stream method
+		log.Printf("Multipart download failed (%v), falling back to stream download", err)
+	}
+
+	// ONLY reach here if multipart failed or not using S3Storage
+	// Get the upload key for fallback
+	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
+		uploadKey = s3Storage.GetUploadKey(fileID, format)
 	} else {
-		// Fallback for non-S3 storage
 		uploadKey = "uploads/" + fileID
 	}
 
-	log.Printf("Downloading file from S3: %s", uploadKey)
+	log.Printf("Using stream download for: %s", uploadKey)
 	reader, err := p.audioStorage.Download(ctx, uploadKey)
 	if err != nil {
 		os.Remove(tempFileName)
@@ -277,7 +278,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		return "", fmt.Errorf("failed to copy file content: %w", err)
 	}
 
-	log.Printf("Successfully downloaded file to: %s", tempFileName)
+	log.Printf("Successfully downloaded file via stream to: %s", tempFileName)
 	return tempFileName, nil
 }
 
