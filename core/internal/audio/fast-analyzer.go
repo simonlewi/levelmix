@@ -4,7 +4,6 @@ package audio
 import (
 	"fmt"
 	"log"
-	"os/exec"
 	"strings"
 )
 
@@ -49,25 +48,4 @@ func ValidateProcessingMode(mode string) (ProcessingMode, error) {
 	default:
 		return ModePrecise, fmt.Errorf("invalid processing mode: %s. Use 'fast' or 'precise'", mode)
 	}
-}
-
-// EstimateLoudness performs a quick single-point analysis
-// Kept for backward compatibility or specific use cases
-func EstimateLoudness(inputFile string) (*LoudnessInfo, error) {
-	log.Printf("Starting quick loudness estimation (30s sample)")
-
-	// Use ffmpeg to analyze only first 30 seconds
-	cmd := exec.Command("ffmpeg",
-		"-t", "30",
-		"-i", inputFile,
-		"-af", "loudnorm=print_format=json:I=-16:TP=-1.5:LRA=11",
-		"-f", "null", "-")
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("FFmpeg estimation error: %v", err)
-		return nil, fmt.Errorf("loudness estimation failed: %w", err)
-	}
-
-	return parseLoudnormOutput(output)
 }

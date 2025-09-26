@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -86,9 +87,9 @@ func AnalyzeLoudnessAdaptiveSample(inputFile string) (*LoudnessInfo, error) {
 		samplePoints = []float64{0.10, 0.30, 0.50, 0.70, 0.90}
 
 	default: // Very long files (>10 min)
-		// Use 30-second samples at 7 points for better coverage
+		// Use 30-second samples at 7 points
 		sampleLength = 30.0
-		samplePoints = []float64{0.05, 0.20, 0.35, 0.50, 0.65, 0.80, 0.95}
+		samplePoints = []float64{0.10, 0.25, 0.40, 0.55, 0.70, 0.80, 0.90}
 	}
 
 	// Calculate total sample coverage
@@ -97,9 +98,9 @@ func AnalyzeLoudnessAdaptiveSample(inputFile string) (*LoudnessInfo, error) {
 	log.Printf("Sampling strategy: %.0f-second samples at %d points (%.1f%% coverage)",
 		sampleLength, len(samplePoints), coveragePercent)
 
-	// If we're sampling more than 50% of the file, just analyze the whole thing
-	if coveragePercent > 50 {
-		log.Printf("Sample coverage >50%%, analyzing entire file instead")
+	// If we're sampling more than 60% of the file, just analyze the whole thing
+	if coveragePercent > 60 {
+		log.Printf("Sample coverage >60%%, analyzing entire file instead")
 		return AnalyzeLoudness(inputFile)
 	}
 
@@ -234,25 +235,48 @@ func parseLoudnormOutput(output []byte) (*LoudnessInfo, error) {
 
 	jsonData := jsonStr[:jsonEnd]
 
-	var info LoudnessInfo
-	if err := json.Unmarshal([]byte(jsonData), &info); err != nil {
-		// Fallback to Sscanf if Unmarshal fails due to mixed types
-		var data struct {
-			InputI        string `json:"input_i"`
-			InputTP       string `json:"input_tp"`
-			InputLRA      string `json:"input_lra"`
-			InputThresh   string `json:"input_thresh"`
-			InputLoudness string `json:"input_loudness"`
-		}
-		if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
-			return nil, fmt.Errorf("failed to parse JSON data: %w", err)
-		}
+	// Debug: Log the raw JSON to see what we're getting
+	log.Printf("Raw JSON from FFmpeg: %s", jsonData)
 
-		fmt.Sscanf(data.InputI, "%f", &info.InputI)
-		fmt.Sscanf(data.InputTP, "%f", &info.InputTP)
-		fmt.Sscanf(data.InputLRA, "%f", &info.InputLRA)
-		fmt.Sscanf(data.InputThresh, "%f", &info.InputThresh)
-		fmt.Sscanf(data.InputLoudness, "%f", &info.InputLoudness)
+	// FFmpeg outputs with underscores, map to struct fields
+	var data struct {
+		InputI       string `json:"input_i"`
+		InputTP      string `json:"input_tp"`
+		InputLRA     string `json:"input_lra"`
+		InputThresh  string `json:"input_thresh"`
+		TargetOffset string `json:"target_offset"`
+	}
+
+	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON data: %w", err)
+	}
+
+	// Convert string values to float64
+	var info LoudnessInfo
+
+	// Parse each field with error checking
+	if v, err := strconv.ParseFloat(data.InputI, 64); err == nil {
+		info.InputI = v
+	} else {
+		log.Printf("WARNING: Failed to parse input_i: %s", data.InputI)
+	}
+
+	if v, err := strconv.ParseFloat(data.InputTP, 64); err == nil {
+		info.InputTP = v
+	} else {
+		log.Printf("WARNING: Failed to parse input_tp: %s", data.InputTP)
+	}
+
+	if v, err := strconv.ParseFloat(data.InputLRA, 64); err == nil {
+		info.InputLRA = v
+	} else {
+		log.Printf("WARNING: Failed to parse input_lra: %s", data.InputLRA)
+	}
+
+	if v, err := strconv.ParseFloat(data.InputThresh, 64); err == nil {
+		info.InputThresh = v
+	} else {
+		log.Printf("WARNING: Failed to parse input_thresh: %s", data.InputThresh)
 	}
 
 	log.Printf("Loudness analysis results - Input: %.1f LUFS, Peak: %.1f dB, LRA: %.1f LU, Threshold: %.1f",
