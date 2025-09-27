@@ -132,7 +132,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		job.Status = "failed"
 		job.ErrorMessage = &errMsg
 		p.metadataStorage.UpdateJob(ctx, job)
-		return fmt.Errorf("normalizing audio failed: %w", err)
+		return fmt.Errorf("audio processing failed: %w", err)
 	}
 
 	p.updateProgress(ctx, job.ID, 80, "uploading")
@@ -173,22 +173,19 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 				TotalUploads:               0,
 				TotalProcessingTimeSeconds: 0,
 			}
-			if err := p.metadataStorage.CreateUserStats(ctx, stats); err != nil {
-				log.Printf("Failed to create user stats: %v", err)
-			}
 		}
 
 		if job.StartedAt != nil && job.CompletedAt != nil {
 			duration := job.CompletedAt.Sub(*job.StartedAt).Seconds()
 			stats.TotalProcessingTimeSeconds += int(duration)
 		}
-
-		if err := p.metadataStorage.UpdateUserStats(ctx, stats); err != nil {
-			log.Printf("Failed to update user stats: %v", err)
-		}
 	}
 
-	log.Printf("Successfully completed %s processing for job %s", task.ProcessingMode, task.JobID)
+	if job.StartedAt != nil {
+		duration := completedNow.Sub(*job.StartedAt).Seconds()
+		log.Printf("Job %s: completed in %.1fs", task.JobID, duration)
+	}
+
 	return nil
 }
 
@@ -242,15 +239,11 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		// Try optimized multipart download
 		err := s3Storage.DownloadToFile(ctx, uploadKey, tempFileName)
 		if err == nil {
-			log.Printf("Successfully used multipart download for %s", uploadKey)
 			return tempFileName, nil
 		}
-		// If DownloadToFile fails or doesn't exist, fall back to stream method
-		log.Printf("Multipart download failed (%v), falling back to stream download", err)
 	}
 
-	// ONLY reach here if multipart failed or not using S3Storage
-	// Get the upload key for fallback
+	// Fallback to stream download
 	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
 		uploadKey = s3Storage.GetUploadKey(fileID, format)
 	} else {
@@ -278,7 +271,6 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		return "", fmt.Errorf("failed to copy file content: %w", err)
 	}
 
-	log.Printf("Successfully downloaded file via stream to: %s", tempFileName)
 	return tempFileName, nil
 }
 

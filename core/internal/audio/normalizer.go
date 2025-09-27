@@ -11,10 +11,7 @@ import (
 
 // NormalizeLoudness performs the second pass using measured values for accurate normalization
 func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *LoudnessInfo, options OutputOptions) error {
-	log.Printf("Starting normalization: %s -> %s (target: %.1f LUFS)", inputFile, outputFile, targetLUFS)
-
 	numThreads := runtime.NumCPU()
-	log.Printf("Using %d CPU threads for FFmpeg processing", numThreads)
 
 	// Validate LUFS range
 	if targetLUFS < MinLUFS || targetLUFS > MaxLUFS {
@@ -81,8 +78,6 @@ func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *L
 	// Overwrite output file if it exists
 	args = append(args, "-y", outputFile)
 
-	log.Printf("FFmpeg normalize command: ffmpeg %s", strings.Join(args, " "))
-
 	cmd := exec.Command("ffmpeg", args...)
 	output, err := cmd.CombinedOutput()
 
@@ -92,7 +87,6 @@ func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *L
 		return fmt.Errorf("normalization failed: %w", err)
 	}
 
-	log.Printf("Normalization completed successfully")
 	return nil
 }
 
