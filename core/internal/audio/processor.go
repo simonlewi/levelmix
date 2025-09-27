@@ -125,7 +125,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 	// Use the unified processing function from fast-analyzer.go
 	err = ProcessAudioWithMode(inputFile, outputFile, task.TargetLUFS, outputOptions, task.ProcessingMode)
 
-	p.updateProgress(ctx, job.ID, 50, "normalizing")
+	p.updateProgress(ctx, job.ID, 70, "normalizing")
 
 	if err != nil {
 		errMsg := err.Error()
@@ -135,7 +135,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("audio processing failed: %w", err)
 	}
 
-	p.updateProgress(ctx, job.ID, 80, "uploading")
+	p.updateProgress(ctx, job.ID, 85, "uploading")
 
 	// Upload processed file (same for both modes)
 	if err := p.uploadProcessedFile(ctx, task.FileID, outputFile, outputFormat); err != nil {

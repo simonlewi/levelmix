@@ -233,10 +233,18 @@ function removeFile() {
     document.getElementById('file-info').classList.add('hidden');
 }
 
-// More realistic progress mapping based on actual processing stages
+// Realistic progress mapping based on actual processing stages
 function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode = 'precise') {
-    // Estimate total processing time based on file size (rough approximation)
-    const estimatedTotalTime = Math.max(30, Math.min(300, (fileSize || 10000000) / 1000000 * 45)); // 30s to 5min
+    // If backend provided a progress value, don't override it with time-based simulation
+    if (baseProgress && baseProgress > 0) {
+        return {
+            progress: Math.min(baseProgress, 100), // Don't cap at 96% for backend progress
+            message: getMessageForBackendProgress(status, baseProgress, mode)
+        };
+    }
+    
+    // Only use time-based simulation as fallback when no backend progress available
+    const estimatedTotalTime = Math.max(30, Math.min(300, (fileSize || 10000000) / 1000000 * 45));
     
     const progressMaps = {
         precise: {
@@ -251,14 +259,13 @@ function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode =
                 duration: 5
             },
             'processing': {
-                // Break processing into realistic sub-stages
                 stages: [
                     { progress: 20, message: 'Initializing audio processor...', duration: 8 },
                     { progress: 35, message: 'Analyzing audio characteristics...', duration: 15 },
                     { progress: 50, message: 'Measuring loudness levels...', duration: 20 },
                     { progress: 75, message: 'Normalizing audio to target LUFS...', duration: 40 },
                     { progress: 90, message: 'Finalizing processed audio...', duration: 10 },
-                    { progress: 96, message: 'Uploading normalized file...', duration: 7 }
+                    { progress: 95, message: 'Uploading normalized file...', duration: 7 }
                 ]
             },
             'completed': { 
@@ -288,7 +295,7 @@ function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode =
                     { progress: 30, message: 'Initializing fast processor...', duration: 5 },
                     { progress: 60, message: 'Fast normalizing to target LUFS...', duration: 20 },
                     { progress: 90, message: 'Finalizing processed audio...', duration: 5 },
-                    { progress: 96, message: 'Uploading normalized file...', duration: 5 }
+                    { progress: 95, message: 'Uploading normalized file...', duration: 5 } // Reduced from 96 to 95
                 ]
             },
             'completed': { 
@@ -309,9 +316,7 @@ function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode =
     if (status === 'processing') {
         const stages = currentMap.processing.stages;
         const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0);
-        const timeProgress = Math.min(elapsedTime / totalDuration, 1);
         
-        // Find current stage based on time
         let cumulativeDuration = 0;
         for (let i = 0; i < stages.length; i++) {
             cumulativeDuration += stages[i].duration;
@@ -323,16 +328,16 @@ function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode =
                     elapsedTime / stages[i].duration;
                 
                 return {
-                    progress: Math.min(stageStartProgress + (stageEndProgress - stageStartProgress) * Math.min(stageTimeProgress, 1), 96),
+                    progress: Math.min(stageStartProgress + (stageEndProgress - stageStartProgress) * Math.min(stageTimeProgress, 1), 95), // Cap at 95 instead of 96
                     message: stages[i].message
                 };
             }
         }
         
-        return { progress: 96, message: 'Uploading normalized file...' };
+        return { progress: 95, message: 'Uploading normalized file...' };
     }
     
-    return currentMap[status] || { progress: baseProgress, message: 'Processing...' };
+    return currentMap[status] || { progress: 0, message: 'Processing...' };
 }
 
 // Enhanced progress animation with smoother transitions
@@ -520,10 +525,22 @@ function startStatusPolling(fileId) {
                     lastStatus = data.status;
                 }
                 
-                const stageElapsedTime = (Date.now() - progressSimulation.stageStartTime) / 1000;
-                const progressInfo = getDetailedProgress(data.status, data.progress || 0, fileSize, stageElapsedTime, selectedProcessingMode);
+                // PRIORITY: Use backend progress if available and reliable
+                let finalProgress, finalMessage;
                 
-                animateProgress(progressInfo.progress, progressInfo.message);
+                if (data.progress && data.progress > 0) {
+                    // Backend provided explicit progress - use it
+                    finalProgress = Math.min(data.progress, 100);
+                    finalMessage = getMessageForBackendProgress(data.status, data.progress, selectedProcessingMode);
+                } else {
+                    // Fallback to time-based simulation only if no backend progress
+                    const stageElapsedTime = (Date.now() - progressSimulation.stageStartTime) / 1000;
+                    const progressInfo = getDetailedProgress(data.status, data.progress || 0, fileSize, stageElapsedTime, selectedProcessingMode);
+                    finalProgress = progressInfo.progress;
+                    finalMessage = progressInfo.message;
+                }
+                
+                animateProgress(finalProgress, finalMessage);
                 
                 if (data.status === 'completed') {
                     clearInterval(pollInterval);
@@ -538,6 +555,44 @@ function startStatusPolling(fileId) {
                 // Don't fail completely on network errors
             });
     }, 1500); // Poll every 1.5 seconds for smoother updates
+}
+
+function getMessageForBackendProgress(status, progress, mode = 'precise') {
+    if (status === 'completed') {
+        return 'Processing complete!';
+    }
+    
+    if (status === 'failed') {
+        return 'Processing failed';
+    }
+    
+    if (status === 'processing') {
+        // Map backend progress values to appropriate messages
+        if (progress <= 15) {
+            return mode === 'fast' ? 'Initializing fast processor...' : 'Initializing audio processor...';
+        } else if (progress <= 35) {
+            return mode === 'fast' ? 'Fast analyzing audio...' : 'Analyzing audio characteristics...';
+        } else if (progress <= 55) {
+            return mode === 'fast' ? 'Fast normalizing to target LUFS...' : 'Normalizing audio to target LUFS...';
+        } else if (progress <= 85) {
+            return 'Finalizing processed audio...';
+        } else if (progress <= 99) {
+            return 'Uploading normalized file...';
+        } else {
+            return 'Processing complete!';
+        }
+    }
+    
+    // Default messages for other statuses
+    const statusMessages = {
+        'uploaded': 'Upload complete, queuing for processing...',
+        'queued': mode === 'fast' ? 'Queued for fast processing...' : 'Queued for processing...',
+        'analyzing': mode === 'fast' ? 'Fast analyzing audio...' : 'Analyzing audio characteristics...',
+        'normalizing': mode === 'fast' ? 'Fast normalizing to target LUFS...' : 'Normalizing audio to target LUFS...',
+        'uploading': 'Uploading normalized file...'
+    };
+    
+    return statusMessages[status] || 'Processing...';
 }
 
 // Show completed state with enhanced download button
