@@ -230,9 +230,9 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		case <-processingCtx.Done():
 			return p.failJob(ctx, job, task.FileID, fmt.Errorf("processing timed out after 20 minutes"))
 		case <-progressTicker.C:
-			// Incrementally update progress from 30% to 65% during processing
-			if currentProgress < 65 {
-				currentProgress += 3
+			// Incrementally update progress from 30% to 68% during processing
+			if currentProgress < 68 {
+				currentProgress += 1
 				p.updateProgress(ctx, task.FileID, currentProgress, "normalizing")
 			}
 		}
