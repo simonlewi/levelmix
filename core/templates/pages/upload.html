@@ -72,17 +72,23 @@
                                 <input type="radio" name="processing_mode" value="fast" class="hidden" checked>
                                 <div class="p-4 rounded-lg transition-all">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="font-medium text-cyan-400">⚡ Fast</span>
+                                        <span class="font-medium text-cyan-400 flex items-center">
+                                            <img src="/static/images/fast-icon.png" alt="Fast" class="w-5 h-5 mr-2">
+                                            Fast
+                                        </span>
                                     </div>
                                     <p class="text-xs text-gray-400">Adaptive analysis. Quick results with good quality.</p>
                                 </div>
                             </label>
-                            
+
                             <label class="processing-mode-option border border-gray-600 rounded-lg cursor-pointer transition-all">
                                 <input type="radio" name="processing_mode" value="precise" class="hidden">
                                 <div class="p-4 rounded-lg transition-all">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="font-medium text-purple-400">🎯 Precise</span>
+                                        <span class="font-medium text-purple-400 flex items-center">
+                                            <img src="/static/images/precise-icon.png" alt="Precise" class="w-5 h-5 mr-2">
+                                            Precise
+                                        </span>
                                     </div>
                                     <p class="text-xs text-gray-400">Two-pass analysis. Maximum accuracy and quality.</p>
                                 </div>
@@ -598,10 +604,10 @@ function getMessageForBackendProgress(status, progress, mode = 'precise') {
 // Show completed state with enhanced download button
 function showCompletedState(fileId, data) {
     animateProgress(100, 'Processing complete!');
-    
-    const modeIcon = selectedProcessingMode === 'fast' ? '⚡' : '🎯';
-    const modeText = selectedProcessingMode === 'fast' ? 'Fast Processing' : 'Processing';
-    
+
+    const modeIconSrc = selectedProcessingMode === 'fast' ? '/static/images/fast-icon.png' : '/static/images/precise-icon.png';
+    const modeText = selectedProcessingMode === 'fast' ? 'Fast Processing' : 'Precise Processing';
+
     setTimeout(() => {
         document.getElementById('main-container').innerHTML = `
             <div id="completed-state" class="state-transition">
@@ -611,8 +617,11 @@ function showCompletedState(fileId, data) {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
-                    
-                    <h2 class="text-3xl font-bold mb-4">${modeIcon} ${modeText} Complete!</h2>
+
+                    <h2 class="text-3xl font-bold mb-4 flex items-center justify-center">
+                        <img src="${modeIconSrc}" alt="${modeText}" class="w-6 h-6 mr-2">
+                        ${modeText} Complete!
+                    </h2>
                     <p class="text-gray-300 mb-8">Your audio has been normalized and is ready for download.</p>
                     
                     <div class="space-y-4">
