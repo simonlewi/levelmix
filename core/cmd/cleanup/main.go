@@ -4,13 +4,31 @@ import (
 	"context"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"github.com/simonlewi/levelmix/ee/cleanup"
 	"github.com/simonlewi/levelmix/ee/storage"
 )
 
 func main() {
+	_, b, _, _ := runtime.Caller(0)
+	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
+
+	// Load environment variables
+	envPath := filepath.Join(projectRoot, ".env")
+	if _, err := os.Stat(envPath); err == nil {
+		if err := godotenv.Load(envPath); err != nil {
+			log.Printf("Error loading .env file to cleanup: %v", err)
+		} else {
+			log.Println(".env file loaded successfully to cleanup")
+		}
+	} else {
+		log.Println("No .env file found, using environment variables from system/Docker")
+	}
+
 	log.Println("Starting cleanup job...")
 
 	ctx := context.Background()
