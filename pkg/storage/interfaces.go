@@ -52,6 +52,7 @@ type MetadataStorage interface {
 	GetLatestConsent(ctx context.Context, userID string) (*CookieConsentRecord, error)
 	GetUserConsentHistory(ctx context.Context, userID string) ([]*CookieConsentRecord, error)
 	DeleteUserConsentData(ctx context.Context, userID string) error
+	DeleteOldConsents(ctx context.Context, cutoffTime time.Time) error
 }
 
 // StorageFactory creates storage instances
