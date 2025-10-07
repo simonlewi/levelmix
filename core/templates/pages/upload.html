@@ -174,7 +174,7 @@
             <div class="spinner mx-auto mb-6"></div>
             <h2 class="text-3xl font-bold mb-4">Processing Your Audio</h2>
             <p id="status-text" class="text-gray-300 mb-8">Initializing...</p>
-            
+
             <div class="bg-gray-800 rounded-lg p-6 mb-6">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-sm text-gray-400">Progress</span>
@@ -184,8 +184,14 @@
                     <div id="progress-bar" class="progress-bar h-2 rounded-full" style="width: 0%"></div>
                 </div>
             </div>
-            
-            <p class="text-gray-400 text-sm">Processing time varies by file size</p>
+
+            <button id="cancel-btn"
+                    onclick="cancelProcessing()"
+                    class="w-full bg-red-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all mb-4">
+                Cancel Processing
+            </button>
+
+            <p class="text-gray-400 text-sm">Processing time varies by file size, bigger files will take longer to upload and process</p>
         </div>
     </div>
 </template>
@@ -496,6 +502,8 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
         const fileId = doc.querySelector('[data-file-id]')?.getAttribute('data-file-id');
 
         if (fileId) {
+            // Store file ID for cancel functionality
+            currentFileId = fileId;
             progressSimulation.currentProgress = 0;
             progressSimulation.targetProgress = 0;
             animateProgress(5, 'Upload complete, queuing for processing...');
@@ -536,16 +544,16 @@ function startStatusPolling(fileId) {
         fetch(`/status/${fileId}`)
             .then(response => response.json())
             .then(data => {
-                
+
                 // Reset stage timer if status changed
                 if (data.status !== lastStatus) {
                     progressSimulation.stageStartTime = Date.now();
                     lastStatus = data.status;
                 }
-                
+
                 // PRIORITY: Use backend progress if available and reliable
                 let finalProgress, finalMessage;
-                
+
                 if (data.progress && data.progress > 0) {
                     // Backend provided explicit progress - use it
                     finalProgress = Math.min(data.progress, 100);
@@ -557,15 +565,24 @@ function startStatusPolling(fileId) {
                     finalProgress = progressInfo.progress;
                     finalMessage = progressInfo.message;
                 }
-                
+
                 animateProgress(finalProgress, finalMessage);
-                
+
+                // Disable cancel button when progress is above 90%
+                const cancelBtn = document.getElementById('cancel-btn');
+                if (cancelBtn && finalProgress >= 90) {
+                    cancelBtn.disabled = true;
+                }
+
                 if (data.status === 'completed') {
                     clearInterval(pollInterval);
                     setTimeout(() => showCompletedState(fileId, data), 1000);
                 } else if (data.status === 'failed') {
                     clearInterval(pollInterval);
                     showErrorState(data.error || 'Processing failed');
+                } else if (data.status === 'cancelled') {
+                    clearInterval(pollInterval);
+                    showCancelledState();
                 }
             })
             .catch(error => {
@@ -739,6 +756,78 @@ function downloadFile(fileId) {
 // Upload another file
 function uploadAnother() {
     window.location.reload();
+}
+
+// Cancel processing function
+let currentFileId = null;
+
+function cancelProcessing() {
+    if (!currentFileId) {
+        console.error('No file ID available for cancellation');
+        return;
+    }
+
+    const cancelBtn = document.getElementById('cancel-btn');
+    if (cancelBtn) {
+        // Disable button to prevent double-clicks
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Cancelling...';
+    }
+
+    fetch(`/cancel/${currentFileId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'cancelled') {
+            // Stop polling
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+            // Show cancelled state
+            showCancelledState();
+        } else {
+            alert('Failed to cancel: ' + (data.error || 'Unknown error'));
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+                cancelBtn.textContent = 'Cancel Processing';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Cancel request failed:', error);
+        alert('Failed to cancel processing');
+        if (cancelBtn) {
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = 'Cancel Processing';
+        }
+    });
+}
+
+// Show cancelled state
+function showCancelledState() {
+    document.getElementById('main-container').innerHTML = `
+        <div id="cancelled-state" class="state-transition">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-bold mb-4 text-red-400">Processing Cancelled</h2>
+                <p class="text-gray-300 mb-8">Your processing job has been cancelled.</p>
+
+                <button onclick="uploadAnother()"
+                        class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors">
+                    Upload Another File
+                </button>
+            </div>
+        </div>
+    `;
 }
 </script>
 

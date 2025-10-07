@@ -147,6 +147,7 @@ func main() {
 	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
 	r.GET("/status/:id", uploadHandler.GetStatus)
+	r.POST("/cancel/:id", uploadHandler.CancelJob)
 	r.GET("/download/:id", downloadHandler.HandleDownload)
 
 	// Public routes with template context

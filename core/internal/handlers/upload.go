@@ -323,6 +323,80 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (h *UploadHandler) CancelJob(c *gin.Context) {
+	fileID := c.Param("id")
+	if fileID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File ID required"})
+		return
+	}
+
+	// Get the job to verify it exists and get its status
+	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+		return
+	}
+
+	// Don't allow cancelling completed or already failed jobs
+	if job.Status == "completed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot cancel completed job"})
+		return
+	}
+
+	if job.Status == "failed" || job.Status == "cancelled" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Job already terminated"})
+		return
+	}
+
+	// Mark job as cancelled in Redis (for in-progress jobs)
+	if h.redisClient != nil {
+		cancelKey := fmt.Sprintf("cancel:%s", fileID)
+		if err := h.redisClient.Set(c.Request.Context(), cancelKey, "true", 10*time.Minute).Err(); err != nil {
+			log.Printf("Failed to set cancel flag in Redis for job %s: %v", fileID, err)
+		}
+
+		// Update progress to indicate cancellation
+		progressKey := fmt.Sprintf("progress:%s", fileID)
+		h.redisClient.HMSet(c.Request.Context(), progressKey, map[string]interface{}{
+			"status":     "cancelled",
+			"progress":   0,
+			"updated_at": time.Now().Unix(),
+		})
+	}
+
+	// Update job status in database
+	cancelledMsg := "Job cancelled by user"
+	job.Status = "cancelled"
+	job.ErrorMessage = &cancelledMsg
+	now := time.Now()
+	job.CompletedAt = &now
+
+	if err := h.metadata.UpdateJob(c.Request.Context(), job); err != nil {
+		log.Printf("Failed to update job status to cancelled for %s: %v", fileID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel job"})
+		return
+	}
+
+	// Update audio file status
+	if err := h.metadata.UpdateStatus(c.Request.Context(), fileID, "cancelled"); err != nil {
+		log.Printf("Failed to update file status to cancelled for %s: %v", fileID, err)
+	}
+
+	// Get audio file to determine format for cleanup
+	audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), fileID)
+	if err == nil {
+		// Clean up uploaded file from S3
+		h.cleanup(c, fileID, audioFile.Format)
+	}
+
+	log.Printf("Job %s cancelled by user", job.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "cancelled",
+		"message": "Job cancelled successfully",
+	})
+}
+
 func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) error {
 	stats, err := h.metadata.GetUserStats(c.Request.Context(), user.ID)
 	if err != nil {

@@ -230,6 +230,10 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		case <-processingCtx.Done():
 			return p.failJob(ctx, job, task.FileID, fmt.Errorf("processing timed out after 20 minutes"))
 		case <-progressTicker.C:
+			// Check for cancellation
+			if p.isCancelled(ctx, task.FileID) {
+				return p.cancelJob(ctx, job, task.FileID)
+			}
 			// Incrementally update progress from 30% to 68% during processing
 			if currentProgress < 68 {
 				currentProgress += 1
@@ -308,6 +312,61 @@ func (p *Processor) failJob(ctx context.Context, job *storage.ProcessingJob, fil
 	p.updateProgress(updateCtx, fileID, 0, "failed")
 
 	return err
+}
+
+func (p *Processor) isCancelled(ctx context.Context, fileID string) bool {
+	if p.redisClient == nil {
+		return false
+	}
+
+	cancelKey := fmt.Sprintf("cancel:%s", fileID)
+	result, err := p.redisClient.Get(ctx, cancelKey).Result()
+	if err != nil {
+		return false
+	}
+
+	return result == "true"
+}
+
+func (p *Processor) cancelJob(ctx context.Context, job *storage.ProcessingJob, fileID string) error {
+	log.Printf("[INFO] Job %s cancelled by user", job.ID)
+
+	cancelMsg := "Job cancelled by user"
+	job.Status = "cancelled"
+	job.ErrorMessage = &cancelMsg
+	now := time.Now()
+	job.CompletedAt = &now
+
+	updateCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if updateErr := p.metadataStorage.UpdateJob(updateCtx, job); updateErr != nil {
+		if debugMode {
+			log.Printf("[DEBUG] Failed to update job status to cancelled: %v", updateErr)
+		}
+	}
+
+	p.updateProgress(updateCtx, fileID, 0, "cancelled")
+
+	if err := p.metadataStorage.UpdateStatus(updateCtx, fileID, "cancelled"); err != nil {
+		if debugMode {
+			log.Printf("[DEBUG] Failed to update file status to cancelled: %v", err)
+		}
+	}
+
+	// Clean up uploaded file from S3
+	audioFile, err := p.metadataStorage.GetAudioFile(updateCtx, fileID)
+	if err == nil {
+		uploadKey := p.audioStorage.GetUploadKey(fileID, audioFile.Format)
+		if err := p.audioStorage.Delete(updateCtx, uploadKey); err != nil {
+			log.Printf("[WARN] Failed to delete cancelled file from S3: %v", err)
+		} else {
+			log.Printf("[INFO] Deleted cancelled file %s from S3", uploadKey)
+		}
+	}
+
+	// Return SkipRetry to prevent asynq from retrying this task
+	return asynq.SkipRetry
 }
 
 func (p *Processor) getAudioFileWithTimeout(ctx context.Context, fileID string) (*storage.AudioFile, error) {
