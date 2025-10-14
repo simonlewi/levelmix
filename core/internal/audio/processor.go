@@ -604,11 +604,26 @@ func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.Se
 		maxConcurrency = 2
 	}
 
+	standardPriority := maxConcurrency * 2 / 10
+	if standardPriority == 0 {
+		standardPriority = 1
+	}
+
+	premiumPriority := maxConcurrency * 3 / 10
+	if premiumPriority == 0 {
+		premiumPriority = 1
+	}
+
+	fastPriority := maxConcurrency * 5 / 10
+	if fastPriority < 2 {
+		fastPriority = 2
+	}
+
 	log.Printf("[INFO] Worker initialized (concurrency: %d, queues: fast=%d, premium=%d, standard=%d)",
 		maxConcurrency,
-		maxConcurrency*5/10,
-		maxConcurrency*3/10,
-		maxConcurrency*2/10)
+		fastPriority,
+		premiumPriority,
+		standardPriority)
 
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{
@@ -623,7 +638,7 @@ func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.Se
 			Queues: map[string]int{
 				QueueFast:     maxConcurrency * 5 / 10, // 50% for fast processing
 				QueuePremium:  maxConcurrency * 3 / 10, // 30% for premium
-				QueueStandard: maxConcurrency * 2 / 10, // 20% for standard
+				QueueStandard: standardPriority,        // 20% for standard
 			},
 			StrictPriority: true, // Fast -> Premium -> Standard
 
