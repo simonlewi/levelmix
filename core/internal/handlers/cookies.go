@@ -185,6 +185,14 @@ func (h *CookieHandler) ShowPrivacyPolicy(c *gin.Context) {
 	}))
 }
 
+// ShowTermsOfService displays the terms of service page
+func (h *CookieHandler) ShowTermsOfService(c *gin.Context) {
+	c.HTML(http.StatusOK, "terms-of-service.html", GetTemplateData(c, gin.H{
+		"CurrentPage": "terms-of-service",
+		"PageTitle":   "Terms of Service",
+	}))
+}
+
 // generateConsentID generates a unique ID for consent records
 func generateConsentID() string {
 	return generateID() // Use your existing generateID function from other handlers

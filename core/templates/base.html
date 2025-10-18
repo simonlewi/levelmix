@@ -447,6 +447,8 @@
                     {{template "privacy_policy_content" .}}
                 {{else if eq .CurrentPage "cookie-policy"}}
                     {{template "cookie_policy_content" .}}
+                {{else if eq .CurrentPage "terms-of-service"}}
+                    {{template "terms_of_service_content" .}}
                 {{end}}
             {{end}}
         </div>
@@ -459,8 +461,8 @@
             <nav class="space-x-6">
                 <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
                 <a href="/cookies" class="hover:text-white transition-colors">Cookie Policy</a>
+                <a href="/terms-of-service" class="hover:text-white transition-colors">Terms of Service</a>
                 <!-- Commented out links for future use
-                <a href="/terms" class="hover:text-white transition-colors">Terms</a>
                 <a href="/contact" class="hover:text-white transition-colors">Contact</a> -->
             </nav>
         </div>

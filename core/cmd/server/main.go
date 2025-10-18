@@ -114,6 +114,7 @@ func main() {
 	changePasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "change-password.html")
 	privacyPolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "privacy-policy.html")
 	cookiePolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "cookie-policy.html")
+	termsOfServiceTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "terms-of-service.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -133,6 +134,7 @@ func main() {
 		changePasswordTemplate,
 		privacyPolicyTemplate,
 		cookiePolicyTemplate,
+		termsOfServiceTemplate,
 	)
 
 	// Static files
@@ -165,6 +167,7 @@ func main() {
 		public.GET("/results/:id", downloadHandler.ShowResults)
 		public.GET("/privacy", cookieHandler.ShowPrivacyPolicy)
 		public.GET("/cookies", cookieHandler.ShowCookiePolicy)
+		public.GET("/terms-of-service", cookieHandler.ShowTermsOfService)
 		public.POST("/api/cookie-consent", cookieHandler.HandleCookieConsent)
 	}
 
