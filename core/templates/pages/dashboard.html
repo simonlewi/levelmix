@@ -12,6 +12,7 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <!-- Account Type Card -->
         <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-400 truncate">
@@ -20,25 +21,30 @@
                 <dd class="mt-1 text-3xl font-semibold text-cyan-400">
                     {{.tierName}}
                 </dd>
+                {{if ne .tierName "Professional"}}
+                <div class="mt-3">
+                    <a href="/pricing" class="text-sm text-cyan-400 hover:text-cyan-300 underline">
+                        Upgrade Plan
+                    </a>
+                </div>
+                {{end}}
             </div>
         </div>
         
+        <!-- Processing Time This Month Card -->
         <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-400 truncate">
-                    Uploads This Week
+                    Processing Time This Month
                 </dt>
                 <dd class="mt-1 text-3xl font-semibold text-white">
-                    {{.stats.UploadsThisWeek}}
-                    {{if gt .uploadLimit 0}}
-                        <span class="text-sm text-gray-500">/ {{.uploadLimit}}</span>
-                    {{else}}
-                        <span class="text-sm text-gray-500">Unlimited</span>
-                    {{end}}
+                    {{.processingTimeUsed}}
+                    <span class="text-sm text-gray-500">/ {{.processingTimeTotal}}</span>
                 </dd>
             </div>
         </div>
         
+        <!-- Total Uploads Card -->
         <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-400 truncate">
@@ -50,10 +56,11 @@
             </div>
         </div>
         
+        <!-- Total Processing Time Card -->
         <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-400 truncate">
-                    Processing Time
+                    Total Processing Time
                 </dt>
                 <dd class="mt-1 text-2xl font-semibold text-white">
                     {{.processingTime}}
@@ -64,15 +71,15 @@
 
     <!-- Upload Button / Limit Warning -->
     <div class="mb-8">
-        {{if or (eq .uploadLimit -1) (gt .uploadsRemaining 0)}}
+        {{if or (eq .processingTimeLimit -1) (gt .processingTimeRemaining 0)}}
             <a href="/upload" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
                 Upload New File
             </a>
         {{else}}
             <div class="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
                 <p class="text-sm text-yellow-400">
-                    You've reached your weekly upload limit. 
-                    <a href="/pricing" class="font-medium underline hover:text-yellow-300">Upgrade your plan</a> for more uploads.
+                    You've reached your monthly processing time limit. 
+                    <a href="/pricing" class="font-medium underline hover:text-yellow-300">Upgrade your plan</a> for more processing time.
                 </p>
             </div>
         {{end}}
@@ -121,10 +128,7 @@
                                     {{if .file}}{{.file.OriginalFilename}}{{else}}Processing...{{end}}
                                 </div>
                                 <div class="text-sm text-gray-400">
-                                    {{if .file}}
-                                        Target: {{printf "%.1f" .file.LUFSTarget}} LUFS
-                                    {{end}}
-                                    • {{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}
+                                    {{if .hasTargetLUFS}}Target: {{printf "%.1f" .targetLUFS}} LUFS • {{end}}{{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}
                                 </div>
                             </div>
                         </div>

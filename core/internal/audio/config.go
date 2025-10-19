@@ -1,6 +1,8 @@
 package audio
 
-import "os"
+import (
+	"os"
+)
 
 var (
 	// debugMode is set from DEBUG environment variable

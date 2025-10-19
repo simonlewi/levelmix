@@ -180,6 +180,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		AudioFileID: fileID,
 		UserID:      jobUserID,
 		Status:      "queued",
+		TargetLUFS:  &targetLUFS,
 		CreatedAt:   time.Now(),
 	}
 
@@ -403,45 +404,48 @@ func (h *UploadHandler) checkUploadLimits(c *gin.Context, user *storage.User) er
 		log.Printf("checkUploadLimits: No stats found for user %s, initializing default. Error: %v", user.ID, err)
 		stats = &storage.UserUploadStats{
 			UserID:                     user.ID,
-			UploadsThisWeek:            0,
-			WeekResetAt:                time.Now(),
+			ProcessingTimeThisMonth:    0,
+			MonthResetAt:               getMonthStart(time.Now()),
 			TotalUploads:               0,
 			TotalProcessingTimeSeconds: 0,
+			// Keep old fields during transition
+			UploadsThisWeek: 0,
+			WeekResetAt:     time.Now(),
 		}
 		if createErr := h.metadata.CreateUserStats(c.Request.Context(), stats); createErr != nil {
 			log.Printf("checkUploadLimits: Failed to create initial user stats for %s: %v", user.ID, createErr)
 		}
 	}
 
-	uploadLimit := getUploadLimit(user.SubscriptionTier)
-	if uploadLimit == -1 {
-		log.Printf("checkUploadLimits: User %s has unlimited uploads.", user.ID)
+	// Use NEW monthly processing time limit
+	processingTimeLimit := getProcessingTimeLimit(user.SubscriptionTier)
+	if processingTimeLimit == -1 {
+		log.Printf("checkUploadLimits: User %s has unlimited processing time.", user.ID)
 		return nil
 	}
 
+	// Check for MONTHLY reset (not weekly)
 	now := time.Now()
-	weekday := now.Weekday()
-	if weekday == time.Sunday {
-		weekday = 7
-	}
-	daysSinceMonday := weekday - time.Monday
-	currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
+	currentMonthStart := getMonthStart(now)
 
-	if stats.WeekResetAt.Before(currentWeekStart) {
-		log.Printf("checkUploadLimits: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", user.ID, stats.WeekResetAt, currentWeekStart)
-		stats.UploadsThisWeek = 0
-		stats.WeekResetAt = currentWeekStart
+	if stats.MonthResetAt.Before(currentMonthStart) {
+		log.Printf("checkUploadLimits: Monthly reset triggered for user %s. Old reset: %v, New reset: %v", user.ID, stats.MonthResetAt, currentMonthStart)
+		stats.ProcessingTimeThisMonth = 0
+		stats.MonthResetAt = currentMonthStart
 		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
-			log.Printf("checkUploadLimits: Failed to update user stats on weekly reset for %s: %v", user.ID, err)
+			log.Printf("checkUploadLimits: Failed to update user stats on monthly reset for %s: %v", user.ID, err)
 		}
 	}
 
-	if stats.UploadsThisWeek >= uploadLimit {
-		log.Printf("checkUploadLimits: User %s reached weekly upload limit (%d/%d).", user.ID, stats.UploadsThisWeek, uploadLimit)
-		return fmt.Errorf("weekly upload limit reached (%d/%d), upgrade your plan for more uploads", stats.UploadsThisWeek, uploadLimit)
+	// Check if user has reached monthly processing time limit
+	if stats.ProcessingTimeThisMonth >= processingTimeLimit {
+		usedTime := formatDurationDecimal(stats.ProcessingTimeThisMonth)
+		limitTime := formatDurationDecimal(processingTimeLimit)
+		log.Printf("checkUploadLimits: User %s reached monthly processing time limit (%d/%d seconds).", user.ID, stats.ProcessingTimeThisMonth, processingTimeLimit)
+		return fmt.Errorf("You've reached your monthly processing time limit (%s / %s used). Resets on the 1st of next month. Upgrade your plan for more time.", usedTime, limitTime)
 	}
 
-	log.Printf("checkUploadLimits: User %s is within limits (%d/%d).", user.ID, stats.UploadsThisWeek, uploadLimit)
+	log.Printf("checkUploadLimits: User %s is within limits (%d/%d seconds).", user.ID, stats.ProcessingTimeThisMonth, processingTimeLimit)
 	return nil
 }
 

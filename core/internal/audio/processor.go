@@ -187,6 +187,21 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		}
 	}
 
+	if audioFile.DurationSeconds == nil {
+		duration, err := getDuration(inputFile)
+		if err != nil {
+			log.Printf("[WARN] Failed to get audio duration for %s: %v", task.FileID, err)
+		} else {
+			durationInt := int(duration)
+			audioFile.DurationSeconds = &durationInt
+			log.Printf("[INFO] Detected audio duration: %d seconds (%.1f minutes)", durationInt, duration/60)
+			// Update the duration in the database so it's available for stats tracking
+			if err := p.metadataStorage.UpdateAudioFileDuration(ctx, task.FileID, durationInt); err != nil {
+				log.Printf("[WARN] Failed to update audio file duration in DB: %v", err)
+			}
+		}
+	}
+
 	// Determine output format and options
 	outputFormat := p.determineOutputFormat(task.IsPremium, audioFile.Format)
 	outputFile := p.getOutputFilePath(task.FileID, task.JobID, outputFormat)
@@ -384,22 +399,46 @@ func (p *Processor) updateUserStats(ctx context.Context, userID string, job *sto
 	if err != nil {
 		stats = &storage.UserUploadStats{
 			UserID:                     userID,
-			UploadsThisWeek:            0,
-			WeekResetAt:                time.Now(),
+			ProcessingTimeThisMonth:    0,
+			MonthResetAt:               getMonthStart(time.Now()),
 			TotalUploads:               0,
 			TotalProcessingTimeSeconds: 0,
+			UploadsThisWeek:            0,
+			WeekResetAt:                time.Now(),
 		}
 	}
 
-	if job.StartedAt != nil && job.CompletedAt != nil {
-		duration := job.CompletedAt.Sub(*job.StartedAt).Seconds()
-		stats.TotalProcessingTimeSeconds += int(duration)
+	// Get the audio file to access duration
+	audioFile, err := p.metadataStorage.GetAudioFile(ctx, job.AudioFileID)
+	if err != nil {
+		log.Printf("[ERROR] Failed to get audio file for stats update: %v", err)
+		return
+	}
+
+	// Use audio file duration instead of job execution time
+	if audioFile.DurationSeconds != nil && *audioFile.DurationSeconds > 0 {
+		audioDuration := *audioFile.DurationSeconds
+
+		// Check for monthly reset before updating
+		currentMonthStart := getMonthStart(time.Now())
+		if stats.MonthResetAt.Before(currentMonthStart) {
+			log.Printf("[INFO] Monthly reset during stats update for user %s", userID)
+			stats.ProcessingTimeThisMonth = 0
+			stats.MonthResetAt = currentMonthStart
+		}
+
+		// Update both total and monthly processing time with audio duration
+		stats.TotalProcessingTimeSeconds += audioDuration
+		stats.ProcessingTimeThisMonth += audioDuration
+
+		log.Printf("[INFO] Updated stats for user %s: +%ds audio processed (Monthly: %ds, Total: %ds)",
+			userID, audioDuration, stats.ProcessingTimeThisMonth, stats.TotalProcessingTimeSeconds)
 
 		if err := p.metadataStorage.UpdateUserStats(ctx, stats); err != nil {
-			if debugMode {
-				log.Printf("[DEBUG] Failed to update user stats: %v", err)
-			}
+			log.Printf("[ERROR] Failed to update user stats: %v", err)
 		}
+	} else {
+		log.Printf("[WARN] Audio file %s has no duration, cannot update stats", job.AudioFileID)
 	}
 }
 
@@ -694,4 +733,8 @@ func StartWorker(srv *asynq.Server, mux *asynq.ServeMux) error {
 	}
 
 	return nil
+}
+
+func getMonthStart(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 }

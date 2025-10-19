@@ -3,7 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"time" // Import time package for Weekday and Date functions
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -34,35 +34,30 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 	if err != nil {
 		// Create default stats if not found
 		stats = &storage.UserUploadStats{
-			UserID: user.ID,
-			// Initialize weekly stats for new users
-			UploadsThisWeek: 0,
-			WeekResetAt:     time.Now(), // Set to current time, will be adjusted by checkUploadLimits if needed
+			UserID:                     user.ID,
+			ProcessingTimeThisMonth:    0,
+			MonthResetAt:               getMonthStart(time.Now()),
+			TotalUploads:               0,
+			TotalProcessingTimeSeconds: 0,
 		}
-		// Attempt to create the default stats in DB if they don't exist
-		// This ensures WeekResetAt is persisted for new users
+		// Attempt to create the default stats in DB
 		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
-			// Log error but proceed, as we have default stats in memory
-			// Consider more robust error handling if this is critical
+			log.Printf("Dashboard: Failed to create initial user stats for %s: %v", user.ID, err)
 		}
 	}
 
-	// Ensure weekly stats are up-to-date before displaying
-	// This logic is similar to checkUploadLimits but for display purposes
+	// Ensure monthly stats are up-to-date before displaying
 	now := time.Now()
-	weekday := now.Weekday()
-	if weekday == time.Sunday {
-		weekday = 7 // Treat Sunday as the 7th day for consistent week start
-	}
-	daysSinceMonday := weekday - time.Monday
-	currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
+	currentMonthStart := getMonthStart(now)
 
-	if stats.WeekResetAt.Before(currentWeekStart) {
-		stats.UploadsThisWeek = 0
-		stats.WeekResetAt = currentWeekStart
+	if stats.MonthResetAt.Before(currentMonthStart) {
+		log.Printf("Dashboard: Monthly reset triggered for user %s. Old reset: %v, New reset: %v",
+			user.ID, stats.MonthResetAt, currentMonthStart)
+		stats.ProcessingTimeThisMonth = 0
+		stats.MonthResetAt = currentMonthStart
 		// Update in DB if reset occurred
 		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
-			log.Printf("Failed to update user stats on weekly reset in DashboardHandler: %v", err)
+			log.Printf("Dashboard: Failed to update user stats on monthly reset: %v", err)
 		}
 	}
 
@@ -82,41 +77,43 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 		if err == nil {
 			jobData["file"] = audioFile
 		}
+		// Add dereferenced TargetLUFS for template
+		if job.TargetLUFS != nil {
+			jobData["targetLUFS"] = *job.TargetLUFS
+			jobData["hasTargetLUFS"] = true
+		}
 		jobsWithFiles = append(jobsWithFiles, jobData)
 	}
 
 	// Calculate tier info
 	tierName := getTierName(user.SubscriptionTier)
-	uploadLimit := getUploadLimit(user.SubscriptionTier)
+	processingTimeLimit := getProcessingTimeLimit(user.SubscriptionTier)
 
-	// Calculate uploads remaining based on weekly stats
-	uploadsRemaining := uploadLimit
-	if uploadLimit > 0 { // Check if it's not an unlimited plan
-		uploadsRemaining = uploadLimit - stats.UploadsThisWeek // Use UploadsThisWeek
-		if uploadsRemaining < 0 {
-			uploadsRemaining = 0
+	// Calculate processing time remaining
+	processingTimeRemaining := processingTimeLimit
+	if processingTimeLimit > 0 {
+		processingTimeRemaining = processingTimeLimit - stats.ProcessingTimeThisMonth
+		if processingTimeRemaining < 0 {
+			processingTimeRemaining = 0
 		}
 	}
 
-	templateData := gin.H{
-		"CurrentPage":      "dashboard",
-		"PageTitle":        "Dashboard",
-		"user":             user,
-		"stats":            stats, // stats now contains updated weekly counts
-		"jobs":             jobsWithFiles,
-		"tierName":         tierName,
-		"uploadLimit":      uploadLimit,
-		"uploadsRemaining": uploadsRemaining,
-		"processingTime":   formatDuration(stats.TotalProcessingTimeSeconds),
-		// No need to explicitly pass "uploadsThisWeek" as it's part of "stats"
-	}
-
-	// IMPORTANT: Use GetTemplateData to add common variables like IsLoggedIn
-	templateData = GetTemplateData(c, templateData)
-
-	c.HTML(http.StatusOK, "dashboard.html", templateData)
+	c.HTML(http.StatusOK, "dashboard.html", GetTemplateData(c, gin.H{
+		"CurrentPage":             "dashboard",
+		"PageTitle":               "Dashboard",
+		"user":                    user,
+		"stats":                   stats,
+		"jobs":                    jobsWithFiles,
+		"tierName":                tierName,
+		"processingTimeLimit":     processingTimeLimit,
+		"processingTimeRemaining": formatDuration(processingTimeRemaining),
+		"processingTimeUsed":      formatDuration(stats.ProcessingTimeThisMonth),
+		"processingTimeTotal":     formatDurationAsHours(processingTimeLimit),
+		"processingTime":          formatDuration(stats.TotalProcessingTimeSeconds),
+	}))
 }
 
+// GetHistory returns the user's processing history (for HTMX pagination)
 func (h *DashboardHandler) GetHistory(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {

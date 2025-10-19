@@ -11,6 +11,7 @@ type AudioFile struct {
 	Format           string
 	Status           string
 	LUFSTarget       float64
+	DurationSeconds  *int
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 }
@@ -21,6 +22,7 @@ type ProcessingJob struct {
 	AudioFileID  string
 	UserID       string
 	Status       string
+	TargetLUFS   *float64
 	ErrorMessage *string
 	OutputS3Key  string
 	OutputFormat string
@@ -46,9 +48,15 @@ type UserUploadStats struct {
 	UserID                     string
 	TotalUploads               int
 	TotalProcessingTimeSeconds int
-	UploadsThisWeek            int
 	LastUploadAt               *time.Time
-	WeekResetAt                time.Time
+
+	// OLD FIELDS - keep temporarily during migration
+	UploadsThisWeek int
+	WeekResetAt     time.Time
+
+	// NEW FIELDS - Primary tracking for usage limits
+	ProcessingTimeThisMonth int
+	MonthResetAt            time.Time
 }
 
 // Job status constants

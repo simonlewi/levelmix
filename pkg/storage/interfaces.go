@@ -23,6 +23,7 @@ type MetadataStorage interface {
 	CreateAudioFile(ctx context.Context, file *AudioFile) error
 	GetAudioFile(ctx context.Context, fileID string) (*AudioFile, error)
 	UpdateStatus(ctx context.Context, fileID string, status string) error
+	UpdateAudioFileDuration(ctx context.Context, fileID string, durationSeconds int) error
 	DeleteAudioFile(ctx context.Context, fileID string) error
 
 	// Job operations
