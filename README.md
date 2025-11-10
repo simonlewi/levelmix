@@ -102,9 +102,6 @@ PORT=8080
 GIN_MODE=debug
 SESSION_SECRET=your-very-long-random-session-secret-here
 
-# Beta Access (remove or leave empty for production)
-BETA_KEY=your-beta-key-here
-
 # Database (Turso)
 TURSO_DB_URL=libsql://your-database.turso.io
 TURSO_AUTH_TOKEN=your-turso-auth-token

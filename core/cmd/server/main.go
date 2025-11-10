@@ -191,8 +191,6 @@ func main() {
 		public.GET("/logout", authHandler.HandleLogout)
 		public.GET("/forgot-password", passwordRecoveryHandler.ShowForgotPassword)
 		public.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
-		public.GET("/access", handlers.ShowAccessForm)
-		public.POST("/access", handlers.AccessControlMiddleware())
 		public.GET("/results/:id", downloadHandler.ShowResults)
 		public.GET("/privacy", cookieHandler.ShowPrivacyPolicy)
 		public.GET("/cookies", cookieHandler.ShowCookiePolicy)
@@ -200,19 +198,30 @@ func main() {
 		public.POST("/api/cookie-consent", cookieHandler.HandleCookieConsent)
 	}
 
-	// Public routes with access control (beta key)
-	publicProtected := r.Group("/")
-	publicProtected.Use(handlers.TemplateContext())
-	publicProtected.Use(authMiddleware.TemplateContext())
-	publicProtected.Use(handlers.AccessControlMiddleware())
+	// Public routes (no authentication required)
+	publicOpen := r.Group("/")
+	publicOpen.Use(handlers.TemplateContext())
+	publicOpen.Use(authMiddleware.TemplateContext())
 	{
-		publicProtected.GET("/", func(c *gin.Context) {
+		publicOpen.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "home.html", handlers.GetTemplateData(c, gin.H{
 				"CurrentPage": "home",
 			}))
 		})
 
-		publicProtected.GET("/upload", authMiddleware.OptionalAuth(), func(c *gin.Context) {
+		publicOpen.GET("/about", aboutHandler.ShowAbout)
+		publicOpen.GET("/pricing", pricingHandler.ShowPricing)
+		publicOpen.GET("/payment/success", paymentSuccessHandler.ShowPaymentSuccess)
+	}
+
+	// Protected routes requiring authentication
+	protected := r.Group("/")
+	protected.Use(handlers.TemplateContext())
+	protected.Use(authMiddleware.TemplateContext())
+	protected.Use(authMiddleware.RequireAuth())
+	{
+		// Upload routes - now require authentication
+		protected.GET("/upload", func(c *gin.Context) {
 			templateData := handlers.GetTemplateData(c, gin.H{
 				"CurrentPage": "upload",
 				"PageTitle":   "Upload",
@@ -224,19 +233,8 @@ func main() {
 
 			c.HTML(http.StatusOK, "upload.html", templateData)
 		})
+		protected.POST("/upload", uploadHandler.HandleUpload)
 
-		publicProtected.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)
-		publicProtected.GET("/about", aboutHandler.ShowAbout)
-		publicProtected.GET("/pricing", pricingHandler.ShowPricing)
-		publicProtected.GET("/payment/success", paymentSuccessHandler.ShowPaymentSuccess)
-	}
-
-	// Protected routes requiring authentication
-	protected := r.Group("/")
-	protected.Use(handlers.TemplateContext())
-	protected.Use(authMiddleware.TemplateContext())
-	protected.Use(authMiddleware.RequireAuth())
-	{
 		protected.GET("/dashboard", dashboardHandler.ShowDashboard)
 		protected.GET("/account/delete", accountHandler.ShowDeleteConfirmation)
 		protected.POST("/account/delete", accountHandler.HandleDeleteAccount)

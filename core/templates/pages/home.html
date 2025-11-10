@@ -28,12 +28,24 @@
         <p class="text-xl md:text-2xl text-white mb-10 max-w-2xl mx-auto" style="text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.5);">
             Automatically normalize your audio to industry-standard LUFS levels with professional quality results
         </p>
-        <a 
-            href="/upload" 
+        {{if .user}}
+        <a
+            href="/upload"
             class="inline-block bg-cyan-400 text-gray-900 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-cyan-300 transition-all duration-300 pulse-glow"
         >
-            Try It Now For Free!
+            Upload Your Audio
         </a>
+        {{else}}
+        <a
+            href="/register"
+            class="inline-block bg-cyan-400 text-gray-900 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-cyan-300 transition-all duration-300 pulse-glow"
+        >
+            Get Started - It's Free!
+        </a>
+        <p class="text-white text-sm mt-4" style="text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);">
+            Already have an account? <a href="/login" class="text-cyan-300 hover:text-cyan-200 underline">Log in</a>
+        </p>
+        {{end}}
     </div>
 </header>
 

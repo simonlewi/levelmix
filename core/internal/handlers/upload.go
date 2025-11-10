@@ -51,31 +51,29 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
-	var userIDFromContext *string
-	isPremium := false
-	userTier := 1
-	var currentUser *storage.User
-
+	// Get authenticated user (now required)
 	userInterface, exists := c.Get("user")
-	if exists {
-		if u, ok := userInterface.(*storage.User); ok {
-			userIDFromContext = &u.ID
-			userTier = u.SubscriptionTier
-			isPremium = u.SubscriptionTier > 1
-			currentUser = u
-			log.Printf("UploadHandler: User ID from context: '%s' (Tier: %d)", *userIDFromContext, u.SubscriptionTier)
-		}
-	} else {
-		log.Printf("UploadHandler: Anonymous upload - no personal data stored in context")
+	if !exists {
+		h.returnError(c, "Authentication required. Please log in to upload files.")
+		return
 	}
 
-	// Only check limits for authenticated users. Anonymous users are handled by validateFile's default tier.
-	if currentUser != nil {
-		if err := h.checkUploadLimits(c, currentUser); err != nil {
-			log.Printf("UploadHandler: Upload limit check failed for user %s: %v", *userIDFromContext, err)
-			h.returnError(c, err.Error())
-			return
-		}
+	currentUser, ok := userInterface.(*storage.User)
+	if !ok {
+		h.returnError(c, "Invalid user session. Please log in again.")
+		return
+	}
+
+	userIDFromContext := currentUser.ID
+	userTier := currentUser.SubscriptionTier
+	isPremium := currentUser.SubscriptionTier > 1
+	log.Printf("UploadHandler: User ID from context: '%s' (Tier: %d)", userIDFromContext, currentUser.SubscriptionTier)
+
+	// Check upload limits
+	if err := h.checkUploadLimits(c, currentUser); err != nil {
+		log.Printf("UploadHandler: Upload limit check failed for user %s: %v", userIDFromContext, err)
+		h.returnError(c, err.Error())
+		return
 	}
 
 	// Validate file with tier-based rules (size, format)
@@ -151,7 +149,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Store metadata
 	audioFile := &storage.AudioFile{
 		ID:               fileID,
-		UserID:           userIDFromContext,
+		UserID:           &userIDFromContext,
 		OriginalFilename: fileHeader.Filename,
 		FileSize:         fileHeader.Size,
 		Format:           fileFormat, // Use the determined fileFormat
@@ -170,15 +168,11 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 
 	// Prepare job for queueing
 	jobID := generateID()
-	jobUserID := ""
-	if userIDFromContext != nil {
-		jobUserID = *userIDFromContext
-	}
 
 	job := &storage.ProcessingJob{
 		ID:          jobID,
 		AudioFileID: fileID,
-		UserID:      jobUserID,
+		UserID:      userIDFromContext,
 		Status:      "queued",
 		TargetLUFS:  &targetLUFS,
 		CreatedAt:   time.Now(),
@@ -197,7 +191,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		JobID:          jobID,
 		FileID:         fileID,
 		TargetLUFS:     targetLUFS,
-		UserID:         jobUserID,
+		UserID:         userIDFromContext,
 		IsPremium:      isPremium,
 		ProcessingMode: processingMode,
 	}
@@ -210,48 +204,46 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
-	// Increment upload stats for authenticated users
-	if currentUser != nil {
-		stats, err := h.metadata.GetUserStats(c.Request.Context(), currentUser.ID)
-		if err != nil {
-			log.Printf("UploadHandler: Could not retrieve user stats for %s, creating new: %v", currentUser.ID, err)
-			stats = &storage.UserUploadStats{
-				UserID:                     currentUser.ID,
-				UploadsThisWeek:            0,
-				WeekResetAt:                time.Now(),
-				TotalUploads:               0,
-				TotalProcessingTimeSeconds: 0,
-			}
-			if createErr := h.metadata.CreateUserStats(c.Request.Context(), stats); createErr != nil {
-				log.Printf("UploadHandler: Failed to create initial user stats for %s: %v", currentUser.ID, createErr)
-			}
+	// Increment upload stats
+	stats, err := h.metadata.GetUserStats(c.Request.Context(), currentUser.ID)
+	if err != nil {
+		log.Printf("UploadHandler: Could not retrieve user stats for %s, creating new: %v", currentUser.ID, err)
+		stats = &storage.UserUploadStats{
+			UserID:                     currentUser.ID,
+			UploadsThisWeek:            0,
+			WeekResetAt:                time.Now(),
+			TotalUploads:               0,
+			TotalProcessingTimeSeconds: 0,
 		}
-
-		stats.UploadsThisWeek++
-		stats.TotalUploads++
-
-		now := time.Now()
-		weekday := now.Weekday()
-		if weekday == time.Sunday {
-			weekday = 7
+		if createErr := h.metadata.CreateUserStats(c.Request.Context(), stats); createErr != nil {
+			log.Printf("UploadHandler: Failed to create initial user stats for %s: %v", currentUser.ID, createErr)
 		}
-		daysSinceMonday := weekday - time.Monday
-		currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
+	}
 
-		if stats.WeekResetAt.Before(currentWeekStart) {
-			log.Printf("checkUploadLimits: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", currentUser.ID, stats.WeekResetAt, currentWeekStart)
-			stats.UploadsThisWeek = 0
-			stats.WeekResetAt = currentWeekStart
-			if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
-				log.Printf("checkUploadLimits: Failed to update user stats on weekly reset for %s: %v", currentUser.ID, err)
-			}
-		}
+	stats.UploadsThisWeek++
+	stats.TotalUploads++
 
+	now := time.Now()
+	weekday := now.Weekday()
+	if weekday == time.Sunday {
+		weekday = 7
+	}
+	daysSinceMonday := weekday - time.Monday
+	currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
+
+	if stats.WeekResetAt.Before(currentWeekStart) {
+		log.Printf("checkUploadLimits: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", currentUser.ID, stats.WeekResetAt, currentWeekStart)
+		stats.UploadsThisWeek = 0
+		stats.WeekResetAt = currentWeekStart
 		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
-			log.Printf("UploadHandler: Failed to update user stats with processing time for user %s: %v", currentUser.ID, err)
-		} else {
-			log.Printf("UploadHandler: User stats updated for %s. UploadsThisWeek: %d, TotalUploads: %d", currentUser.ID, stats.UploadsThisWeek, stats.TotalUploads)
+			log.Printf("checkUploadLimits: Failed to update user stats on weekly reset for %s: %v", currentUser.ID, err)
 		}
+	}
+
+	if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
+		log.Printf("UploadHandler: Failed to update user stats with processing time for user %s: %v", currentUser.ID, err)
+	} else {
+		log.Printf("UploadHandler: User stats updated for %s. UploadsThisWeek: %d, TotalUploads: %d", currentUser.ID, stats.UploadsThisWeek, stats.TotalUploads)
 	}
 
 	// Return processing state HTML
