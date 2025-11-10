@@ -449,6 +449,8 @@
                     {{template "cookie_policy_content" .}}
                 {{else if eq .CurrentPage "terms-of-service"}}
                     {{template "terms_of_service_content" .}}
+                {{else if eq .CurrentPage "payment-success"}}
+                    {{template "payment_success_content" .}}
                 {{end}}
             {{end}}
         </div>
@@ -1008,6 +1010,17 @@
         }
     </script>
 
-    {{block "scripts" .}}{{end}}
+    <!-- Page-specific JavaScript files -->
+    {{if eq .CurrentPage "pricing"}}
+        <script src="/static/js/pricing.js"></script>
+    {{else if eq .CurrentPage "payment-success"}}
+        <script src="/static/js/payment-success.js"></script>
+    {{else if eq .CurrentPage "home"}}
+        <script src="/static/js/home.js"></script>
+    {{else if eq .CurrentPage "about"}}
+        <script src="/static/js/about.js"></script>
+    {{else if eq .CurrentPage "dashboard"}}
+        <script src="/static/js/dashboard.js"></script>
+    {{end}}
 </body>
 </html>

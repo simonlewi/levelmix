@@ -19,6 +19,8 @@ import (
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/core/internal/handlers"
 	ee_auth "github.com/simonlewi/levelmix/ee/auth"
+	ee_payment "github.com/simonlewi/levelmix/ee/payment"
+	payment_handlers "github.com/simonlewi/levelmix/ee/payment/handlers"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/email"
 )
@@ -68,6 +70,30 @@ func main() {
 		}
 	}
 
+	// Initialize payment service
+	// Note: metadataStorage is actually a *TursoStorage which implements PaymentStorage
+	var paymentHandlers *payment_handlers.PaymentHandlers
+
+	paymentConfig, err := ee_payment.LoadConfigFromEnv()
+	if err != nil {
+		log.Printf("Warning: Payment service not configured: %v", err)
+		log.Println("Payment endpoints will not be available")
+	} else {
+		// metadataStorage is *TursoStorage which implements both MetadataStorage and PaymentStorage
+		tursoStorage, ok := metadataStorage.(*ee_storage.TursoStorage)
+		if !ok {
+			log.Printf("Warning: metadataStorage is not *TursoStorage, cannot initialize payment service")
+		} else {
+			paymentService, err := ee_payment.NewPaymentService(paymentConfig, tursoStorage)
+			if err != nil {
+				log.Printf("Warning: Failed to initialize payment service: %v", err)
+			} else {
+				log.Printf("Payment service initialized successfully (Provider: %s)", paymentConfig.Provider)
+				paymentHandlers = payment_handlers.NewPaymentHandlers(paymentService, tursoStorage, emailService)
+			}
+		}
+	}
+
 	// Initialize queue
 	qm := audio.NewQueueManager(os.Getenv("REDIS_URL"))
 	defer qm.Shutdown()
@@ -77,6 +103,7 @@ func main() {
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
+	paymentSuccessHandler := handlers.NewPaymentSuccessHandler()
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
 	accountHandler := handlers.NewAccountHandler(metadataStorage, audioStorage)
 	passwordRecoveryHandler := ee_auth.NewPasswordRecoveryHandler(metadataStorage, emailService)
@@ -103,6 +130,7 @@ func main() {
 	resultsTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "results.html")
 	aboutTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "about.html")
 	pricingTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "pricing.html")
+	paymentSuccessTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "payment-success.html")
 	loginTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "login.html")
 	registerTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "register.html")
 	dashboardTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "dashboard.html")
@@ -123,6 +151,7 @@ func main() {
 		resultsTemplate,
 		aboutTemplate,
 		pricingTemplate,
+		paymentSuccessTemplate,
 		loginTemplate,
 		registerTemplate,
 		dashboardTemplate,
@@ -199,6 +228,7 @@ func main() {
 		publicProtected.POST("/upload", authMiddleware.OptionalAuth(), uploadHandler.HandleUpload)
 		publicProtected.GET("/about", aboutHandler.ShowAbout)
 		publicProtected.GET("/pricing", pricingHandler.ShowPricing)
+		publicProtected.GET("/payment/success", paymentSuccessHandler.ShowPaymentSuccess)
 	}
 
 	// Protected routes requiring authentication
@@ -217,6 +247,21 @@ func main() {
 		protected.GET("/api/consent/:userID", cookieHandler.GetLatestConsent)
 		protected.GET("/api/consent/:userID/history", cookieHandler.GetUserConsentHistory)
 		protected.DELETE("/api/consent/:userID", cookieHandler.DeleteUserConsentData)
+
+		// Payment endpoints (require authentication)
+		if paymentHandlers != nil {
+			protected.POST("/api/v1/payment/checkout", paymentHandlers.GinHandleCreateCheckoutSession)
+			protected.GET("/api/v1/payment/subscription", paymentHandlers.GinHandleGetSubscriptionStatus)
+			protected.POST("/api/v1/payment/portal", paymentHandlers.GinHandleCreatePortalSession)
+		}
+	}
+
+	// Webhook endpoints (no authentication - verified by webhook signature)
+	if paymentHandlers != nil {
+		r.POST("/api/v1/payment/webhook", paymentHandlers.GinHandleWebhook)
+	} else {
+		log.Println("WARNING: Payment handlers are nil - payment endpoints will not be available")
+		log.Println("Check the payment service initialization logs above for errors")
 	}
 
 	// Start server

@@ -19,6 +19,10 @@ type EmailService interface {
 	SendEmailChanged(ctx context.Context, oldEmail, newEmail string) error
 	SendEmailChangeConfirmation(ctx context.Context, to string) error
 	SendPasswordChanged(ctx context.Context, to string) error
+	SendPaymentSuccess(ctx context.Context, to, planName, amount string) error
+	SendPaymentFailed(ctx context.Context, to string) error
+	SendSubscriptionCanceled(ctx context.Context, to, planName string) error
+	SendSubscriptionReactivated(ctx context.Context, to, planName string) error
 }
 
 // ResendService implements EmailService using Resend

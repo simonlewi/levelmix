@@ -25,6 +25,9 @@
 {{define "main-classes"}}bg-gray-900{{end}}
 
 {{define "pricing_content"}}
+<!-- Hidden data attribute for JavaScript to check login status -->
+<div data-user-logged-in="{{if .IsLoggedIn}}true{{else}}false{{end}}" style="display: none;"></div>
+
 <!-- Hero Section -->
 <header class="hero-gradient py-16 px-6 text-center">
     <div class="max-w-4xl mx-auto">
@@ -128,9 +131,9 @@
                     </li>
                 </ul>
                 
-                <a href="/signup?plan=premium" class="block w-full bg-cyan-400 text-gray-900 text-center py-4 rounded-xl text-lg font-bold hover:bg-cyan-300 transition-colors">
+                <button onclick="startCheckout('premium', 'monthly')" class="block w-full bg-cyan-400 text-gray-900 text-center py-4 rounded-xl text-lg font-bold hover:bg-cyan-300 transition-colors">
                     Start Premium
-                </a>
+                </button>
             </div>
 
             <!-- Professional Tier -->
@@ -172,9 +175,9 @@
                     </li>
                 </ul>
                 
-                <a href="/signup?plan=professional" class="block w-full bg-gray-700 text-white text-center py-4 rounded-xl text-lg font-semibold hover:bg-gray-600 transition-colors">
+                <button onclick="startCheckout('professional', 'monthly')" class="block w-full bg-gray-700 text-white text-center py-4 rounded-xl text-lg font-semibold hover:bg-gray-600 transition-colors">
                     Go Professional
-                </a>
+                </button>
             </div>
         </div>
     </section>
@@ -273,27 +276,14 @@
                 >
                     Try Free Now
                 </a>
-                <a 
-                    href="/signup?plan=premium" 
+                <button
+                    onclick="startCheckout('premium', 'monthly')"
                     class="bg-white text-gray-900 px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                     Start Premium
-                </a>
+                </button>
             </div>
         </div>
     </section>
 </div>
-{{end}}
-
-{{define "scripts"}}
-<script>
-// HTMX event handlers for navigation
-document.body.addEventListener('htmx:beforeRequest', function(evt) {
-    console.log('Navigation request started');
-});
-
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    console.log('Navigation completed');
-});
-</script>
 {{end}}

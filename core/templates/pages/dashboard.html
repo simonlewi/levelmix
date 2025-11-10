@@ -196,11 +196,18 @@
                     <h4 class="text-sm font-medium text-white">Subscription</h4>
                     <p class="text-sm text-gray-400">{{.tierName}} plan</p>
                 </div>
-                {{if ne .tierName "Professional"}}
-                <a href="/pricing" class="text-sm text-cyan-400 hover:text-cyan-300">
-                    Upgrade
-                </a>
-                {{end}}
+                <div class="flex space-x-3">
+                    {{if ne .tierName "Free"}}
+                    <button onclick="openBillingPortal()" class="text-sm text-cyan-400 hover:text-cyan-300">
+                        Manage Subscription
+                    </button>
+                    {{end}}
+                    {{if ne .tierName "Professional"}}
+                    <a href="/pricing" class="text-sm text-cyan-400 hover:text-cyan-300">
+                        Upgrade
+                    </a>
+                    {{end}}
+                </div>
             </div>
             
             <div class="pt-4 border-t border-gray-700">
