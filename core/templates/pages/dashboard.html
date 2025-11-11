@@ -71,7 +71,7 @@
 
     <!-- Upload Button / Limit Warning -->
     <div class="mb-8">
-        {{if or (eq .processingTimeLimit -1) (gt .processingTimeRemaining 0)}}
+        {{if or (eq .processingTimeLimit -1) (gt .processingTimeRemainingSeconds 0)}}
             <a href="/upload" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
                 Upload New File
             </a>

@@ -103,6 +103,7 @@ func main() {
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
+	howToUseHandler := handlers.NewHowToUseHandler()
 	paymentSuccessHandler := handlers.NewPaymentSuccessHandler()
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
 	accountHandler := handlers.NewAccountHandler(metadataStorage, audioStorage)
@@ -143,6 +144,7 @@ func main() {
 	privacyPolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "privacy-policy.html")
 	cookiePolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "cookie-policy.html")
 	termsOfServiceTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "terms-of-service.html")
+	howToUseTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "how-to-use.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -151,6 +153,7 @@ func main() {
 		resultsTemplate,
 		aboutTemplate,
 		pricingTemplate,
+		howToUseTemplate,
 		paymentSuccessTemplate,
 		loginTemplate,
 		registerTemplate,
@@ -212,6 +215,8 @@ func main() {
 		publicOpen.GET("/about", aboutHandler.ShowAbout)
 		publicOpen.GET("/pricing", pricingHandler.ShowPricing)
 		publicOpen.GET("/payment/success", paymentSuccessHandler.ShowPaymentSuccess)
+		publicOpen.GET("/how-to-use", howToUseHandler.ShowHowToUse)
+
 	}
 
 	// Protected routes requiring authentication

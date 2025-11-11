@@ -99,17 +99,18 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "dashboard.html", GetTemplateData(c, gin.H{
-		"CurrentPage":             "dashboard",
-		"PageTitle":               "Dashboard",
-		"user":                    user,
-		"stats":                   stats,
-		"jobs":                    jobsWithFiles,
-		"tierName":                tierName,
-		"processingTimeLimit":     processingTimeLimit,
-		"processingTimeRemaining": formatDuration(processingTimeRemaining),
-		"processingTimeUsed":      formatDuration(stats.ProcessingTimeThisMonth),
-		"processingTimeTotal":     formatDurationAsHours(processingTimeLimit),
-		"processingTime":          formatDuration(stats.TotalProcessingTimeSeconds),
+		"CurrentPage":                    "dashboard",
+		"PageTitle":                      "Dashboard",
+		"user":                           user,
+		"stats":                          stats,
+		"jobs":                           jobsWithFiles,
+		"tierName":                       tierName,
+		"processingTimeLimit":            processingTimeLimit,
+		"processingTimeRemaining":        formatDuration(processingTimeRemaining),
+		"processingTimeUsed":             formatDuration(stats.ProcessingTimeThisMonth),
+		"processingTimeTotal":            formatDurationAsHours(processingTimeLimit),
+		"processingTime":                 formatDuration(stats.TotalProcessingTimeSeconds),
+		"processingTimeRemainingSeconds": processingTimeRemaining,
 	}))
 }
 

@@ -348,6 +348,7 @@
             <a href="/upload" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
             <a href="/pricing" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
             <a href="/about" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
+            <a href="/how-to-use" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-cyan-400{{end}}">How To Use</a>
         </div>
         
         <!-- Desktop Auth Buttons - Updated with new conditional logic -->
@@ -425,6 +426,8 @@
                     {{template "about_content" .}}
                 {{else if eq .CurrentPage "pricing"}}
                     {{template "pricing_content" .}}
+                {{else if eq .CurrentPage "how-to-use"}}
+                    {{template "how_to_use_content" .}}
                 {{else if eq .CurrentPage "login"}}
                     {{template "login_content" .}}
                 {{else if eq .CurrentPage "register"}}
@@ -1021,6 +1024,8 @@
         <script src="/static/js/about.js"></script>
     {{else if eq .CurrentPage "dashboard"}}
         <script src="/static/js/dashboard.js"></script>
+    {{else if eq .CurrentPage "how-to-use"}}
+        <script src="/static/js/how-to-use.js"></script>
     {{end}}
 </body>
 </html>
