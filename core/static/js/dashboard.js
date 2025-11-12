@@ -1,7 +1,7 @@
 console.log('Dashboard scripts loaded');
 
 // Open Stripe Billing Portal for subscription management
-async function openBillingPortal() {
+async function openBillingPortal(event) {
     try {
         const button = event.target;
         const originalText = button.textContent;
