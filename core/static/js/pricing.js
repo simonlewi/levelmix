@@ -9,7 +9,7 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
 });
 
 // Start checkout process
-async function startCheckout(planId, billingInterval) {
+async function startCheckout(event, planId, billingInterval) {
     // Check if user is logged in by checking for user data in page
     const isLoggedIn = document.querySelector('[data-user-logged-in]')?.dataset.userLoggedIn === 'true';
 

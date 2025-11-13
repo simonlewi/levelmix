@@ -391,12 +391,12 @@
             <a href="/upload" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
             <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
             <a href="/about" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
+            <a href="/how-to-use" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-cyan-400{{end}}">How To Use</a>
             <div class="pt-4 border-t border-gray-700 space-y-4">
                 {{if .IsLoggedIn}}
-                    <a href="/dashboard" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "dashboard"}}text-cyan-400{{end}}">Dashboard</a>
                     <a href="/logout" class="block w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
                         Logout
-                    </a>
+                    </a>                    
                     <a href="/dashboard" class="block w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center">
                         Dashboard
                     </a>
