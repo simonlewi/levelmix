@@ -28,13 +28,13 @@ func getMonthStart(t time.Time) time.Time {
 func getProcessingTimeLimit(tier int) int {
 	switch tier {
 	case 1:
-		return -1 // 2 hours per month for Free tier (7200 seconds after beta)
+		return 7200 // 2 hours per month for Free tier (7200 seconds after beta)
 	case 2:
 		return 36000 // 10 hours per month for Premium tier (€9/month)
 	case 3:
 		return 144000 // 40 hours per month for Professional tier (€24/month)
 	default:
-		return -1 // Default to free tier (7200 seconds after beta)
+		return 7200 // Default to free tier (7200 seconds after beta)
 	}
 }
 
