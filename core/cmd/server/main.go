@@ -120,6 +120,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	r := gin.Default()
+	r.MaxMultipartMemory = 64 << 20 // 64 MB in-memory buffer
 
 	// Configure trusted proxies based on environment
 	configureTrustedProxies(r)
@@ -274,8 +275,13 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: r,
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadTimeout:       15 * time.Minute, // Allow large file uploads
+		WriteTimeout:      15 * time.Minute, // Allow large file downloads
+		ReadHeaderTimeout: 30 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20, // 1 MB
 	}
 
 	go func() {
