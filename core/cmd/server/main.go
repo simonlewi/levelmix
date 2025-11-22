@@ -239,6 +239,8 @@ func main() {
 
 			c.HTML(http.StatusOK, "upload.html", templateData)
 		})
+		protected.GET("/api/presigned-upload", uploadHandler.GetPresignedUploadURL)
+		protected.POST("/api/confirm-upload", uploadHandler.ConfirmUpload)
 		protected.POST("/upload", uploadHandler.HandleUpload)
 
 		protected.GET("/dashboard", dashboardHandler.ShowDashboard)

@@ -12,12 +12,7 @@
             <div id="upload-state">
                 <h2 class="text-4xl font-bold mb-8">Upload Your Audio</h2>
                 
-                <form id="upload-form"
-                      hx-post="/upload"
-                      hx-encoding="multipart/form-data"
-                      hx-target="#main-container"
-                      hx-indicator="#upload-loading"
-                      hx-timeout="300000">
+                <form id="upload-form">
                       
                     <!-- File Drop Area -->
                     <div id="drop-area" 
@@ -156,12 +151,6 @@
                         Upload & Process
                     </button>
                 </form>
-                
-                <!-- Upload Loading State -->
-                <div id="upload-loading" class="htmx-indicator mt-6">
-                    <div class="spinner mx-auto mb-4"></div>
-                    <p class="text-cyan-400">Uploading your file...</p>
-                </div>
             </div>
         </div>
     </div>
@@ -191,7 +180,7 @@
                 Cancel Processing
             </button>
 
-            <p class="text-gray-400 text-sm">Processing time varies by file size, bigger files will take longer to upload and process</p>
+            <p class="text-gray-400 text-sm">Processing time varies by size, larger files will take longer to upload and process</p>
         </div>
     </div>
 </template>
@@ -467,66 +456,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Handle form submission with custom LUFS validation
+    // Handle form submission with presigned URLs
     if (uploadForm) {
-        uploadForm.addEventListener('submit', function(e) {
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
             const lufsSelect = document.getElementById('lufs-select');
             const customValue = document.getElementById('custom_lufs_value');
             
+            // Validate custom LUFS if selected
             if (lufsSelect && lufsSelect.value === 'custom' && customValue) {
                 const value = parseFloat(customValue.value);
                 if (isNaN(value) || value < -30 || value > -2) {
-                    e.preventDefault();
                     alert('Please enter a valid LUFS value between -30 and -2');
                     return;
                 }
-                // Update the select value to the custom value for form submission
-                lufsSelect.value = customValue.value;
+            }
+            
+            // Get form values
+            const targetLufs = lufsSelect.value === 'custom' ? customValue.value : lufsSelect.value;
+            const processingMode = document.querySelector('input[name="processing_mode"]:checked')?.value || 'fast';
+            
+            if (!selectedFile) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            try {
+                // Show uploading state
+                showUploadingState();
+                
+                // Upload using presigned URL
+                await uploadFileWithPresignedURL(selectedFile, targetLufs, processingMode);
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                showErrorState(error.message || 'Upload failed. Please try again.');
             }
         });
     }
-});
-
-// HTMX event handlers
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    const response = evt.detail.xhr.responseText;
-
-    if (response.includes('processing-state') || response.includes('data-file-id')) {
-        const template = document.getElementById('processing-template');
-        const clone = template.content.cloneNode(true);
-        document.getElementById('main-container').innerHTML = '';
-        document.getElementById('main-container').appendChild(clone);
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(response, 'text/html');
-        const fileId = doc.querySelector('[data-file-id]')?.getAttribute('data-file-id');
-
-        if (fileId) {
-            // Store file ID for cancel functionality
-            currentFileId = fileId;
-            progressSimulation.currentProgress = 0;
-            progressSimulation.targetProgress = 0;
-            animateProgress(5, 'Upload complete, queuing for processing...');
-            startStatusPolling(fileId);
-        } else {
-            console.error('Failed to extract file ID from response');
-        }
-    }
-});
-
-// Add error handler for HTMX
-document.body.addEventListener('htmx:responseError', function(evt) {
-    console.error('HTMX request failed:', {
-        status: evt.detail.xhr.status,
-        statusText: evt.detail.xhr.statusText,
-        response: evt.detail.xhr.responseText
-    });
-    alert('Upload failed: ' + evt.detail.xhr.statusText);
-});
-
-document.body.addEventListener('htmx:sendError', function(evt) {
-    console.error('HTMX send error:', evt.detail);
-    alert('Network error occurred during upload');
 });
 
 // Enhanced status polling with better progress calculation
@@ -828,6 +796,169 @@ function showCancelledState() {
             </div>
         </div>
     `;
+}
+
+// Upload file using presigned URL
+async function uploadFileWithPresignedURL(file, targetLufs, processingMode) {
+    // Step 1: Get presigned URL from server
+    const presignedData = await getPresignedUploadURL(file);
+    
+    // Step 2: Upload directly to S3
+    await uploadToS3(file, presignedData.upload_url, presignedData.content_type);
+    
+    // Step 3: Confirm upload and start processing
+    await confirmUploadAndProcess(presignedData.file_id, file.name, targetLufs, processingMode);
+}
+
+// Step 1: Get presigned URL from server
+async function getPresignedUploadURL(file) {
+    const params = new URLSearchParams({
+        filename: file.name,
+        filesize: file.size.toString()
+    });
+    
+    const response = await fetch(`/api/presigned-upload?${params.toString()}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json'
+        }
+    });
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to get upload URL');
+    }
+    
+    return await response.json();
+}
+
+// Step 2: Upload to S3 with progress tracking
+async function uploadToS3(file, uploadURL, contentType) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        // Track upload progress
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = Math.round((event.loaded / event.total) * 100);
+                updateUploadProgress(percentComplete);
+            }
+        });
+        
+        // Handle completion
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                console.log('S3 upload completed successfully');
+                updateUploadProgress(100);
+                resolve();
+            } else {
+                reject(new Error(`S3 upload failed with status ${xhr.status}`));
+            }
+        });
+        
+        // Handle errors
+        xhr.addEventListener('error', () => {
+            reject(new Error('Network error during S3 upload'));
+        });
+        
+        xhr.addEventListener('abort', () => {
+            reject(new Error('Upload cancelled'));
+        });
+        
+        // Upload file
+        xhr.open('PUT', uploadURL);
+        xhr.setRequestHeader('Content-Type', contentType);
+        xhr.send(file);
+    });
+}
+
+// Step 3: Confirm upload and start processing
+async function confirmUploadAndProcess(fileId, filename, targetLufs, processingMode) {
+    const formData = new FormData();
+    formData.append('file_id', fileId);
+    formData.append('filename', filename);
+    formData.append('target_lufs', targetLufs);
+    formData.append('processing_mode', processingMode);
+    
+    const response = await fetch('/api/confirm-upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to confirm upload and start processing');
+    }
+    
+    // Get the HTML response (processing state UI)
+    const html = await response.text();
+    
+    // Show processing state
+    const template = document.getElementById('processing-template');
+    const clone = template.content.cloneNode(true);
+    document.getElementById('main-container').innerHTML = '';
+    document.getElementById('main-container').appendChild(clone);
+    
+    // Extract file ID from response and start polling
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const extractedFileId = doc.querySelector('[data-file-id]')?.getAttribute('data-file-id') || fileId;
+    
+    currentFileId = extractedFileId;
+    progressSimulation.currentProgress = 0;
+    progressSimulation.targetProgress = 0;
+    animateProgress(5, 'Upload complete, queuing for processing...');
+    startStatusPolling(extractedFileId);
+}
+
+// Show uploading state UI
+function showUploadingState() {
+    const uploadingHTML = `
+        <div id="uploading-state" class="state-transition">
+            <div class="text-center">
+                <div class="spinner mx-auto mb-6"></div>
+                <h2 class="text-3xl font-bold mb-4">Uploading Your File</h2>
+                <p id="upload-status-text" class="text-gray-300 mb-8">Uploading to cloud storage...</p>
+                
+                <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-400">Upload Progress</span>
+                        <span id="upload-progress-text" class="text-sm text-cyan-400">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div id="upload-progress-bar" class="bg-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <p class="text-gray-400 text-sm">Large files may take a few moments to upload</p>
+            </div>
+        </div>`;
+    
+    document.getElementById('main-container').innerHTML = uploadingHTML;
+}
+
+// Update upload progress bar
+function updateUploadProgress(percent) {
+    const progressBar = document.getElementById('upload-progress-bar');
+    const progressText = document.getElementById('upload-progress-text');
+    const statusText = document.getElementById('upload-status-text');
+    
+    if (progressBar) {
+        progressBar.style.width = `${percent}%`;
+    }
+    
+    if (progressText) {
+        progressText.textContent = `${percent}%`;
+    }
+    
+    if (statusText) {
+        if (percent < 100) {
+            statusText.textContent = 'Uploading to cloud storage...';
+        } else {
+            statusText.textContent = 'Upload complete, preparing for processing...';
+        }
+    }
 }
 </script>
 

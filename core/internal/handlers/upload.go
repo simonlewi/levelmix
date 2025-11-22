@@ -43,6 +43,275 @@ func NewUploadHandler(s storage.AudioStorage, m storage.MetadataStorage, q *audi
 	}
 }
 
+func (h *UploadHandler) GetPresignedUploadURL(c *gin.Context) {
+	// Get authenticated user
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required. Please log in to upload files."})
+		return
+	}
+
+	currentUser, ok := userInterface.(*storage.User)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user session. Please log in again."})
+		return
+	}
+
+	// Get file info from query params
+	filename := c.Query("filename")
+	filesizeStr := c.Query("filesize")
+
+	if filename == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Filename is required"})
+		return
+	}
+
+	if filesizeStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File size is required"})
+		return
+	}
+
+	filesize, err := strconv.ParseInt(filesizeStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file size"})
+		return
+	}
+
+	log.Printf("GetPresignedUploadURL: User %s requesting presigned URL for %s (%d bytes)", currentUser.ID, filename, filesize)
+
+	// Create a mock FileHeader for validation using existing validateFile logic
+	mockHeader := &multipart.FileHeader{
+		Filename: filename,
+		Size:     filesize,
+	}
+
+	// Validate file using your existing validation logic
+	if err := h.validateFile(mockHeader, currentUser.SubscriptionTier); err != nil {
+		log.Printf("GetPresignedUploadURL: File validation failed: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check upload limits using your existing logic
+	if err := h.checkUploadLimits(c, currentUser); err != nil {
+		log.Printf("GetPresignedUploadURL: Upload limit check failed: %v", err)
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Determine file format
+	fileFormat := getFileExtension(filename)
+	if fileFormat == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not determine audio format from file extension"})
+		return
+	}
+
+	// Generate unique file ID
+	fileID := generateID()
+	key := h.storage.GetUploadKey(fileID, fileFormat)
+	contentType := getContentTypeFromFormat(fileFormat)
+
+	uploadURL, err := h.storage.GetPresignedUploadURL(c.Request.Context(), key, contentType, 15*time.Minute)
+	if err != nil {
+		log.Printf("GetPresignedUploadURL: Failed to generate presigned URL: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate upload URL"})
+		return
+	}
+
+	log.Printf("GetPresignedUploadURL: Generated presigned URL for file %s (key: %s)", fileID, key)
+
+	c.JSON(http.StatusOK, gin.H{
+		"upload_url":   uploadURL,
+		"file_id":      fileID,
+		"method":       "PUT",
+		"content_type": contentType,
+	})
+}
+
+// ConfirmUpload confirms that a file has been uploaded to S3 and starts processing
+func (h *UploadHandler) ConfirmUpload(c *gin.Context) {
+	fileID := c.PostForm("file_id")
+	originalFilename := c.PostForm("filename")
+
+	if fileID == "" || originalFilename == "" {
+		h.returnError(c, "Missing file ID or filename")
+		return
+	}
+
+	// Get authenticated user
+	userInterface, exists := c.Get("user")
+	if !exists {
+		h.returnError(c, "Authentication required. Please log in to upload files.")
+		return
+	}
+
+	currentUser, ok := userInterface.(*storage.User)
+	if !ok {
+		h.returnError(c, "Invalid user session. Please log in again.")
+		return
+	}
+
+	userIDFromContext := currentUser.ID
+	userTier := currentUser.SubscriptionTier
+	isPremium := currentUser.SubscriptionTier > 1
+
+	log.Printf("ConfirmUpload: User %s confirming upload for file %s", userIDFromContext, fileID)
+
+	// Get target LUFS
+	targetLUFS, err := h.parseTargetLUFS(c.PostForm("target_lufs"))
+	if err != nil {
+		log.Printf("ConfirmUpload: LUFS parsing failed: %v", err)
+		h.returnError(c, err.Error())
+		return
+	}
+
+	// Get processing mode
+	processingModeStr := c.PostForm("processing_mode")
+	if processingModeStr == "" {
+		processingModeStr = "fast"
+	}
+
+	processingMode, err := audio.ValidateProcessingMode(processingModeStr)
+	if err != nil {
+		log.Printf("ConfirmUpload: Invalid processing mode: %v", err)
+		h.returnError(c, "Invalid processing mode selected")
+		return
+	}
+
+	log.Printf("ConfirmUpload: Processing mode selected: %s", processingMode)
+
+	// Validate custom LUFS usage - only Premium/Pro users can use custom values
+	if h.isCustomLUFS(targetLUFS) && userTier < 2 {
+		log.Printf("ConfirmUpload: Custom LUFS attempted by non-premium user (Tier: %d)", userTier)
+		h.returnError(c, "Custom LUFS targets are only available for Premium and Professional users")
+		return
+	}
+
+	// Verify file actually exists in S3
+	fileFormat := getFileExtension(originalFilename)
+	if fileFormat == "" {
+		h.returnError(c, "Could not determine audio format from file extension")
+		return
+	}
+
+	key := h.storage.GetUploadKey(fileID, fileFormat)
+
+	info, err := h.storage.GetObjectInfo(c.Request.Context(), key)
+	if err != nil {
+		log.Printf("ConfirmUpload: Failed to verify S3 upload for %s: %v", fileID, err)
+		h.returnError(c, "Upload verification failed. The file was not found in storage. Please try again.")
+		return
+	}
+
+	log.Printf("ConfirmUpload: Verified S3 upload: %s (%d bytes)", fileID, info.Size)
+
+	// Store metadata
+	audioFile := &storage.AudioFile{
+		ID:               fileID,
+		UserID:           &userIDFromContext,
+		OriginalFilename: originalFilename,
+		FileSize:         info.Size,
+		Format:           fileFormat,
+		Status:           "uploaded",
+		LUFSTarget:       targetLUFS,
+		CreatedAt:        time.Now(),
+	}
+
+	if err := h.metadata.CreateAudioFile(c.Request.Context(), audioFile); err != nil {
+		log.Printf("ConfirmUpload: Failed to save audio file metadata for %s: %v", fileID, err)
+		// Clean up S3 file since metadata creation failed
+		h.storage.Delete(c.Request.Context(), key)
+		h.returnError(c, "Failed to save file metadata")
+		return
+	}
+
+	// Prepare job for queueing
+	jobID := generateID()
+
+	job := &storage.ProcessingJob{
+		ID:          jobID,
+		AudioFileID: fileID,
+		UserID:      userIDFromContext,
+		Status:      "queued",
+		TargetLUFS:  &targetLUFS,
+		CreatedAt:   time.Now(),
+	}
+
+	log.Printf("ConfirmUpload: Creating job record for file %s with jobID %s and UserID '%s'", fileID, jobID, job.UserID)
+
+	if err := h.metadata.CreateJob(c.Request.Context(), job); err != nil {
+		log.Printf("ConfirmUpload: Failed to create job record for %s: %v", fileID, err)
+		h.cleanup(c, fileID, fileFormat)
+		h.returnError(c, "Failed to create processing job")
+		return
+	}
+
+	task := audio.ProcessTask{
+		JobID:          jobID,
+		FileID:         fileID,
+		TargetLUFS:     targetLUFS,
+		UserID:         userIDFromContext,
+		IsPremium:      isPremium,
+		ProcessingMode: processingMode,
+	}
+
+	log.Printf("ConfirmUpload: Enqueueing processing task for job %s", jobID)
+	if err := h.queue.EnqueueProcessing(c.Request.Context(), task); err != nil {
+		log.Printf("ConfirmUpload: Failed to queue processing task for job %s: %v", jobID, err)
+		h.cleanup(c, fileID, fileFormat)
+		h.returnError(c, "Failed to queue processing")
+		return
+	}
+
+	// Increment upload stats (same logic as HandleUpload)
+	stats, err := h.metadata.GetUserStats(c.Request.Context(), currentUser.ID)
+	if err != nil {
+		log.Printf("ConfirmUpload: Could not retrieve user stats for %s, creating new: %v", currentUser.ID, err)
+		stats = &storage.UserUploadStats{
+			UserID:                     currentUser.ID,
+			UploadsThisWeek:            0,
+			WeekResetAt:                time.Now(),
+			TotalUploads:               0,
+			TotalProcessingTimeSeconds: 0,
+			ProcessingTimeThisMonth:    0,
+			MonthResetAt:               getMonthStart(time.Now()),
+		}
+		if createErr := h.metadata.CreateUserStats(c.Request.Context(), stats); createErr != nil {
+			log.Printf("ConfirmUpload: Failed to create initial user stats for %s: %v", currentUser.ID, createErr)
+		}
+	}
+
+	stats.UploadsThisWeek++
+	stats.TotalUploads++
+
+	now := time.Now()
+	weekday := now.Weekday()
+	if weekday == time.Sunday {
+		weekday = 7
+	}
+	daysSinceMonday := weekday - time.Monday
+	currentWeekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(daysSinceMonday))
+
+	if stats.WeekResetAt.Before(currentWeekStart) {
+		log.Printf("ConfirmUpload: Weekly reset triggered for user %s. Old reset: %v, New reset: %v", currentUser.ID, stats.WeekResetAt, currentWeekStart)
+		stats.UploadsThisWeek = 0
+		stats.WeekResetAt = currentWeekStart
+		if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
+			log.Printf("ConfirmUpload: Failed to update user stats on weekly reset for %s: %v", currentUser.ID, err)
+		}
+	}
+
+	if err := h.metadata.UpdateUserStats(c.Request.Context(), stats); err != nil {
+		log.Printf("ConfirmUpload: Failed to update user stats with processing time for user %s: %v", currentUser.ID, err)
+	} else {
+		log.Printf("ConfirmUpload: User stats updated for %s. UploadsThisWeek: %d, TotalUploads: %d", currentUser.ID, stats.UploadsThisWeek, stats.TotalUploads)
+	}
+
+	// Return processing state HTML
+	processingHTML := h.generateProcessingHTML(fileID, jobID)
+	c.Data(http.StatusOK, "text/html", []byte(processingHTML))
+}
+
 func (h *UploadHandler) HandleUpload(c *gin.Context) {
 	// Get uploaded file
 	fileHeader, err := c.FormFile("audio_file")
@@ -615,4 +884,18 @@ func (h *UploadHandler) isCustomLUFS(lufs float64) bool {
 	}
 
 	return true
+}
+
+// Helper function to get content type from file format
+func getContentTypeFromFormat(format string) string {
+	switch strings.ToLower(format) {
+	case "wav":
+		return "audio/wav"
+	case "mp3":
+		return "audio/mpeg"
+	case "flac":
+		return "audio/flac"
+	default:
+		return "audio/mpeg"
+	}
 }

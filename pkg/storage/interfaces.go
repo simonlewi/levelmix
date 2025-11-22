@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+type ObjectInfo struct {
+	Size         int64
+	LastModified time.Time
+	ContentType  string
+}
+
 // AudioStorage handles file storage operations
 type AudioStorage interface {
 	Upload(ctx context.Context, key string, reader io.Reader, format string) error
@@ -15,6 +21,8 @@ type AudioStorage interface {
 	GetPresignedURL(ctx context.Context, key string, duration time.Duration, format string) (string, error)
 	GetUploadKey(fileID string, format string) string
 	GetProcessedKey(fileID string, format string) string
+	GetObjectInfo(ctx context.Context, key string) (*ObjectInfo, error)
+	GetPresignedUploadURL(ctx context.Context, key string, contentType string, duration time.Duration) (string, error)
 }
 
 // MetadataStorage handles database operations
