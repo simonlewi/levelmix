@@ -187,6 +187,13 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		}
 	}
 
+	var silenceInfo *SilenceInfo
+	if si, err := DetectSilence(inputFile); err != nil {
+		log.Printf("[WARN] Silence detection failed, continuing without trim: %v", err)
+	} else {
+		silenceInfo = si
+	}
+
 	if audioFile.DurationSeconds == nil {
 		duration, err := getDuration(inputFile)
 		if err != nil {
@@ -226,7 +233,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 
 	processDone := make(chan error, 1)
 	go func() {
-		processDone <- ProcessAudioWithMode(inputFile, outputFile, task.TargetLUFS, outputOptions, task.ProcessingMode)
+		processDone <- ProcessAudioWithMode(inputFile, outputFile, task.TargetLUFS, outputOptions, task.ProcessingMode, silenceInfo)
 	}()
 
 	// Update progress during normalization phase

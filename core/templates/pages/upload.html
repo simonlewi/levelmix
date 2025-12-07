@@ -3,9 +3,10 @@
 {{define "title"}}Upload - LevelMix{{end}}
 
 {{define "upload_content"}}
-<div class="flex items-center justify-center min-h-screen px-6">
+<div id="upload_content" class="flex items-center justify-center min-h-screen px-6"
+     data-user-tier="{{if and .IsLoggedIn .user}}{{.user.SubscriptionTier}}{{else}}0{{end}}"
+     data-is-logged-in="{{.IsLoggedIn}}">
     <div class="text-center max-w-md w-full">
-        <!-- This container will hold all states -->
         <div id="main-container" class="state-transition">
             
             <!-- STATE 1: Upload Form (Initial) -->
@@ -60,7 +61,7 @@
                            class="hidden"
                            onchange="handleFileSelect(this)">
                     
-                    <!-- Processing Mode Selection (NEW) -->
+                    <!-- Processing Mode Selection -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium mb-2">Processing Mode:</label>
                         <div class="grid grid-cols-2 gap-3">
@@ -86,30 +87,33 @@
                                             Precise
                                         </span>
                                     </div>
-                                    <p class="text-xs text-gray-400">Two-pass analysis. Maximum accuracy and quality.</p>
+                                    <p class="text-xs text-gray-400">Full analysis. Recommended for music content like DJ mixes.</p>
                                 </div>
                             </label>
                         </div>
                     </div>
                     
+                    <!-- Preset Selection (replaces LUFS dropdown) -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium mb-2">Target LUFS:</label>
-                        <select name="target_lufs" 
-                                id="lufs-select"
+                        <label class="block text-sm font-medium mb-2">Optimize for:</label>
+                        <select name="preset"
+                                id="preset-select"
                                 class="block w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
-                            <option value="-14">Streaming (-14 LUFS)</option>
-                            <option value="-16">Podcast (-16 LUFS)</option>
-                            <option value="-23">Radio (-23 LUFS)</option>
-                            <option value="-7" selected>Club Mix (-7 LUFS)</option>
-                            <option value="-5">Festival Mix (-5 LUFS)</option>
+                            <option value="dj" selected>DJ Content</option>
+                            <option value="streaming">Streaming</option>
+                            <option value="podcast">Podcast</option>
+                            <option value="broadcast">Broadcast</option>
                             {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
-                            <option value="custom">Custom LUFS 
-                                <span class="text-purple-300">({{if eq .user.SubscriptionTier 2}}Premium{{else}}Pro{{end}})</span>
-                            </option>
+                            <option value="custom">Custom LUFS</option>
                             {{end}}
                         </select>
                         
-                        <!-- Custom LUFS Input (hidden initially) -->
+                        <!-- Preset descriptions -->
+                        <p id="preset-description" class="mt-2 text-sm text-gray-400">
+                            Loud and punchy, optimized for impact and energy.
+                        </p>
+                        
+                        <!-- Custom LUFS Input (Premium/Pro only) -->
                         {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
                         <div id="custom-lufs-input" class="hidden mt-4 p-4 bg-gray-700 rounded-lg border border-purple-500/50">
                             <label for="custom_lufs_value" class="block text-sm font-medium text-gray-300 mb-2">
@@ -119,26 +123,23 @@
                                 <input type="number" 
                                        id="custom_lufs_value" 
                                        name="custom_lufs_value" 
-                                       min="-30" 
+                                       min="-20" 
                                        max="-2" 
-                                       step="0.1" 
+                                       step="1"
                                        value="-10"
                                        class="block w-24 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent">
-                                <span class="text-gray-400 text-sm">Range: -30 to -2 LUFS</span>
+                                <span class="text-gray-400 text-sm">Range: -20 to -2 LUFS</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">
-                                Lower values = quieter output. Higher values = louder output.
-                            </p>
                         </div>
                         {{else if .IsLoggedIn}}
                         <!-- Upgrade prompt for free users -->
-                        <div class="mt-4 p-4 bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border border-purple-500/30 rounded-lg">
+                        <div id="custom-upgrade-prompt" class="hidden mt-4 p-3 bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border border-purple-500/30 rounded-lg">
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0-6v2m0-6V9a3 3 0 013-3h0a3 3 0 013 3v0a3 3 0 01-3 3H9a3 3 0 01-3-3V9a3 3 0 013-3h0a3 3 0 013 3z"></path>
+                                <svg class="w-4 h-4 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
                                 </svg>
-                                <span class="text-purple-300 text-sm font-medium">Custom LUFS targets available with </span>
-                                <a href="/pricing" class="text-purple-400 hover:text-purple-300 underline ml-1">Premium</a>
+                                <span class="text-purple-300 text-sm">Custom LUFS available with </span>
+                                <a href="/pricing" class="text-purple-400 hover:text-purple-300 underline ml-1 text-sm">Premium</a>
                             </div>
                         </div>
                         {{end}}
@@ -156,7 +157,7 @@
     </div>
 </div>
 
-<!-- Processing State Template (will be injected by JavaScript) -->
+<!-- Processing State Template -->
 <template id="processing-template">
     <div id="processing-state" class="state-transition">
         <div class="text-center">
@@ -180,801 +181,23 @@
                 Cancel Processing
             </button>
 
-            <p class="text-gray-400 text-sm">Processing time varies by size, larger files will take longer to upload and process</p>
+            <p class="text-gray-400 text-sm">Processing time varies by file size</p>
         </div>
     </div>
 </template>
 
-<script>
-let selectedFile = null;
-let pollInterval = null;
-let selectedProcessingMode = 'fast'; // Track selected mode (default is fast)
-
-// Progress simulation system (kept from original)
-let progressSimulation = {
-    currentProgress: 0,
-    targetProgress: 0,
-    animationId: null,
-    lastStatus: '',
-    stageStartTime: null,
-    estimatedDuration: null
-};
-
-// Get user tier from template (rendered server-side)
-const userTier = parseInt('{{if and .IsLoggedIn .user}}{{.user.SubscriptionTier}}{{else}}0{{end}}');
-const isLoggedIn = '{{.IsLoggedIn}}' === 'true';
-const isPremiumUser = isLoggedIn && (userTier === 2 || userTier === 3);
-
-// File selection handler
-function handleFileSelect(input) {
-    const file = input.files[0];
-    if (file) {
-        selectedFile = file;
-        showFileInfo(file);
-        document.getElementById('upload-btn').disabled = false;
-    }
-}
-
-// Show selected file info
-function showFileInfo(file) {
-    const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-    document.getElementById('file-name').textContent = file.name;
-    document.getElementById('file-size').textContent = `${fileSize} MB`;
-    
-    document.getElementById('drop-content').classList.add('hidden');
-    document.getElementById('file-info').classList.remove('hidden');
-}
-
-// Remove selected file
-function removeFile() {
-    selectedFile = null;
-    document.getElementById('file-input').value = '';
-    document.getElementById('upload-btn').disabled = true;
-    
-    document.getElementById('drop-content').classList.remove('hidden');
-    document.getElementById('file-info').classList.add('hidden');
-}
-
-// Realistic progress mapping based on actual processing stages
-function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode = 'precise') {
-    // If backend provided a progress value, don't override it with time-based simulation
-    if (baseProgress && baseProgress > 0) {
-        return {
-            progress: Math.min(baseProgress, 100), // Don't cap at 96% for backend progress
-            message: getMessageForBackendProgress(status, baseProgress, mode)
-        };
-    }
-    
-    // Only use time-based simulation as fallback when no backend progress available
-    const estimatedTotalTime = Math.max(30, Math.min(300, (fileSize || 10000000) / 1000000 * 45));
-    
-    const progressMaps = {
-        precise: {
-            'uploaded': { 
-                progress: 8, 
-                message: 'Upload complete, queuing for processing...',
-                duration: 2
-            },
-            'queued': { 
-                progress: 12, 
-                message: 'Queued for processing...',
-                duration: 5
-            },
-            'processing': {
-                stages: [
-                    { progress: 20, message: 'Initializing audio processor...', duration: 8 },
-                    { progress: 35, message: 'Analyzing audio characteristics...', duration: 15 },
-                    { progress: 50, message: 'Measuring loudness levels...', duration: 20 },
-                    { progress: 75, message: 'Normalizing audio to target LUFS...', duration: 40 },
-                    { progress: 90, message: 'Finalizing processed audio...', duration: 10 },
-                    { progress: 95, message: 'Uploading normalized file...', duration: 7 }
-                ]
-            },
-            'completed': { 
-                progress: 100, 
-                message: 'Processing complete!',
-                duration: 0
-            },
-            'failed': { 
-                progress: 0, 
-                message: 'Processing failed',
-                duration: 0
-            }
-        },
-        fast: {
-            'uploaded': { 
-                progress: 10, 
-                message: 'Upload complete, queuing for fast processing...',
-                duration: 2
-            },
-            'queued': { 
-                progress: 20, 
-                message: 'Queued for fast processing...',
-                duration: 3
-            },
-            'processing': {
-                stages: [
-                    { progress: 30, message: 'Initializing fast processor...', duration: 5 },
-                    { progress: 60, message: 'Fast normalizing to target LUFS...', duration: 20 },
-                    { progress: 90, message: 'Finalizing processed audio...', duration: 5 },
-                    { progress: 95, message: 'Uploading normalized file...', duration: 5 } // Reduced from 96 to 95
-                ]
-            },
-            'completed': { 
-                progress: 100, 
-                message: 'Fast processing complete!',
-                duration: 0
-            },
-            'failed': { 
-                progress: 0, 
-                message: 'Fast processing failed',
-                duration: 0
-            }
-        }
-    };
-    
-    const currentMap = progressMaps[mode] || progressMaps.precise;
-    
-    if (status === 'processing') {
-        const stages = currentMap.processing.stages;
-        const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0);
-        
-        let cumulativeDuration = 0;
-        for (let i = 0; i < stages.length; i++) {
-            cumulativeDuration += stages[i].duration;
-            if (elapsedTime <= cumulativeDuration || i === stages.length - 1) {
-                const stageStartProgress = i > 0 ? stages[i-1].progress : (mode === 'fast' ? 30 : 20);
-                const stageEndProgress = stages[i].progress;
-                const stageTimeProgress = i > 0 ? 
-                    (elapsedTime - (cumulativeDuration - stages[i].duration)) / stages[i].duration : 
-                    elapsedTime / stages[i].duration;
-                
-                return {
-                    progress: Math.min(stageStartProgress + (stageEndProgress - stageStartProgress) * Math.min(stageTimeProgress, 1), 95), // Cap at 95 instead of 96
-                    message: stages[i].message
-                };
-            }
-        }
-        
-        return { progress: 95, message: 'Uploading normalized file...' };
-    }
-    
-    return currentMap[status] || { progress: 0, message: 'Processing...' };
-}
-
-// Enhanced progress animation with smoother transitions
-function animateProgress(targetProgress, message) {
-    progressSimulation.targetProgress = Math.min(targetProgress, 100);
-    
-    if (progressSimulation.animationId) {
-        cancelAnimationFrame(progressSimulation.animationId);
-    }
-    
-    function updateProgress() {
-        const diff = progressSimulation.targetProgress - progressSimulation.currentProgress;
-        if (Math.abs(diff) > 0.1) {
-            // Slower animation for more realistic feel
-            progressSimulation.currentProgress += diff * 0.02;
-            
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            const statusText = document.getElementById('status-text');
-            
-            if (progressBar && progressText) {
-                const roundedProgress = Math.round(progressSimulation.currentProgress);
-                progressBar.style.width = `${progressSimulation.currentProgress}%`;
-                progressText.textContent = `${roundedProgress}%`;
-            }
-            
-            if (statusText && message) {
-                statusText.textContent = message;
-            }
-            
-            progressSimulation.animationId = requestAnimationFrame(updateProgress);
-        } else {
-            progressSimulation.currentProgress = progressSimulation.targetProgress;
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            
-            if (progressBar && progressText) {
-                progressBar.style.width = `${progressSimulation.currentProgress}%`;
-                progressText.textContent = `${Math.round(progressSimulation.currentProgress)}%`;
-            }
-        }
-    }
-    
-    updateProgress();
-}
-
-// Initialize drag and drop when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    const dropArea = document.getElementById('drop-area');
-    const lufsSelect = document.getElementById('lufs-select');
-    const customInput = document.getElementById('custom-lufs-input');
-    const uploadForm = document.getElementById('upload-form');
-    const processingModeInputs = document.querySelectorAll('input[name="processing_mode"]');
-    
-    // Handle processing mode selection
-    processingModeInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            selectedProcessingMode = this.value;
-        });
-    });
-    
-    if (dropArea) {
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('drag-over');
-        });
-
-        dropArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('drag-over');
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('drag-over');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-                const fileType = file.type;
-                const fileName = file.name.toLowerCase();
-                
-                // Check file type based on user tier
-                let isValidFile = false;
-                if (isPremiumUser) {
-                    isValidFile = fileType.startsWith('audio/') || fileName.endsWith('.mp3') || fileName.endsWith('.wav');
-                } else {
-                    isValidFile = fileType.startsWith('audio/mpeg') || fileName.endsWith('.mp3');
-                }
-                
-                if (isValidFile) {
-                    const fileInput = document.getElementById('file-input');
-                    fileInput.files = files;
-                    handleFileSelect(fileInput);
-                } else {
-                    if (isPremiumUser) {
-                        alert('Please upload an audio file (MP3 or WAV supported)');
-                    } else {
-                        alert('Please upload an audio file (MP3 only - WAV support available with Premium)');
-                    }
-                }
-            }
-        });
-    }
-    
-    // Handle custom LUFS option toggle
-    if (lufsSelect && customInput) {
-        lufsSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                customInput.classList.remove('hidden');
-            } else {
-                customInput.classList.add('hidden');
-            }
-        });
-    }
-    
-    // Handle form submission with presigned URLs
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', async function(e) {
-            e.preventDefault(); // Prevent default form submission
-            
-            const lufsSelect = document.getElementById('lufs-select');
-            const customValue = document.getElementById('custom_lufs_value');
-            
-            // Validate custom LUFS if selected
-            if (lufsSelect && lufsSelect.value === 'custom' && customValue) {
-                const value = parseFloat(customValue.value);
-                if (isNaN(value) || value < -30 || value > -2) {
-                    alert('Please enter a valid LUFS value between -30 and -2');
-                    return;
-                }
-            }
-            
-            // Get form values
-            const targetLufs = lufsSelect.value === 'custom' ? customValue.value : lufsSelect.value;
-            const processingMode = document.querySelector('input[name="processing_mode"]:checked')?.value || 'fast';
-            
-            if (!selectedFile) {
-                alert('Please select a file to upload');
-                return;
-            }
-            
-            try {
-                // Show uploading state
-                showUploadingState();
-                
-                // Upload using presigned URL
-                await uploadFileWithPresignedURL(selectedFile, targetLufs, processingMode);
-                
-            } catch (error) {
-                console.error('Upload error:', error);
-                showErrorState(error.message || 'Upload failed. Please try again.');
-            }
-        });
-    }
-});
-
-// Enhanced status polling with better progress calculation
-function startStatusPolling(fileId) {
-    if (pollInterval) clearInterval(pollInterval);
-
-    const startTime = Date.now();
-    progressSimulation.stageStartTime = startTime;
-    let lastStatus = '';
-    let fileSize = selectedFile ? selectedFile.size : null;
-
-    pollInterval = setInterval(() => {
-        const elapsedTime = (Date.now() - startTime) / 1000; // seconds
-
-        fetch(`/status/${fileId}`)
-            .then(response => response.json())
-            .then(data => {
-
-                // Reset stage timer if status changed
-                if (data.status !== lastStatus) {
-                    progressSimulation.stageStartTime = Date.now();
-                    lastStatus = data.status;
-                }
-
-                // PRIORITY: Use backend progress if available and reliable
-                let finalProgress, finalMessage;
-
-                if (data.progress && data.progress > 0) {
-                    // Backend provided explicit progress - use it
-                    finalProgress = Math.min(data.progress, 100);
-                    finalMessage = getMessageForBackendProgress(data.status, data.progress, selectedProcessingMode);
-                } else {
-                    // Fallback to time-based simulation only if no backend progress
-                    const stageElapsedTime = (Date.now() - progressSimulation.stageStartTime) / 1000;
-                    const progressInfo = getDetailedProgress(data.status, data.progress || 0, fileSize, stageElapsedTime, selectedProcessingMode);
-                    finalProgress = progressInfo.progress;
-                    finalMessage = progressInfo.message;
-                }
-
-                animateProgress(finalProgress, finalMessage);
-
-                // Disable cancel button when progress is above 90%
-                const cancelBtn = document.getElementById('cancel-btn');
-                if (cancelBtn && finalProgress >= 90) {
-                    cancelBtn.disabled = true;
-                }
-
-                if (data.status === 'completed') {
-                    clearInterval(pollInterval);
-                    setTimeout(() => showCompletedState(fileId, data), 1000);
-                } else if (data.status === 'failed') {
-                    clearInterval(pollInterval);
-                    showErrorState(data.error || 'Processing failed');
-                } else if (data.status === 'cancelled') {
-                    clearInterval(pollInterval);
-                    showCancelledState();
-                }
-            })
-            .catch(error => {
-                console.error('Status polling error:', error);
-                // Don't fail completely on network errors
-            });
-    }, 1500); // Poll every 1.5 seconds for smoother updates
-}
-
-function getMessageForBackendProgress(status, progress, mode = 'precise') {
-    if (status === 'completed') {
-        return 'Processing complete!';
-    }
-    
-    if (status === 'failed') {
-        return 'Processing failed';
-    }
-    
-    if (status === 'processing') {
-        // Map backend progress values to appropriate messages
-        if (progress <= 15) {
-            return mode === 'fast' ? 'Initializing fast processor...' : 'Initializing audio processor...';
-        } else if (progress <= 35) {
-            return mode === 'fast' ? 'Fast analyzing audio...' : 'Analyzing audio characteristics...';
-        } else if (progress <= 55) {
-            return mode === 'fast' ? 'Fast normalizing to target LUFS...' : 'Normalizing audio to target LUFS...';
-        } else if (progress <= 85) {
-            return 'Finalizing processed audio...';
-        } else if (progress <= 99) {
-            return 'Uploading normalized file...';
-        } else {
-            return 'Processing complete!';
-        }
-    }
-    
-    // Default messages for other statuses
-    const statusMessages = {
-        'uploaded': 'Upload complete, queuing for processing...',
-        'queued': mode === 'fast' ? 'Queued for fast processing...' : 'Queued for processing...',
-        'analyzing': mode === 'fast' ? 'Fast analyzing audio...' : 'Analyzing audio characteristics...',
-        'normalizing': mode === 'fast' ? 'Fast normalizing to target LUFS...' : 'Normalizing audio to target LUFS...',
-        'uploading': 'Uploading normalized file...'
-    };
-    
-    return statusMessages[status] || 'Processing...';
-}
-
-// Show completed state with enhanced download button
-function showCompletedState(fileId, data) {
-    animateProgress(100, 'Processing complete!');
-
-    const modeIconSrc = selectedProcessingMode === 'fast' ? '/static/images/fast-icon.png' : '/static/images/precise-icon.png';
-    const modeText = selectedProcessingMode === 'fast' ? 'Fast Processing' : 'Precise Processing';
-
-    setTimeout(() => {
-        document.getElementById('main-container').innerHTML = `
-            <div id="completed-state" class="state-transition">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 checkmark">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-
-                    <h2 class="text-3xl font-bold mb-4 flex items-center justify-center">
-                        <img src="${modeIconSrc}" alt="${modeText}" class="w-6 h-6 mr-2">
-                        ${modeText} Complete!
-                    </h2>
-                    <p class="text-gray-300 mb-8">Your audio has been normalized and is ready for download.</p>
-                    
-                    <div class="space-y-4">
-                        <button onclick="downloadFile('${fileId}')"
-                                class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Download Processed Audio
-                        </button>
-                        
-                        <button onclick="uploadAnother()"
-                                class="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition-colors">
-                            Process Another File
-                        </button>
-                    </div>
-                    
-                    <!-- Add quality info -->
-                    <div class="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-400">
-                        <p>✓ Audio normalized to target LUFS</p>
-                        <p>✓ High-quality encoding preserved</p>
-                        <p>✓ Original file safely stored</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }, 1000);
-}
-
-// Show error state
-function showErrorState(error) {
-    const modeText = selectedProcessingMode === 'fast' ? 'Fast Processing' : 'Processing';
-    
-    document.getElementById('main-container').innerHTML = `
-        <div id="error-state" class="state-transition">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </div>
-                
-                <h2 class="text-3xl font-bold mb-4 text-red-400">${modeText} Failed</h2>
-                <p class="text-gray-300 mb-8">${error}</p>
-                
-                <button onclick="uploadAnother()"
-                        class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors">
-                    Try Again
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Enhanced download function for better user experience
-function downloadFile(fileId) {
-    const button = document.querySelector(`[onclick="downloadFile('${fileId}')"]`);
-    
-    if (button) {
-        // Show loading state
-        const originalText = button.innerHTML;
-        button.innerHTML = `
-            <svg class="animate-spin w-5 h-5 mr-2 inline" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Preparing Download...
-        `;
-        button.disabled = true;
-        
-        // Reset button after delay
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }, 3000);
-    }
-    
-    // Create download link with better error handling
-    const downloadLink = document.createElement('a');
-    downloadLink.href = `/download/${fileId}`;
-    downloadLink.style.display = 'none';
-    
-    // Add download attribute to force download
-    downloadLink.download = '';
-    
-    document.body.appendChild(downloadLink);
-    
-    try {
-        downloadLink.click();
-    } catch (error) {
-        console.error('Download failed:', error);
-        
-        // Fallback: navigate directly to download URL
-        window.location.href = `/download/${fileId}`;
-    } finally {
-        // Clean up
-        setTimeout(() => {
-            document.body.removeChild(downloadLink);
-        }, 1000);
-    }
-}
-
-// Upload another file
-function uploadAnother() {
-    window.location.reload();
-}
-
-// Cancel processing function
-let currentFileId = null;
-
-function cancelProcessing() {
-    if (!currentFileId) {
-        console.error('No file ID available for cancellation');
-        return;
-    }
-
-    const cancelBtn = document.getElementById('cancel-btn');
-    if (cancelBtn) {
-        // Disable button to prevent double-clicks
-        cancelBtn.disabled = true;
-        cancelBtn.textContent = 'Cancelling...';
-    }
-
-    fetch(`/cancel/${currentFileId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'cancelled') {
-            // Stop polling
-            if (pollInterval) {
-                clearInterval(pollInterval);
-            }
-            // Show cancelled state
-            showCancelledState();
-        } else {
-            alert('Failed to cancel: ' + (data.error || 'Unknown error'));
-            if (cancelBtn) {
-                cancelBtn.disabled = false;
-                cancelBtn.textContent = 'Cancel Processing';
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Cancel request failed:', error);
-        alert('Failed to cancel processing');
-        if (cancelBtn) {
-            cancelBtn.disabled = false;
-            cancelBtn.textContent = 'Cancel Processing';
-        }
-    });
-}
-
-// Show cancelled state
-function showCancelledState() {
-    document.getElementById('main-container').innerHTML = `
-        <div id="cancelled-state" class="state-transition">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
-                    </svg>
-                </div>
-
-                <h2 class="text-3xl font-bold mb-4 text-red-400">Processing Cancelled</h2>
-                <p class="text-gray-300 mb-8">Your processing job has been cancelled.</p>
-
-                <button onclick="uploadAnother()"
-                        class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors">
-                    Upload Another File
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Upload file using presigned URL
-async function uploadFileWithPresignedURL(file, targetLufs, processingMode) {
-    // Step 1: Get presigned URL from server
-    const presignedData = await getPresignedUploadURL(file);
-    
-    // Step 2: Upload directly to S3
-    await uploadToS3(file, presignedData.upload_url, presignedData.content_type);
-    
-    // Step 3: Confirm upload and start processing
-    await confirmUploadAndProcess(presignedData.file_id, file.name, targetLufs, processingMode);
-}
-
-// Step 1: Get presigned URL from server
-async function getPresignedUploadURL(file) {
-    const params = new URLSearchParams({
-        filename: file.name,
-        filesize: file.size.toString()
-    });
-    
-    const response = await fetch(`/api/presigned-upload?${params.toString()}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-            'Accept': 'application/json'
-        }
-    });
-    
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to get upload URL');
-    }
-    
-    return await response.json();
-}
-
-// Step 2: Upload to S3 with progress tracking
-async function uploadToS3(file, uploadURL, contentType) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        
-        // Track upload progress
-        xhr.upload.addEventListener('progress', (event) => {
-            if (event.lengthComputable) {
-                const percentComplete = Math.round((event.loaded / event.total) * 100);
-                updateUploadProgress(percentComplete);
-            }
-        });
-        
-        // Handle completion
-        xhr.addEventListener('load', () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                console.log('S3 upload completed successfully');
-                updateUploadProgress(100);
-                resolve();
-            } else {
-                reject(new Error(`S3 upload failed with status ${xhr.status}`));
-            }
-        });
-        
-        // Handle errors
-        xhr.addEventListener('error', () => {
-            reject(new Error('Network error during S3 upload'));
-        });
-        
-        xhr.addEventListener('abort', () => {
-            reject(new Error('Upload cancelled'));
-        });
-        
-        // Upload file
-        xhr.open('PUT', uploadURL);
-        xhr.setRequestHeader('Content-Type', contentType);
-        xhr.send(file);
-    });
-}
-
-// Step 3: Confirm upload and start processing
-async function confirmUploadAndProcess(fileId, filename, targetLufs, processingMode) {
-    const formData = new FormData();
-    formData.append('file_id', fileId);
-    formData.append('filename', filename);
-    formData.append('target_lufs', targetLufs);
-    formData.append('processing_mode', processingMode);
-    
-    const response = await fetch('/api/confirm-upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-    });
-    
-    if (!response.ok) {
-        throw new Error('Failed to confirm upload and start processing');
-    }
-    
-    // Get the HTML response (processing state UI)
-    const html = await response.text();
-    
-    // Show processing state
-    const template = document.getElementById('processing-template');
-    const clone = template.content.cloneNode(true);
-    document.getElementById('main-container').innerHTML = '';
-    document.getElementById('main-container').appendChild(clone);
-    
-    // Extract file ID from response and start polling
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const extractedFileId = doc.querySelector('[data-file-id]')?.getAttribute('data-file-id') || fileId;
-    
-    currentFileId = extractedFileId;
-    progressSimulation.currentProgress = 0;
-    progressSimulation.targetProgress = 0;
-    animateProgress(5, 'Upload complete, queuing for processing...');
-    startStatusPolling(extractedFileId);
-}
-
-// Show uploading state UI
-function showUploadingState() {
-    const uploadingHTML = `
-        <div id="uploading-state" class="state-transition">
-            <div class="text-center">
-                <div class="spinner mx-auto mb-6"></div>
-                <h2 class="text-3xl font-bold mb-4">Uploading Your File</h2>
-                <p id="upload-status-text" class="text-gray-300 mb-8">Uploading to cloud storage...</p>
-                
-                <div class="bg-gray-800 rounded-lg p-6 mb-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-gray-400">Upload Progress</span>
-                        <span id="upload-progress-text" class="text-sm text-cyan-400">0%</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div id="upload-progress-bar" class="bg-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-                
-                <p class="text-gray-400 text-sm">Large files may take a few moments to upload</p>
-            </div>
-        </div>`;
-    
-    document.getElementById('main-container').innerHTML = uploadingHTML;
-}
-
-// Update upload progress bar
-function updateUploadProgress(percent) {
-    const progressBar = document.getElementById('upload-progress-bar');
-    const progressText = document.getElementById('upload-progress-text');
-    const statusText = document.getElementById('upload-status-text');
-    
-    if (progressBar) {
-        progressBar.style.width = `${percent}%`;
-    }
-    
-    if (progressText) {
-        progressText.textContent = `${percent}%`;
-    }
-    
-    if (statusText) {
-        if (percent < 100) {
-            statusText.textContent = 'Uploading to cloud storage...';
-        } else {
-            statusText.textContent = 'Upload complete, preparing for processing...';
-        }
-    }
-}
-</script>
+<script src="/static/js/upload.js"></script>
 
 <style>
-/* Processing mode selection styling */
 .processing-mode-option {
     transition: all 0.2s ease;
 }
 
-/* Checked state */
 .processing-mode-option:has(input[type="radio"]:checked) {
     border-color: #06b6d4 !important;
     background-color: rgba(6, 182, 212, 0.1);
 }
 
-/* Hover state - only if NOT checked */
 .processing-mode-option:not(:has(input[type="radio"]:checked)):hover {
     border-color: #06b6d4;
     background-color: rgba(6, 182, 212, 0.05);

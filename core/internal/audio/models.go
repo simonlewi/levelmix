@@ -1,54 +1,50 @@
-// core/internal/audio/models.go
 package audio
 
-// ProcessingMode represents different audio processing strategies
 type ProcessingMode string
 
 const (
-	// ModePrecise uses full file analysis for maximum accuracy
 	ModePrecise ProcessingMode = "precise"
-
-	// ModeFast uses adaptive sampling for balanced speed and accuracy
-	ModeFast ProcessingMode = "fast"
+	ModeFast    ProcessingMode = "fast"
 )
 
-// LoudnessInfo contains audio loudness measurements from FFmpeg analysis
 type LoudnessInfo struct {
-	InputI        float64 // Integrated LUFS
-	InputTP       float64 // True Peak
-	InputLRA      float64 // Loudness Range
-	InputThresh   float64 // Threshold
-	InputLoudness float64 // Measured Loudness
+	InputI        float64
+	InputTP       float64
+	InputLRA      float64
+	InputThresh   float64
+	InputLoudness float64
 }
 
-// ProcessTask represents an audio processing job
 type ProcessTask struct {
 	JobID          string         `json:"job_id"`
 	FileID         string         `json:"file_id"`
 	UserID         string         `json:"user_id"`
 	TargetLUFS     float64        `json:"target_lufs"`
+	Preset         string         `json:"preset"`
 	IsPremium      bool           `json:"is_premium"`
+	FastMode       bool           `json:"fast_mode"` // deprecated, used for backward compatibility
 	ProcessingMode ProcessingMode `json:"processing_mode"`
-	FastMode       bool           `json:"fast_mode"` // Deprecated, kept for backward compatibility
 }
 
-// OutputOptions defines encoding options for audio output
 type OutputOptions struct {
-	Codec        string   // e.g., "pcm_s16le", "flac", "libmp3lame", "aac"
-	Bitrate      string   // e.g., "320k" for MP3
-	ExtraOptions []string // Any additional FFmpeg options
+	Codec        string
+	Bitrate      string
+	ExtraOptions []string
 }
 
-// LUFS constants for different use cases
+// Preset LUFS targets
 const (
-	DefaultLUFS   = -7.0  // Default target LUFS optimized for DJ content
-	MaxImpactLUFS = -5.0  // Higher output for loud content
-	StreamingLUFS = -14.0 // Streaming standard
-	PodcastLUFS   = -16.0 // Podcast standard
-	BroadcastLUFS = -23.0 // Broadcast standard
+	DefaultLUFS   = -5.0  // Default target
+	DJMixLUFS     = -5.0  // DJ mixes - loud, punchy, club-ready
+	StreamingLUFS = -14.0 // Spotify, Apple Music, YouTube
+	PodcastLUFS   = -16.0 // Spoken word, podcasts
+	BroadcastLUFS = -23.0 // Radio, TV (EBU R128)
+)
 
-	MaxLUFS = -2.0  // Prevent clipping
-	MinLUFS = -30.0 // Prevent inaudible output
+// Safety limits
+const (
+	MaxLUFS = -2.0
+	MinLUFS = -30.0
 )
 
 // Queue priority levels
@@ -58,7 +54,6 @@ const (
 	QueueStandard = "standard"
 )
 
-// Task types
 const (
 	TypeAudioProcess = "audio:process"
 )

@@ -17,6 +17,14 @@ import (
 // Global semaphore to limit concurrent FFmpeg processes
 var ffmpegSemaphore = make(chan struct{}, 4)
 
+// SetDebugMode enables or disables debug logging
+func SetDebugMode(enabled bool) {
+	debugMode = enabled
+	if enabled {
+		log.Printf("[DEBUG] Debug mode enabled")
+	}
+}
+
 // AnalyzeLoudness performs the first pass to measure audio loudness with timeout
 func AnalyzeLoudness(inputFile string) (*LoudnessInfo, error) {
 	return AnalyzeLoudnessWithTimeout(inputFile, 5*time.Minute)
@@ -145,6 +153,7 @@ func getDuration(inputFile string) (float64, error) {
 }
 
 // AnalyzeLoudnessAdaptiveSample performs adaptive sampling based on file duration
+// Note: For DJ mixes with high dynamic range, full analysis (Precise mode) is recommended
 func AnalyzeLoudnessAdaptiveSample(inputFile string) (*LoudnessInfo, error) {
 	// Check disk space before processing
 	if err := checkDiskSpace(); err != nil {

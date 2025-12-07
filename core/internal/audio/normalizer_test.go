@@ -50,7 +50,7 @@ func TestNormalizeLoudness(t *testing.T) {
 
 			outputFile := filepath.Join(tmpDir, "output.wav")
 
-			err = NormalizeLoudness(tc.inputFile, outputFile, tc.targetLUFS, info, tc.options)
+			err = NormalizeLoudness(tc.inputFile, outputFile, tc.targetLUFS, info, tc.options, &SilenceInfo{})
 			if (err != nil) != tc.wantError {
 				t.Errorf("NormalizeLoudness() error = %v, wantError %v", err, tc.wantError)
 				return
