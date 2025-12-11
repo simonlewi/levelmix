@@ -182,7 +182,7 @@ func (h *AccountHandler) HandleChangeEmail(c *gin.Context) {
 
 	// Get form data
 	currentPassword := c.PostForm("current_password")
-	newEmail := c.PostForm("new_email")
+	newEmail := strings.ToLower(c.PostForm("new_email"))
 	confirmEmail := c.PostForm("confirm_email")
 
 	// Validate inputs
