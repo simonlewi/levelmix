@@ -46,6 +46,7 @@ type MetadataStorage interface {
 	GetUser(ctx context.Context, userID string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
+	UpdateUserName(ctx context.Context, userID string, name string) error
 	DeleteUser(ctx context.Context, userID string) error
 
 	// User stats operations

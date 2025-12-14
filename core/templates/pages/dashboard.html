@@ -7,7 +7,14 @@
         <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
             Dashboard
         </h1>
-        <p class="text-gray-400 mt-2">Welcome back, {{.user.Email}}</p>
+        <p class="text-gray-400 mt-2">
+            Welcome back, <span class="text-white font-medium">{{.user.GetDisplayName}}</span>
+            {{if not .user.HasName}}
+                <a href="#account-settings" class="ml-2 text-cyan-400 hover:text-cyan-300 text-sm underline">
+                    Add your name
+                </a>
+            {{end}}
+        </p>
     </div>
 
     <!-- Stats Grid -->
@@ -160,14 +167,35 @@
     </div>
 
     <!-- Account Settings Section -->
-    <div class="mt-8 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+    <div id="account-settings" class="mt-8 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-700">
             <h3 class="text-lg leading-6 font-medium text-white">
                 Account Settings
             </h3>
         </div>
         <div class="p-6 space-y-4">
+            <!-- NAME FIELD -->
             <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-medium text-white">Name</h4>
+                    <p class="text-sm text-gray-400">
+                        {{if .user.HasName}}
+                            {{.user.Name}}
+                        {{else}}
+                            <span class="text-gray-500 italic">Not set</span>
+                        {{end}}
+                    </p>
+                </div>
+                <button 
+                    onclick="showNameModal()" 
+                    class="text-sm text-cyan-400 hover:text-cyan-300"
+                >
+                    {{if .user.HasName}}Change{{else}}Add{{end}}
+                </button>
+            </div>
+
+            <!-- EMAIL ADDRESS -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-700">
                 <div>
                     <h4 class="text-sm font-medium text-white">Email Address</h4>
                     <p class="text-sm text-gray-400">{{.user.Email}}</p>
@@ -179,6 +207,7 @@
                 {{end}}
             </div>
             
+            <!-- PASSWORD -->
             {{if eq .user.AuthProvider "email"}}
             <div class="flex items-center justify-between pt-4 border-t border-gray-700">
                 <div>
@@ -191,6 +220,7 @@
             </div>
             {{end}}
             
+            <!-- SUBSCRIPTION -->
             <div class="flex items-center justify-between pt-4 border-t border-gray-700">
                 <div>
                     <h4 class="text-sm font-medium text-white">Subscription</h4>
@@ -210,6 +240,7 @@
                 </div>
             </div>
             
+            <!-- DANGER ZONE -->
             <div class="pt-4 border-t border-gray-700">
                 <h4 class="text-sm font-medium text-red-400 mb-2">Danger Zone</h4>
                 <a href="/account/delete" class="inline-flex items-center px-4 py-2 border border-red-500 text-sm font-medium rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-colors">
@@ -220,6 +251,79 @@
                 </a>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Name Change Modal -->
+<div id="nameModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-white">
+                {{if .user.HasName}}Change Your Name{{else}}Add Your Name{{end}}
+            </h3>
+            <button onclick="hideNameModal()" class="text-gray-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        {{if .nameError}}
+        <div class="mb-4 rounded-lg bg-red-900/20 border border-red-500/50 p-3">
+            <div class="text-sm text-red-400">
+                {{if eq .nameError "name_required"}}
+                    Name cannot be empty
+                {{else if eq .nameError "name_too_long"}}
+                    Name must be less than 100 characters
+                {{else if eq .nameError "update_failed"}}
+                    Failed to update name. Please try again
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        {{if .nameSuccess}}
+        <div class="mb-4 rounded-lg bg-green-900/20 border border-green-500/50 p-3">
+            <div class="text-sm text-green-400">
+                ✓ Name updated successfully!
+            </div>
+        </div>
+        {{end}}
+
+        <form action="/account/update-name" method="POST" class="space-y-4">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">
+                    Name
+                </label>
+                <input 
+                    id="name" 
+                    name="name" 
+                    type="text" 
+                    value="{{if .user.HasName}}{{.user.Name}}{{end}}"
+                    required
+                    maxlength="100"
+                    placeholder="Your name or stage name"
+                    class="appearance-none block w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm"
+                >
+                <p class="mt-1 text-xs text-gray-500">What should we call you?</p>
+            </div>
+
+            <div class="flex space-x-3">
+                <button 
+                    type="button" 
+                    onclick="hideNameModal()" 
+                    class="flex-1 py-2 px-4 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    class="flex-1 py-2 px-4 bg-cyan-400 text-gray-900 font-medium rounded-lg hover:bg-cyan-300 transition-colors"
+                >
+                    Save
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -235,4 +339,31 @@
     to { transform: rotate(360deg); }
 }
 </style>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/dashboard.js"></script>
+<script>
+    // Debug: Check if functions exist
+    console.log('showNameModal exists?', typeof showNameModal);
+    console.log('hideNameModal exists?', typeof hideNameModal);
+    console.log('openBillingPortal exists?', typeof openBillingPortal);
+    
+    // Debug: Check if modal exists
+    console.log('Modal element:', document.getElementById('nameModal'));
+    
+    // Test the function manually
+    window.testModal = function() {
+        console.log('Testing modal...');
+        const modal = document.getElementById('nameModal');
+        console.log('Modal found:', modal);
+        if (modal) {
+            console.log('Modal classes before:', modal.className);
+            modal.classList.remove('hidden');
+            console.log('Modal classes after:', modal.className);
+        }
+    };
+    
+    console.log('Run testModal() in console to test');
+</script>
 {{end}}
