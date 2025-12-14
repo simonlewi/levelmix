@@ -248,6 +248,7 @@ func main() {
 		protected.POST("/account/delete", accountHandler.HandleDeleteAccount)
 		protected.GET("/account/change-email", accountHandler.ShowChangeEmail)
 		protected.POST("/account/change-email", accountHandler.HandleChangeEmail)
+		protected.POST("/account/update-name", accountHandler.UpdateName)
 		protected.GET("/account/change-password", accountHandler.ShowChangePassword)
 		protected.POST("/account/change-password", accountHandler.HandleChangePassword)
 		protected.GET("/api/consent/:userID", cookieHandler.GetLatestConsent)

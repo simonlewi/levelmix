@@ -139,6 +139,42 @@ func (h *AccountHandler) clearSession(c *gin.Context) {
 	c.SetCookie("user_id", "", -1, "/", "", false, true)
 }
 
+// UpdateName handles updating the user's name
+func (h *AccountHandler) UpdateName(c *gin.Context) {
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	user := userInterface.(*storage.User)
+
+	// Get name from form
+	name := strings.TrimSpace(c.PostForm("name"))
+
+	// Validate name
+	if name == "" {
+		c.Redirect(http.StatusSeeOther, "/dashboard?nameError=name_required")
+		return
+	}
+
+	if len(name) > 50 {
+		c.Redirect(http.StatusSeeOther, "/dashboard?nameError=name_too_long")
+		return
+	}
+
+	// Update name using dedicated method
+	err := h.metadata.UpdateUserName(c.Request.Context(), user.ID, name)
+	if err != nil {
+		log.Printf("Failed to update name for user %s: %v", user.ID, err)
+		c.Redirect(http.StatusSeeOther, "/dashboard?nameError=update_failed")
+		return
+	}
+
+	log.Printf("User %s updated their name to: %s", user.ID, name)
+	c.Redirect(http.StatusSeeOther, "/dashboard?nameSuccess=true")
+}
+
 // ShowChangeEmail displays the change email form
 func (h *AccountHandler) ShowChangeEmail(c *gin.Context) {
 	userInterface, exists := c.Get("user")
