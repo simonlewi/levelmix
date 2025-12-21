@@ -582,8 +582,12 @@ async function getPresignedUploadURL(file) {
 async function uploadToS3(file, uploadURL, contentType) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        let uploadStarted = false;
+        let bytesUploaded = 0;
 
         xhr.upload.addEventListener('progress', (event) => {
+            uploadStarted = true;
+            bytesUploaded = event.loaded;
             if (event.lengthComputable) {
                 const percentComplete = Math.round((event.loaded / event.total) * 100);
                 updateUploadProgress(percentComplete);
@@ -595,16 +599,44 @@ async function uploadToS3(file, uploadURL, contentType) {
                 updateUploadProgress(100);
                 resolve();
             } else {
-                reject(new Error(`S3 upload failed with status ${xhr.status}`));
+                // Provide more specific error messages based on the failure
+                let errorMessage = `Upload failed with status ${xhr.status}`;
+
+                // Check if this might be a cloud storage issue
+                if (!uploadStarted || bytesUploaded === 0) {
+                    errorMessage = 'Unable to read the file. If you selected this file from cloud storage (Google Drive, Dropbox, OneDrive, etc.), please download it to your device first and try again.';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'Upload permission denied. Please try again.';
+                } else if (xhr.status >= 500) {
+                    errorMessage = 'Server error during upload. Please try again in a moment.';
+                }
+
+                reject(new Error(errorMessage));
             }
         });
 
-        xhr.addEventListener('error', () => reject(new Error('Network error during S3 upload')));
+        xhr.addEventListener('error', () => {
+            // Network errors often occur when trying to upload from cloud storage
+            let errorMessage = 'Unable to upload the file. ';
+            if (!uploadStarted || bytesUploaded === 0) {
+                errorMessage += 'If you selected this file from cloud storage (Google Drive, Dropbox, OneDrive, etc.), please download it to your device first and try again.';
+            } else {
+                errorMessage += 'Please check your internet connection and try again.';
+            }
+            reject(new Error(errorMessage));
+        });
+
         xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
 
         xhr.open('PUT', uploadURL);
         xhr.setRequestHeader('Content-Type', contentType);
-        xhr.send(file);
+
+        try {
+            xhr.send(file);
+        } catch (e) {
+            // This can happen when the file isn't actually available locally
+            reject(new Error('Unable to read the file. If you selected this file from cloud storage (Google Drive, Dropbox, OneDrive, etc.), please download it to your device first and try again.'));
+        }
     });
 }
 

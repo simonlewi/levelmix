@@ -199,7 +199,7 @@ func (h *UploadHandler) ConfirmUpload(c *gin.Context) {
 	info, err := h.storage.GetObjectInfo(c.Request.Context(), key)
 	if err != nil {
 		log.Printf("ConfirmUpload: Failed to verify S3 upload for %s: %v", fileID, err)
-		h.returnError(c, "Upload verification failed. The file was not found in storage. Please try again.")
+		h.returnError(c, "Upload verification failed. The file was not found in storage. If you selected this file from cloud storage (Google Drive, Dropbox, OneDrive, etc.), please download it to your device first and try again.")
 		return
 	}
 
