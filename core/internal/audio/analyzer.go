@@ -415,8 +415,12 @@ func parseLoudnormOutput(output []byte) (*LoudnessInfo, error) {
 
 // checkDiskSpace checks if there's sufficient disk space
 func checkDiskSpace() error {
-	// This is a simplified check - you may want to use syscall.Statfs on Unix
-	tempDir := os.TempDir()
+	tempDir := "/tmp/levelmix"
+
+	// Ensure the directory exists
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		return fmt.Errorf("cannot create temp directory: %w", err)
+	}
 
 	// Try to create a small test file to verify write permissions
 	testFile := tempDir + "/levelmix_test_" + strconv.FormatInt(time.Now().Unix(), 10)

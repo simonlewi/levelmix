@@ -483,7 +483,7 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 		ext = ".flac"
 	}
 
-	tempFile, err := os.CreateTemp("", "levelmix_input_*"+ext)
+	tempFile, err := os.CreateTemp("/tmp/levelmix", "levelmix_input_*"+ext)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -636,7 +636,7 @@ func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string
 		outputExt = ".mp3"
 	}
 
-	return filepath.Join(os.TempDir(), fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
+	return filepath.Join("/tmp/levelmix", fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
 }
 
 func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {

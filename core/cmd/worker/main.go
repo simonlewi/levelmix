@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -13,6 +14,39 @@ import (
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 )
+
+// cleanupTempFiles removes any orphaned temp files from previous runs
+func cleanupTempFiles() {
+	tempDir := "/tmp/levelmix"
+
+	// Ensure the directory exists
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		log.Printf("[WARN] Failed to create temp directory for cleanup: %v", err)
+		return
+	}
+
+	files, err := os.ReadDir(tempDir)
+	if err != nil {
+		log.Printf("[WARN] Failed to read temp directory for cleanup: %v", err)
+		return
+	}
+
+	cleaned := 0
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), "levelmix_") {
+			filePath := filepath.Join(tempDir, file.Name())
+			if err := os.Remove(filePath); err != nil {
+				log.Printf("[WARN] Failed to remove temp file %s: %v", filePath, err)
+			} else {
+				cleaned++
+			}
+		}
+	}
+
+	if cleaned > 0 {
+		log.Printf("[INFO] Cleaned up %d orphaned temp files", cleaned)
+	}
+}
 
 func main() {
 	_, b, _, _ := runtime.Caller(0)
@@ -29,6 +63,9 @@ func main() {
 	} else {
 		log.Println("No .env file found, using environment variables from system/Docker")
 	}
+
+	// Clean up any orphaned temp files from previous runs
+	cleanupTempFiles()
 
 	// Initialize storage
 	factory := ee_storage.NewFactory()
