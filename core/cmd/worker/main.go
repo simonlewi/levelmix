@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -16,6 +17,7 @@ import (
 )
 
 // cleanupTempFiles removes any orphaned temp files from previous runs
+// Only deletes files older than 2 hours to avoid interfering with active jobs
 func cleanupTempFiles() {
 	tempDir := "/tmp/levelmix"
 
@@ -31,20 +33,34 @@ func cleanupTempFiles() {
 		return
 	}
 
+	// Only delete files older than 2 hours (orphaned from crashes/restarts)
+	// Active jobs complete within 60 minutes, so 2 hours is safe
+	cutoffTime := time.Now().Add(-2 * time.Hour)
 	cleaned := 0
+
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), "levelmix_") {
 			filePath := filepath.Join(tempDir, file.Name())
-			if err := os.Remove(filePath); err != nil {
-				log.Printf("[WARN] Failed to remove temp file %s: %v", filePath, err)
-			} else {
-				cleaned++
+
+			// Get file info to check age
+			info, err := os.Stat(filePath)
+			if err != nil {
+				continue // Skip if we can't stat it
+			}
+
+			// Only delete if file is older than cutoff time
+			if info.ModTime().Before(cutoffTime) {
+				if err := os.Remove(filePath); err != nil {
+					log.Printf("[WARN] Failed to remove old temp file %s: %v", filePath, err)
+				} else {
+					cleaned++
+				}
 			}
 		}
 	}
 
 	if cleaned > 0 {
-		log.Printf("[INFO] Cleaned up %d orphaned temp files", cleaned)
+		log.Printf("[INFO] Cleaned up %d orphaned temp files (>2 hours old)", cleaned)
 	}
 }
 
