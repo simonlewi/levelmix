@@ -27,7 +27,7 @@ func SetDebugMode(enabled bool) {
 
 // AnalyzeLoudness performs the first pass to measure audio loudness with timeout
 func AnalyzeLoudness(inputFile string) (*LoudnessInfo, error) {
-	return AnalyzeLoudnessWithTimeout(inputFile, 5*time.Minute)
+	return AnalyzeLoudnessWithTimeout(inputFile, 15*time.Minute)
 }
 
 // AnalyzeLoudnessWithTimeout performs loudness analysis with configurable timeout

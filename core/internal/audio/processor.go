@@ -107,8 +107,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		}
 	}()
 
-	// Set overall timeout for the entire job
-	jobTimeout := 30 * time.Minute
+	// Set overall timeout for the entire job (handles up to 5GB files / ~8 hours of audio)
+	jobTimeout := 60 * time.Minute
 	ctx, cancel := context.WithTimeout(ctx, jobTimeout)
 	defer cancel()
 
@@ -274,8 +274,8 @@ ProcessingComplete:
 
 	p.updateProgress(ctx, task.FileID, 85, "uploading")
 
-	// Upload with timeout
-	uploadCtx, uploadCancel := context.WithTimeout(ctx, 5*time.Minute)
+	// Upload with timeout (handles up to 5GB files)
+	uploadCtx, uploadCancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer uploadCancel()
 
 	if err := p.uploadProcessedFile(uploadCtx, task.FileID, outputFile, outputFormat); err != nil {
@@ -490,8 +490,8 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 	tempFileName := tempFile.Name()
 	tempFile.Close()
 
-	// Set download timeout
-	downloadCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	// Set download timeout (handles up to 5GB files)
+	downloadCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	// Use the S3Storage method to get the correct key with extension
