@@ -98,6 +98,15 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 		}
 	}
 
+	// Calculate processing time percentage for progress bar
+	processingTimePercent := 0
+	if processingTimeLimit > 0 {
+		processingTimePercent = int((float64(stats.ProcessingTimeThisMonth) / float64(processingTimeLimit)) * 100)
+		if processingTimePercent > 100 {
+			processingTimePercent = 100
+		}
+	}
+
 	c.HTML(http.StatusOK, "dashboard.html", GetTemplateData(c, gin.H{
 		"CurrentPage":                    "dashboard",
 		"PageTitle":                      "Dashboard",
@@ -111,6 +120,7 @@ func (h *DashboardHandler) ShowDashboard(c *gin.Context) {
 		"processingTimeTotal":            formatDurationAsHours(processingTimeLimit),
 		"processingTime":                 formatDuration(stats.TotalProcessingTimeSeconds),
 		"processingTimeRemainingSeconds": processingTimeRemaining,
+		"processingTimePercent":          processingTimePercent,
 	}))
 }
 

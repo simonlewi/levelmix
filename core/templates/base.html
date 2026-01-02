@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Inter Font (2026 Design System) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/static/css/output.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <title>{{if .PageTitle}}{{.PageTitle}} - LevelMix{{else}}LevelMix - Audio Normalization{{end}}</title>
@@ -15,7 +21,7 @@
     
     <!-- Web App Manifest -->
     <link rel="manifest" href="/static/images/favicon/site.webmanifest">
-    <meta name="theme-color" content="#06b6d4">
+    <meta name="theme-color" content="#14b8a6">
 
     <style>
         /* Smooth transitions between states */
@@ -108,14 +114,14 @@
         }
         
         .drop-area.drag-over {
-            border-color: #06b6d4;
-            background-color: rgba(6, 182, 212, 0.1);
+            border-color: #14b8a6;
+            background-color: rgba(20, 184, 166, 0.1);
         }
 
         .drop-area:hover {
             cursor: pointer !important;
-            border-color: #06b6d4;
-            background-color: rgba(6, 182, 212, 0.1);
+            border-color: #14b8a6;
+            background-color: rgba(20, 184, 166, 0.1);
         }
 
         /* Ensure all child elements inherit pointer cursor */
@@ -257,7 +263,7 @@
         }
         
         .toggle input:checked + .toggle-switch {
-            background-color: #06b6d4;
+            background-color: #14b8a6;
         }
         
         .toggle input:checked + .toggle-switch .toggle-handle {
@@ -330,41 +336,41 @@
     </style>
     {{block "styles" .}}{{end}}
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="bg-slate-900 text-white min-h-screen" style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
     <!-- Navigation -->
     <nav class="flex items-center justify-between px-6 py-4 relative z-10 bg-gray-900 border-b border-gray-800">
         <div class="flex items-center">
             <a href="/" class="hover:opacity-80 transition-opacity">
-                <img 
-                    src="/static/images/levelmix-white-upscaled.png" 
-                    alt="LevelMix Logo" 
-                    class="h-10 w-auto"
+                <img
+                    src="/static/images/levelmix-2026.png"
+                    alt="LevelMix Logo"
+                    class="h-12 w-auto"
                 />
-            </a>   
+            </a>
         </div>
         
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-8 max-w-6xl absolute left-1/2 transform -translate-x-1/2">
-            <a href="/upload" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
-            <a href="/pricing" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
-            <a href="/about" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
-            <a href="/how-to-use" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-cyan-400{{end}}">How To Use</a>
+            <a href="/upload" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-teal-500{{end}}">Upload</a>
+            <a href="/pricing" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-teal-500{{end}}">Pricing</a>
+            <a href="/about" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-teal-500{{end}}">About</a>
+            <a href="/how-to-use" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-teal-500{{end}}">How To Use</a>
         </div>
         
         <!-- Desktop Auth Buttons - Updated with new conditional logic -->
         <div class="hidden md:flex items-center space-x-4">
             {{if .IsLoggedIn}}
-                <a href="/logout" class="border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors">
+                <a href="/logout" class="border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors">
                     Logout
                 </a>
-                <a href="/dashboard" class="bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium">
+                <a href="/dashboard" class="bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium border-2 border-teal-500 hover:border-teal-600">
                     Dashboard
                 </a>
             {{else}}
-                <a href="/login" class="border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors">
+                <a href="/login" class="border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-gray-900 transition-colors">
                     Log In
                 </a>
-                <a href="/register" class="bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium">
+                <a href="/register" class="bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium border-2 border-teal-500 hover:border-teal-600">
                     Get Started
                 </a>
             {{end}}
@@ -388,23 +394,23 @@
     <!-- Mobile Menu - Updated with new conditional logic -->
     <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-t border-gray-700">
         <div class="px-6 py-4 space-y-4">
-            <a href="/upload" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-cyan-400{{end}}">Upload</a>
-            <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-cyan-400{{end}}">Pricing</a>
-            <a href="/about" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-cyan-400{{end}}">About</a>
-            <a href="/how-to-use" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-cyan-400{{end}}">How To Use</a>
+            <a href="/upload" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-teal-500{{end}}">Upload</a>
+            <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-teal-500{{end}}">Pricing</a>
+            <a href="/about" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-teal-500{{end}}">About</a>
+            <a href="/how-to-use" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-teal-500{{end}}">How To Use</a>
             <div class="pt-4 border-t border-gray-700 space-y-4">
                 {{if .IsLoggedIn}}
-                    <a href="/logout" class="block w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
+                    <a href="/logout" class="block w-full border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-gray-900 transition-colors text-center">
                         Logout
-                    </a>                    
-                    <a href="/dashboard" class="block w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center">
+                    </a>
+                    <a href="/dashboard" class="block w-full bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium text-center border-2 border-teal-500 hover:border-teal-600">
                         Dashboard
                     </a>
                 {{else}}
-                    <a href="/login" class="block w-full border border-cyan-400 text-cyan-400 px-4 py-2 rounded hover:bg-cyan-400 hover:text-gray-900 transition-colors text-center">
+                    <a href="/login" class="block w-full border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-gray-900 transition-colors text-center">
                         Log In
                     </a>
-                    <a href="/register" class="block w-full bg-cyan-400 text-gray-900 px-4 py-2 rounded hover:bg-cyan-300 transition-colors font-medium text-center mt-3">
+                    <a href="/register" class="block w-full bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium text-center mt-3 border-2 border-teal-500 hover:border-teal-600">
                         Get Started
                     </a>
                 {{end}}
@@ -434,8 +440,6 @@
                     {{template "register_content" .}}
                 {{else if eq .CurrentPage "dashboard"}}
                     {{template "dashboard_content" .}}
-                {{else if eq .CurrentPage "access"}}
-                    {{template "access_content" .}}
                 {{else if eq .CurrentPage "delete-account"}}
                     {{template "delete_account_content" .}}
                 {{else if eq .CurrentPage "forgot-password"}}
@@ -460,15 +464,13 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-700 py-8 px-6 text-center text-gray-400 bg-gray-900">
-        <div class="max-w-4xl mx-auto">
-            <p class="mb-4">© 2025 LevelMix. All rights reserved.</p>
-            <nav class="space-x-6">
+    <footer class="border-t border-gray-700 py-6 px-6 text-gray-400 bg-gray-900">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+            <p class="text-sm">© 2025 LevelMix. All rights reserved.</p>
+            <nav class="flex items-center space-x-6 text-sm">
                 <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
                 <a href="/cookies" class="hover:text-white transition-colors">Cookie Policy</a>
                 <a href="/terms-of-service" class="hover:text-white transition-colors">Terms of Service</a>
-                <!-- Commented out links for future use
-                <a href="/contact" class="hover:text-white transition-colors">Contact</a> -->
             </nav>
         </div>
     </footer>
@@ -478,13 +480,13 @@
         <div class="cookie-banner-content flex flex-col sm:flex-row items-center justify-between w-full">
             <p class="text-gray-200 text-sm mb-4 sm:mb-0 sm:mr-4 text-center sm:text-left">
                 We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
-                <a href="/cookies" class="text-cyan-400 hover:underline">Learn More</a>.
+                <a href="/cookies" class="text-teal-500 hover:text-legendary hover:underline">Learn More</a>.
             </p>
             <div class="cookie-buttons flex items-center justify-center sm:justify-end w-full sm:w-auto">
                 <button onclick="showCookieModal()" class="cookie-button bg-gray-700 hover:bg-gray-600 text-white">
                     Preferences
                 </button>
-                <button onclick="acceptAllCookies()" class="cookie-button bg-cyan-400 hover:bg-cyan-300 text-gray-900">
+                <button onclick="acceptAllCookies()" class="cookie-button bg-teal-500 hover:bg-teal-600 text-white">
                     Accept All
                 </button>
             </div>
@@ -521,7 +523,7 @@
                             </div>
                             <div class="toggle">
                                 <input type="checkbox" id="essential" checked disabled class="hidden">
-                                <div class="toggle-switch opacity-50 cursor-not-allowed" style="background-color: #06b6d4;">
+                                <div class="toggle-switch opacity-50 cursor-not-allowed" style="background-color: #14b8a6;">
                                     <div class="toggle-handle" style="transform: translateX(20px);"></div>
                                 </div>
                             </div>
@@ -605,10 +607,10 @@
                     <button onclick="acceptEssentialOnly()" class="flex-1 px-4 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors font-medium">
                         Essential Only
                     </button>
-                    <button onclick="savePreferences()" class="flex-1 px-4 py-3 bg-cyan-400 text-gray-900 rounded-lg hover:bg-cyan-300 transition-colors font-medium">
+                    <button onclick="savePreferences()" class="flex-1 px-4 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium">
                         Save Preferences
                     </button>
-                    <button onclick="acceptAllCookies()" class="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-400 to-purple-400 text-gray-900 rounded-lg hover:from-cyan-300 hover:to-purple-300 transition-colors font-medium">
+                    <button onclick="acceptAllCookies()" class="flex-1 px-4 py-3 text-white rounded-lg transition-colors font-medium" style="background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%);" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='1'">
                         Accept All
                     </button>
                 </div>
@@ -616,9 +618,9 @@
                 <!-- Additional Links -->
                 <div class="mt-6 pt-4 border-t border-gray-700 text-center">
                     <p class="text-xs text-gray-400">
-                        For more information, read our 
-                        <a href="/privacy" class="text-cyan-400 hover:text-cyan-300 underline">Privacy Policy</a> and 
-                        <a href="/cookies" class="text-cyan-400 hover:text-cyan-300 underline">Cookie Policy</a>
+                        For more information, read our
+                        <a href="/privacy" class="text-teal-500 hover:text-legendary underline">Privacy Policy</a> and
+                        <a href="/cookies" class="text-teal-500 hover:text-legendary underline">Cookie Policy</a>
                     </p>
                 </div>
             </div>
@@ -924,10 +926,10 @@
             const checkbox = document.getElementById('analytics');
             const toggle = checkbox?.parentElement.querySelector('.toggle-switch');
             const handle = toggle?.querySelector('.toggle-handle');
-            
+
             if (checkbox && toggle && handle) {
                 if (checkbox.checked) {
-                    toggle.style.backgroundColor = '#06b6d4';
+                    toggle.style.backgroundColor = '#14b8a6';
                     handle.style.transform = 'translateX(20px)';
                 } else {
                     toggle.style.backgroundColor = '#64748b';
@@ -940,10 +942,10 @@
             const checkbox = document.getElementById('functional');
             const toggle = checkbox?.parentElement.querySelector('.toggle-switch');
             const handle = toggle?.querySelector('.toggle-handle');
-            
+
             if (checkbox && toggle && handle) {
                 if (checkbox.checked) {
-                    toggle.style.backgroundColor = '#06b6d4';
+                    toggle.style.backgroundColor = '#14b8a6';
                     handle.style.transform = 'translateX(20px)';
                 } else {
                     toggle.style.backgroundColor = '#64748b';

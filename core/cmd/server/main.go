@@ -136,7 +136,6 @@ func main() {
 	loginTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "login.html")
 	registerTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "register.html")
 	dashboardTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "dashboard.html")
-	accessTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "access.html")
 	deleteAccountTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "delete-account.html")
 	forgotPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "forgot-password.html")
 	resetPasswordTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "reset-password.html")
@@ -159,7 +158,6 @@ func main() {
 		loginTemplate,
 		registerTemplate,
 		dashboardTemplate,
-		accessTemplate,
 		deleteAccountTemplate,
 		forgotPasswordTemplate,
 		resetPasswordTemplate,
@@ -183,6 +181,7 @@ func main() {
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
 	r.GET("/status/:id", uploadHandler.GetStatus)
 	r.POST("/cancel/:id", uploadHandler.CancelJob)
+	r.POST("/retry/:id", uploadHandler.RetryJob)
 	r.GET("/download/:id", downloadHandler.HandleDownload)
 
 	// Public routes with template context

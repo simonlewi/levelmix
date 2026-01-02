@@ -535,6 +535,7 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 		if data, err := result.Result(); err == nil && len(data) > 0 {
 			progress := 0
 			status := "queued"
+			silenceTrimmed := false
 
 			if p, exists := data["progress"]; exists {
 				if parsed, err := strconv.Atoi(p); err == nil {
@@ -544,12 +545,29 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 			if s, exists := data["status"]; exists {
 				status = s
 			}
+			if st, exists := data["silence_trimmed"]; exists && st == "true" {
+				silenceTrimmed = true
+			}
 
-			c.JSON(http.StatusOK, gin.H{
-				"status":   status,
-				"progress": progress,
-				"fileID":   fileID,
-			})
+			// Also fetch file metadata from database to include duration, format, etc.
+			response := gin.H{
+				"status":         status,
+				"progress":       progress,
+				"fileID":         fileID,
+				"silenceTrimmed": silenceTrimmed,
+			}
+
+			// Get audio file metadata
+			if audioFile, err := h.metadata.GetAudioFile(c.Request.Context(), fileID); err == nil {
+				response["filename"] = audioFile.OriginalFilename
+				response["format"] = audioFile.Format
+				response["fileSize"] = audioFile.FileSize
+				if audioFile.DurationSeconds != nil {
+					response["durationSeconds"] = *audioFile.DurationSeconds
+				}
+			}
+
+			c.JSON(http.StatusOK, response)
 			return
 		}
 	}
@@ -576,6 +594,14 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 		"status":   job.Status,
 		"progress": progress,
 		"fileID":   fileID,
+		"filename": audioFile.OriginalFilename,
+		"format":   audioFile.Format,
+		"fileSize": audioFile.FileSize,
+	}
+
+	// Add duration if available
+	if audioFile.DurationSeconds != nil {
+		response["durationSeconds"] = *audioFile.DurationSeconds
 	}
 
 	if job.Status == "failed" && job.ErrorMessage != nil {
@@ -583,6 +609,87 @@ func (h *UploadHandler) GetStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *UploadHandler) RetryJob(c *gin.Context) {
+	fileID := c.Param("id")
+	if fileID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File ID required"})
+		return
+	}
+
+	// Get the job to verify it exists and get its status
+	job, err := h.metadata.GetJobByFileID(c.Request.Context(), fileID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+		return
+	}
+
+	// Only allow retrying failed jobs
+	if job.Status != "failed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Can only retry failed jobs"})
+		return
+	}
+
+	// Get user to check premium status
+	user, err := h.metadata.GetUser(c.Request.Context(), job.UserID)
+	if err != nil {
+		log.Printf("RetryJob: Failed to get user %s: %v", job.UserID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user information"})
+		return
+	}
+
+	// Determine if user is premium (tier 2 = Premium, tier 3 = Professional)
+	isPremium := user.SubscriptionTier >= 2
+
+	// Default to precise mode for retry (we don't store this in the job)
+	processingMode := audio.ModePrecise
+
+	// Get target LUFS (use default if not set)
+	targetLUFS := audio.DefaultLUFS
+	if job.TargetLUFS != nil {
+		targetLUFS = *job.TargetLUFS
+	}
+
+	// Create a new processing task
+	task := audio.ProcessTask{
+		JobID:          job.ID,
+		FileID:         fileID,
+		UserID:         job.UserID,
+		TargetLUFS:     targetLUFS,
+		IsPremium:      isPremium,
+		ProcessingMode: processingMode,
+	}
+
+	log.Printf("RetryJob: Re-enqueueing processing task for job %s (file %s)", job.ID, fileID)
+	if err := h.queue.EnqueueProcessing(c.Request.Context(), task); err != nil {
+		log.Printf("RetryJob: Failed to re-queue processing task for job %s: %v", job.ID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retry job"})
+		return
+	}
+
+	// Update job status back to queued
+	job.Status = "queued"
+	job.ErrorMessage = nil
+	job.CompletedAt = nil
+
+	if err := h.metadata.UpdateJob(c.Request.Context(), job); err != nil {
+		log.Printf("RetryJob: Failed to update job status to queued for %s: %v", job.ID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job status"})
+		return
+	}
+
+	// Update audio file status
+	if err := h.metadata.UpdateStatus(c.Request.Context(), fileID, "queued"); err != nil {
+		log.Printf("RetryJob: Failed to update file status to queued for %s: %v", fileID, err)
+	}
+
+	log.Printf("Job %s successfully re-queued for retry", job.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "queued",
+		"message": "Job queued for retry successfully",
+	})
 }
 
 func (h *UploadHandler) CancelJob(c *gin.Context) {
@@ -862,9 +969,9 @@ func getFileExtension(filename string) string {
 func getProgressFromStatus(status string) int {
 	switch status {
 	case "queued":
-		return 10
+		return 1
 	case "processing":
-		return 50
+		return 15
 	case "completed":
 		return 100
 	case "failed":

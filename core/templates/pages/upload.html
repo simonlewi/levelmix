@@ -3,32 +3,34 @@
 {{define "title"}}Upload - LevelMix{{end}}
 
 {{define "upload_content"}}
-<div id="upload_content" class="flex items-center justify-center min-h-screen px-6"
+<div id="upload_content" class="flex items-center justify-center min-h-screen px-6 py-12"
      data-user-tier="{{if and .IsLoggedIn .user}}{{.user.SubscriptionTier}}{{else}}0{{end}}"
      data-is-logged-in="{{.IsLoggedIn}}">
-    <div class="text-center max-w-md w-full">
-        <div id="main-container" class="state-transition">
+    <div class="text-center w-full">
+        <div id="main-container" class="state-transition max-w-xl mx-auto">
             
             <!-- STATE 1: Upload Form (Initial) -->
             <div id="upload-state">
-                <h2 class="text-4xl font-bold mb-8">Upload Your Audio</h2>
-                
+                <h2 class="text-4xl font-bold mb-8 bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">Upload Your Audio</h2>
+
                 <form id="upload-form">
-                      
+
                     <!-- File Drop Area -->
-                    <div id="drop-area" 
-                         class="drop-area mb-6 border-2 border-dashed border-gray-600 rounded-lg p-8 cursor-pointer hover:border-cyan-400 transition-colors"
+                    <div id="drop-area"
+                         class="drop-area mb-6 border-2 border-dashed border-slate-600 rounded-lg p-8 cursor-pointer transition-all duration-300"
                          onclick="document.getElementById('file-input').click()"
                          role="button"
                          tabindex="0"
                          aria-label="Click to upload file or drag and drop">
-                        
+
                         <div id="drop-content" style="pointer-events: none;">
-                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            <p class="text-gray-400 mb-2">Click to upload or drag and drop</p>
-                            <p class="text-gray-500 text-sm">
+                            <div class="w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                            </div>
+                            <p class="text-slate-300 mb-2 font-semibold">Click to upload or drag and drop</p>
+                            <p class="text-slate-400 text-sm">
                                 {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
                                     MP3 and WAV files up to 5GB
                                 {{else}}
@@ -36,15 +38,15 @@
                                 {{end}}
                             </p>
                         </div>
-                        
+
                         <!-- Selected file info (hidden initially) -->
                         <div id="file-info" class="hidden" style="pointer-events: none;">
-                            <svg class="w-8 h-8 text-cyan-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8 text-legendary-teal mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
                             </svg>
-                            <p id="file-name" class="text-cyan-400 font-medium"></p>
-                            <p id="file-size" class="text-gray-400 text-sm"></p>
-                            <button type="button" 
+                            <p id="file-name" class="text-legendary-teal font-medium"></p>
+                            <p id="file-size" class="text-slate-400 text-sm"></p>
+                            <button type="button"
                                     onclick="removeFile(); event.stopPropagation();"
                                     class="text-red-400 text-sm mt-2 hover:text-red-300 cursor-pointer"
                                     style="pointer-events: auto;">
@@ -65,101 +67,146 @@
                     <div class="mb-6">
                         <label class="block text-sm font-medium mb-2">Processing Mode:</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="processing-mode-option border border-gray-600 rounded-lg cursor-pointer transition-all">
+                            <label class="processing-mode-option border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
                                 <input type="radio" name="processing_mode" value="fast" class="hidden" checked>
                                 <div class="p-4 rounded-lg transition-all">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="font-medium text-cyan-400 flex items-center">
-                                            <img src="/static/images/fast-icon.png" alt="Fast" class="w-5 h-5 mr-2">
-                                            Fast
-                                        </span>
+                                    <div class="flex items-center mb-2">
+                                        <div class="mode-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                            </svg>
+                                        </div>
+                                        <span class="font-semibold text-white">Fast</span>
                                     </div>
-                                    <p class="text-xs text-gray-400">Adaptive analysis. Quick results with good quality.</p>
+                                    <p class="text-xs text-slate-400">Adaptive analysis. Quick results with good quality.</p>
                                 </div>
                             </label>
 
-                            <label class="processing-mode-option border border-gray-600 rounded-lg cursor-pointer transition-all">
+                            <label class="processing-mode-option border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
                                 <input type="radio" name="processing_mode" value="precise" class="hidden">
                                 <div class="p-4 rounded-lg transition-all">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="font-medium text-purple-400 flex items-center">
-                                            <img src="/static/images/precise-icon.png" alt="Precise" class="w-5 h-5 mr-2">
-                                            Precise
-                                        </span>
+                                    <div class="flex items-center mb-2">
+                                        <div class="mode-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                            </svg>
+                                        </div>
+                                        <span class="font-semibold text-white">Precise</span>
                                     </div>
-                                    <p class="text-xs text-gray-400">Full analysis. Recommended for music content like DJ mixes.</p>
+                                    <p class="text-xs text-slate-400">Full analysis. Recommended for music content like DJ mixes.</p>
                                 </div>
                             </label>
                         </div>
                     </div>
                     
-                    <!-- Preset Selection (replaces LUFS dropdown) -->
+                    <!-- Preset Selection -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium mb-2">Optimize for:</label>
-                        <select name="preset"
-                                id="preset-select"
-                                class="block w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
-                            <option value="dj" selected>DJ Content</option>
-                            <option value="streaming">Streaming</option>
-                            <option value="podcast">Podcast</option>
-                            <option value="broadcast">Broadcast</option>
-                            {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
-                            <option value="custom">Custom LUFS</option>
-                            {{end}}
-                        </select>
-                        
-                        <!-- Preset descriptions -->
-                        <p id="preset-description" class="mt-2 text-sm text-gray-400">
-                            Loud and punchy, optimized for impact and energy.
-                        </p>
-                        
-                        <!-- Custom LUFS Input (Premium/Pro only) -->
-                        {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
-                        <div id="custom-lufs-input" class="hidden mt-4 p-4 bg-gray-700 rounded-lg border border-purple-500/50">
-                            <label for="custom_lufs_value" class="block text-sm font-medium text-gray-300 mb-2">
-                                Custom LUFS Target
+                        <div class="grid grid-cols-4 gap-2">
+                            <!-- DJ Mix -->
+                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                                <input type="radio" name="preset" value="dj" class="hidden" checked>
+                                <div class="p-3 rounded-lg transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-center text-sm font-semibold text-white">DJ Mix</div>
+                                </div>
                             </label>
-                            <div class="flex items-center space-x-4">
-                                <input type="number" 
-                                       id="custom_lufs_value" 
-                                       name="custom_lufs_value" 
-                                       min="-20" 
-                                       max="-2" 
-                                       step="1"
-                                       value="-10"
-                                       class="block w-24 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent">
-                                <span class="text-gray-400 text-sm">Range: -20 to -2 LUFS</span>
-                            </div>
+
+                            <!-- Streaming -->
+                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                                <input type="radio" name="preset" value="streaming" class="hidden">
+                                <div class="p-3 rounded-lg transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-center text-sm font-semibold text-white">Streaming</div>
+                                </div>
+                            </label>
+
+                            <!-- Podcast -->
+                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                                <input type="radio" name="preset" value="podcast" class="hidden">
+                                <div class="p-3 rounded-lg transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-center text-sm font-semibold text-white">Podcast</div>
+                                </div>
+                            </label>
+
+                            <!-- Broadcast -->
+                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                                <input type="radio" name="preset" value="broadcast" class="hidden">
+                                <div class="p-3 rounded-lg transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-center text-sm font-semibold text-white">Broadcast</div>
+                                </div>
+                            </label>
                         </div>
-                        {{else if .IsLoggedIn}}
-                        <!-- Upgrade prompt for free users -->
-                        <div id="custom-upgrade-prompt" class="hidden mt-4 p-3 bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border border-purple-500/30 rounded-lg">
-                            <div class="flex items-center">
-                                <svg class="w-4 h-4 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                                </svg>
-                                <span class="text-purple-300 text-sm">Custom LUFS available with </span>
-                                <a href="/pricing" class="text-purple-400 hover:text-purple-300 underline ml-1 text-sm">Premium</a>
-                            </div>
-                        </div>
-                        {{end}}
                     </div>
-                    
+
+                    <!-- Custom LUFS Target (Premium & Professional Only) -->
+                    {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Custom LUFS Target:</label>
+                        <div id="lufs-container" class="lufs-card border-2 border-slate-600 rounded-lg p-4 cursor-pointer transition-all">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="lufs-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-semibold text-white">Custom Target</span>
+                                </div>
+                                <span id="lufs-value" class="text-2xl font-bold text-white"></span>
+                            </div>
+                            <div class="relative">
+                                <input type="range"
+                                       id="lufs-slider"
+                                       name="lufs_target"
+                                       min="-20"
+                                       max="-2"
+                                       value="-7"
+                                       step="1"
+                                       class="lufs-slider w-full h-2 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-slate-400 mt-2">
+                                    <span>Quieter</span>
+                                    <span>Louder</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
                     <button type="submit"
                             id="upload-btn"
                             disabled
-                            class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                            class="w-full text-white px-6 py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                            style="background: #1e293b; border: 2px solid #e69e39; box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);"
+                            onmouseenter="if (!this.disabled) this.style.boxShadow='0 0 30px rgba(230, 158, 57, 0.6)'; if (!this.disabled) this.style.transform='translateY(-2px)'"
+                            onmouseleave="if (!this.disabled) this.style.boxShadow='0 0 20px rgba(230, 158, 57, 0.4)'; if (!this.disabled) this.style.transform='translateY(0)'">
                         Upload & Process
                     </button>
 
                     <!-- Helpful tip about cloud storage -->
-                    <div class="mt-4 p-3 bg-gray-800 border border-gray-700 rounded-lg">
-                        <div class="flex items-start">
-                            <svg class="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <p class="text-sm text-gray-400">
-                                <strong class="text-gray-300">Note:</strong> If your file is in cloud storage (Google Drive, Dropbox, OneDrive), please download it to your device first.
+                    <div class="mt-4 p-3 bg-slate-800 border border-slate-700 rounded-lg">
+                        <div class="flex items-start">                            
+                            <p class="text-sm text-slate-400">
+                                <strong class="text-slate-300">Note:</strong> If your file is in cloud storage (Google Drive, Dropbox, OneDrive), please download it to your device first.
                             </p>
                         </div>
                     </div>
@@ -171,48 +218,287 @@
 
 <!-- Processing State Template -->
 <template id="processing-template">
-    <div id="processing-state" class="state-transition">
-        <div class="text-center">
-            <div class="spinner mx-auto mb-6"></div>
-            <h2 class="text-3xl font-bold mb-4">Processing Your Audio</h2>
-            <p id="status-text" class="text-gray-300 mb-8">Initializing...</p>
-
-            <div class="bg-gray-800 rounded-lg p-6 mb-6">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-gray-400">Progress</span>
-                    <span id="progress-text" class="text-sm text-cyan-400">0%</span>
+    <div id="processing-state" class="state-transition mx-auto" style="max-width: 960px;">
+        <div class="processing-card bg-slate-800 border-2 border-slate-600 rounded-lg p-8 mb-4">
+            <!-- File Info Header -->
+            <div class="file-info-header flex items-center gap-6 mb-6">
+                <div class="file-icon-box w-16 h-16 bg-gradient-to-br from-legendary to-legendary-teal rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                    </svg>
                 </div>
-                <div class="w-full bg-gray-700 rounded-full h-2">
-                    <div id="progress-bar" class="progress-bar h-2 rounded-full" style="width: 0%"></div>
+                <div class="file-details flex-1 min-w-0">
+                    <div id="file-name-display" class="text-white text-lg font-semibold truncate mb-2"></div>
+                    <div class="file-meta-display flex gap-3 text-sm text-slate-400 items-center">
+                        <span id="file-duration">--</span>
+                        <span>•</span>
+                        <span id="file-extension" class="uppercase">--</span>
+                        <span>•</span>
+                        <span id="queue-type-badge" class="queue-badge"></span>
+                    </div>
+                    <div id="silence-trim-notice" class="hidden text-xs text-teal-400 mt-3 text-left">
+                        • Silence trimmed from start/end
+                    </div>
                 </div>
+                <span id="status-badge" class="status-badge status-queued flex-shrink-0">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                    </svg>
+                    Queued
+                </span>
             </div>
 
-            <button id="cancel-btn"
-                    onclick="cancelProcessing()"
-                    class="w-full bg-red-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all mb-4">
-                Cancel Processing
-            </button>
+            <!-- Progress Bar -->
+            <div class="bg-slate-700 rounded-full mb-4" style="height: 8px;">
+                <div id="progress-bar" class="progress-bar rounded-full" style="width: 0%; height: 8px;"></div>
+            </div>
 
-            <p class="text-gray-400 text-sm">Processing time varies by file size</p>
+            <!-- Status Text -->
+            <p id="status-text" class="text-sm text-slate-400">Initializing...</p>
         </div>
+
+        <!-- Cancel Button (Outside Card) -->
+        <button id="cancel-btn"
+                onclick="cancelProcessing()"
+                class="w-full bg-slate-700 text-slate-300 px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-slate-600">
+            Cancel Processing
+        </button>
     </div>
 </template>
 
 <script src="/static/js/upload.js"></script>
 
 <style>
+/* Drop Area Hover Effect */
+#drop-area:hover {
+    border-color: #e69e39;
+    background: rgba(230, 158, 57, 0.05);
+    box-shadow: 0 0 30px rgba(230, 158, 57, 0.2);
+}
+
+/* Processing Mode Selection */
 .processing-mode-option {
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .processing-mode-option:has(input[type="radio"]:checked) {
-    border-color: #06b6d4 !important;
-    background-color: rgba(6, 182, 212, 0.1);
+    border-color: #14b8a6 !important;
+    background-color: rgba(20, 184, 166, 0.1);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+}
+
+.processing-mode-option:has(input[type="radio"]:checked) .mode-icon {
+    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
 }
 
 .processing-mode-option:not(:has(input[type="radio"]:checked)):hover {
-    border-color: #06b6d4;
-    background-color: rgba(6, 182, 212, 0.05);
+    border-color: #14b8a6;
+    background-color: rgba(20, 184, 166, 0.05);
+}
+
+.processing-mode-option:not(:has(input[type="radio"]:checked)):hover .mode-icon {
+    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+}
+
+/* Preset Card Selection */
+.preset-card {
+    transition: all 0.3s ease;
+}
+
+.preset-card:has(input[type="radio"]:checked) {
+    border-color: #14b8a6 !important;
+    background-color: rgba(20, 184, 166, 0.1);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+}
+
+.preset-card:has(input[type="radio"]:checked) .preset-icon {
+    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+}
+
+.preset-card:has(input[type="radio"]:checked) .preset-icon svg {
+    color: white;
+}
+
+.preset-card:not(:has(input[type="radio"]:checked)):hover {
+    border-color: #14b8a6;
+    background-color: rgba(20, 184, 166, 0.05);
+}
+
+.preset-card:not(:has(input[type="radio"]:checked)):hover .preset-icon {
+    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+}
+
+.preset-card:not(:has(input[type="radio"]:checked)):hover .preset-icon svg {
+    color: white;
+}
+
+/* Progress Bar */
+.progress-bar {
+    background: linear-gradient(90deg, #e69e39 0%, #14b8a6 100%);
+    transition: width 0.5s ease;
+}
+
+/* Spinner */
+.spinner-legendary {
+    border: 3px solid rgba(230, 158, 57, 0.3);
+    border-top-color: #e69e39;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* LUFS Slider Styles */
+.lufs-slider {
+    background: linear-gradient(90deg, #e69e39 0%, #14b8a6 100%);
+    outline: none;
+}
+
+.lufs-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(230, 158, 57, 0.5), 0 0 20px rgba(20, 184, 166, 0.3);
+    transition: all 0.3s ease;
+}
+
+.lufs-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(230, 158, 57, 0.8), 0 0 30px rgba(20, 184, 166, 0.5);
+}
+
+.lufs-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(230, 158, 57, 0.5), 0 0 20px rgba(20, 184, 166, 0.3);
+    transition: all 0.3s ease;
+}
+
+.lufs-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(230, 158, 57, 0.8), 0 0 30px rgba(20, 184, 166, 0.5);
+}
+
+/* LUFS Card Styles */
+.lufs-card {
+    transition: all 0.3s ease;
+}
+
+.lufs-card.active {
+    border-color: #14b8a6 !important;
+    background-color: rgba(20, 184, 166, 0.1);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+}
+
+.lufs-card.active .lufs-icon {
+    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+}
+
+.lufs-card:not(.active):hover {
+    border-color: #14b8a6;
+    background-color: rgba(20, 184, 166, 0.05);
+}
+
+.lufs-card:not(.active):hover .lufs-icon {
+    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+}
+
+/* Processing Card Styles */
+.processing-card {
+    transition: all 0.3s ease;
+}
+
+.processing-card.processing {
+    border-color: rgba(230, 158, 57, 0.5) !important;
+    box-shadow: 0 0 20px rgba(230, 158, 57, 0.3);
+}
+
+.processing-card.complete {
+    border-color: rgba(65, 196, 78, 0.5) !important;
+    box-shadow: 0 0 20px rgba(65, 196, 78, 0.2);
+}
+
+/* Status Badge Styles */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-queued {
+    background: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+    border: 1px solid #475569;
+}
+
+.status-processing {
+    background: rgba(230, 158, 57, 0.2);
+    color: #e69e39;
+    border: 1px solid rgba(230, 158, 57, 0.5);
+}
+
+.status-complete {
+    background: rgba(65, 196, 78, 0.2);
+    color: #41c44e;
+    border: 1px solid rgba(65, 196, 78, 0.5);
+}
+
+/* Pulse Animation for Processing Dot */
+@keyframes pulse-dot {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.pulse-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: currentColor;
+    border-radius: 50%;
+    animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Queue Badge Styles */
+.queue-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.queue-precise {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.queue-fast {
+    background: rgba(230, 158, 57, 0.2);
+    color: #e69e39;
+}
+
+/* Progress Bar Complete State */
+.progress-bar.complete {
+    background: linear-gradient(90deg, #41c44e 0%, #14b8a6 100%);
 }
 </style>
 {{end}}

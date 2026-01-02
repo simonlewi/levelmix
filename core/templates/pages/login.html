@@ -4,12 +4,12 @@
 <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div>
-            <h2 class="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <h2 class="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">
                 Sign in to your account
             </h2>
             <p class="mt-2 text-center text-sm text-gray-400">
                 Or
-                <a href="/register" class="font-medium text-cyan-400 hover:text-cyan-300">
+                <a href="/register" class="font-medium text-teal-500 hover:text-teal-400">
                     create a new account
                 </a>
             </p>
@@ -48,25 +48,28 @@
                         Email address
                     </label>
                     <input id="email" name="email" type="email" autocomplete="email" required
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm">
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent sm:text-sm">
                 </div>
                 <div>
                     <div class="flex items-center justify-between">
                         <label for="password" class="block text-sm font-medium text-gray-300">
                             Password
                         </label>
-                        <a href="/forgot-password" class="text-sm text-cyan-400 hover:text-cyan-300">
+                        <a href="/forgot-password" class="text-sm text-teal-500 hover:text-teal-400">
                             Forgot password?
                         </a>
                     </div>
                     <input id="password" name="password" type="password" autocomplete="current-password" required
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm">
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent sm:text-sm">
                 </div>
             </div>
 
             <div>
                 <button type="submit"
-                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-300 hover:-translate-y-0.5"
+                        style="box-shadow: 0 0 0 rgba(20, 184, 166, 0); transition: all 0.3s ease;"
+                        onmouseenter="this.style.boxShadow='0 0 10px rgba(20, 184, 166, 0.5)'"
+                        onmouseleave="this.style.boxShadow='0 0 0 rgba(20, 184, 166, 0)'">
                     Sign in
                 </button>
             </div>

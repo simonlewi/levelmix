@@ -4,13 +4,13 @@
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+        <h1 class="text-4xl font-extrabold bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">
             Dashboard
         </h1>
-        <p class="text-gray-400 mt-2">
-            Welcome back, <span class="text-white font-medium">{{.user.GetDisplayName}}</span>
+        <p class="text-slate-400 mt-2 text-lg">
+            Welcome back, <span class="text-white font-semibold">{{.user.GetDisplayName}}</span>
             {{if not .user.HasName}}
-                <a href="#account-settings" class="ml-2 text-cyan-400 hover:text-cyan-300 text-sm underline">
+                <a href="#account-settings" class="ml-2 text-legendary-teal hover:text-legendary text-sm underline">
                     Add your name
                 </a>
             {{end}}
@@ -20,58 +20,66 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <!-- Account Type Card -->
-        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-400 truncate">
-                    Account Type
+                <dt class="text-sm font-medium text-slate-400 truncate">
+                    Account Tier
                 </dt>
-                <dd class="mt-1 text-3xl font-semibold text-cyan-400">
+                <dd class="mt-1 text-3xl font-extrabold bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">
                     {{.tierName}}
                 </dd>
                 {{if ne .tierName "Professional"}}
-                <div class="mt-3">
-                    <a href="/pricing" class="text-sm text-cyan-400 hover:text-cyan-300 underline">
-                        Upgrade Plan
+                <div class="mt-4">
+                    <a href="/pricing" class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-exclusive border-2 border-legendary rounded-lg hover:shadow-lg hover:shadow-exclusive/30 transition-all duration-300 hover:-translate-y-0.5">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Upgrade to Professional
                     </a>
                 </div>
                 {{end}}
             </div>
         </div>
-        
+
         <!-- Processing Time This Month Card -->
-        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-400 truncate">
+                <dt class="text-sm font-medium text-slate-400 truncate">
                     Processing Time This Month
                 </dt>
-                <dd class="mt-1 text-3xl font-semibold text-white">
+                <dd class="mt-1 text-3xl font-extrabold text-white">
                     {{.processingTimeUsed}}
-                    <span class="text-sm text-gray-500">/ {{.processingTimeTotal}}</span>
                 </dd>
+                <div class="text-sm text-slate-400 mt-1">of {{.processingTimeTotal}}</div>
+                <div class="mt-3 bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-legendary to-legendary-teal transition-all duration-500" style="width: {{.processingTimePercent}}%;"></div>
+                </div>
             </div>
         </div>
-        
-        <!-- Total Uploads Card -->
-        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
-            <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-400 truncate">
-                    Total Uploads
-                </dt>
-                <dd class="mt-1 text-3xl font-semibold text-white">
-                    {{.stats.TotalUploads}}
-                </dd>
-            </div>
-        </div>
-        
+
         <!-- Total Processing Time Card -->
-        <div class="bg-gray-800 overflow-hidden rounded-lg border border-gray-700">
+        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-400 truncate">
+                <dt class="text-sm font-medium text-slate-400 truncate">
                     Total Processing Time
                 </dt>
-                <dd class="mt-1 text-2xl font-semibold text-white">
+                <dd class="mt-1 text-3xl font-extrabold text-white">
                     {{.processingTime}}
                 </dd>
+                <div class="text-sm text-slate-400 mt-1">All time</div>
+            </div>
+        </div>
+
+        <!-- Total Uploads Card -->
+        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-slate-400 truncate">
+                    Total Uploads
+                </dt>
+                <dd class="mt-1 text-3xl font-extrabold text-white">
+                    {{.stats.TotalUploads}}
+                </dd>
+                <div class="text-sm text-slate-400 mt-1">Lifetime</div>
             </div>
         </div>
     </div>
@@ -79,71 +87,99 @@
     <!-- Upload Button / Limit Warning -->
     <div class="mb-8">
         {{if or (eq .processingTimeLimit -1) (gt .processingTimeRemainingSeconds 0)}}
-            <a href="/upload" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-gray-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
+            <a href="/upload" class="inline-flex items-center px-6 py-3 text-base font-semibold text-legendary-teal border-2 border-legendary-teal rounded-lg hover:bg-legendary-teal/10 transition-all duration-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
                 Upload New File
             </a>
         {{else}}
-            <div class="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
-                <p class="text-sm text-yellow-400">
-                    You've reached your monthly processing time limit. 
-                    <a href="/pricing" class="font-medium underline hover:text-yellow-300">Upgrade your plan</a> for more processing time.
-                </p>
+            <div class="bg-legendary/10 border border-legendary/30 rounded-lg p-4 flex items-start gap-3">
+                <svg class="w-6 h-6 text-legendary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-legendary">
+                        Low processing time remaining
+                    </p>
+                    <p class="text-sm text-slate-300 mt-1">
+                        You've reached your monthly processing time limit.
+                        <a href="/pricing" class="font-semibold underline hover:text-legendary-teal">Upgrade your plan</a> for more processing time.
+                    </p>
+                </div>
             </div>
         {{end}}
     </div>
 
     <!-- Processing History -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-700">
-            <h3 class="text-lg leading-6 font-medium text-white">
+    <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-slate-700">
+            <h3 class="text-xl font-bold text-white">
                 Processing History
             </h3>
         </div>
-        <div class="divide-y divide-gray-700">
+        <div class="divide-y divide-slate-700">
             {{if .jobs}}
                 {{range .jobs}}
-                <div class="px-4 py-4 sm:px-6 hover:bg-gray-700/50 transition-colors">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
+                <div class="px-4 py-4 sm:px-6 hover:bg-slate-700/30 transition-all duration-300 border border-transparent hover:border-slate-600 rounded-lg mx-2 my-1" data-file-id="{{.job.AudioFileID}}" data-job-status="{{.job.Status}}">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center flex-1 min-w-0">
                             <div class="flex-shrink-0 mr-4">
                                 {{if eq .job.Status "completed"}}
-                                    <div class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-success" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
                                         </svg>
                                     </div>
-                                {{else if eq .job.Status "processing"}}
-                                    <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                                        <div class="spinner w-5 h-5"></div>
+                                {{else if or (eq .job.Status "processing") (eq .job.Status "queued")}}
+                                    <div class="w-12 h-12 bg-legendary/20 rounded-lg flex items-center justify-center">
+                                        <div class="spinner-legendary w-6 h-6"></div>
                                     </div>
                                 {{else if eq .job.Status "failed"}}
-                                    <div class="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
                                     </div>
                                 {{else}}
-                                    <div class="w-8 h-8 bg-gray-600/20 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <div class="w-12 h-12 bg-slate-600/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </div>
                                 {{end}}
                             </div>
-                            <div>
-                                <div class="text-sm font-medium text-white">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-base font-semibold text-white truncate">
                                     {{if .file}}{{.file.OriginalFilename}}{{else}}Processing...{{end}}
                                 </div>
-                                <div class="text-sm text-gray-400">
-                                    {{if .hasTargetLUFS}}Target: {{printf "%.1f" .targetLUFS}} LUFS • {{end}}{{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}
+                                <div class="text-sm text-slate-400 flex flex-wrap gap-2 mt-0.5">
+                                    {{if .hasTargetLUFS}}<span>Target: {{printf "%.1f" .targetLUFS}} LUFS</span>{{end}}
+                                    <span>•</span>
+                                    <span>{{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center gap-2">
                             {{if eq .job.Status "completed"}}
-                                <a href="/download/{{.job.AudioFileID}}" class="text-sm text-cyan-400 hover:text-cyan-300">
+                                <a href="/download/{{.job.AudioFileID}}" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-success rounded-lg hover:bg-success/90 transition-all duration-300 hover:-translate-y-0.5">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
                                     Download
                                 </a>
+                            {{else if or (eq .job.Status "processing") (eq .job.Status "queued")}}
+                                <span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-legendary/20 text-legendary border border-legendary/30 rounded-lg">
+                                    <span class="inline-block w-2 h-2 mr-2 bg-legendary rounded-full animate-pulse"></span>
+                                    {{if eq .job.Status "processing"}}Processing{{else}}Queued{{end}}
+                                </span>
+                            {{else if eq .job.Status "failed"}}
+                                <button onclick="retryJob('{{.job.AudioFileID}}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-legendary-teal border-2 border-legendary-teal rounded-lg hover:bg-legendary-teal/10 transition-all duration-300">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                    Retry
+                                </button>
                             {{end}}
                         </div>
                     </div>
@@ -151,13 +187,16 @@
                 {{end}}
             {{else}}
                 <div class="px-4 py-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    <svg class="mx-auto h-16 w-16 text-slate-600 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-300">No processing history</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by uploading your first audio file.</p>
+                    <h3 class="mt-4 text-lg font-semibold text-slate-300">No processing history yet</h3>
+                    <p class="mt-2 text-sm text-slate-400">Upload your first audio file to get started!</p>
                     <div class="mt-6">
-                        <a href="/upload" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-cyan-400 hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400">
+                        <a href="/upload" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-white transition-all duration-300"
+                           style="background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%); box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);"
+                           onmouseenter="this.style.boxShadow='0 0 30px rgba(230, 158, 57, 0.6)'; this.style.transform='translateY(-2px)'"
+                           onmouseleave="this.style.boxShadow='0 0 20px rgba(230, 158, 57, 0.4)'; this.style.transform='translateY(0)'">
                             Upload Audio
                         </a>
                     </div>
@@ -167,9 +206,9 @@
     </div>
 
     <!-- Account Settings Section -->
-    <div id="account-settings" class="mt-8 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-700">
-            <h3 class="text-lg leading-6 font-medium text-white">
+    <div id="account-settings" class="mt-8 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-slate-700">
+            <h3 class="text-xl font-bold text-white">
                 Account Settings
             </h3>
         </div>
@@ -177,100 +216,329 @@
             <!-- NAME FIELD -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h4 class="text-sm font-medium text-white">Name</h4>
-                    <p class="text-sm text-gray-400">
+                    <h4 class="text-sm font-semibold text-slate-300">Name</h4>
+                    <p class="text-sm text-slate-400 mt-0.5">
                         {{if .user.HasName}}
                             {{.user.Name}}
                         {{else}}
-                            <span class="text-gray-500 italic">Not set</span>
+                            <span class="text-slate-400 italic">Not set</span>
                         {{end}}
                     </p>
                 </div>
-                <button 
-                    onclick="showNameModal()" 
-                    class="text-sm text-cyan-400 hover:text-cyan-300"
+                <button
+                    onclick="showNameModal()"
+                    class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors"
                 >
                     {{if .user.HasName}}Change{{else}}Add{{end}}
                 </button>
             </div>
 
             <!-- EMAIL ADDRESS -->
-            <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+            <div class="flex items-center justify-between pt-4 border-t border-slate-700">
                 <div>
-                    <h4 class="text-sm font-medium text-white">Email Address</h4>
-                    <p class="text-sm text-gray-400">{{.user.Email}}</p>
+                    <h4 class="text-sm font-semibold text-slate-300">Email Address</h4>
+                    <p class="text-sm text-slate-400 mt-0.5">{{.user.Email}}</p>
                 </div>
                 {{if eq .user.AuthProvider "email"}}
-                <a href="/account/change-email" class="text-sm text-cyan-400 hover:text-cyan-300">
+                <button onclick="showEmailModal()" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
                     Change
-                </a>
+                </button>
                 {{end}}
             </div>
-            
+
             <!-- PASSWORD -->
             {{if eq .user.AuthProvider "email"}}
-            <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+            <div class="flex items-center justify-between pt-4 border-t border-slate-700">
                 <div>
-                    <h4 class="text-sm font-medium text-white">Password</h4>
-                    <p class="text-sm text-gray-400">Last updated on account creation</p>
+                    <h4 class="text-sm font-semibold text-slate-300">Password</h4>
+                    <p class="text-sm text-slate-400 mt-0.5">••••••••</p>
                 </div>
-                <a href="/account/change-password" class="text-sm text-cyan-400 hover:text-cyan-300">
+                <button onclick="showPasswordModal()" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
                     Change
-                </a>
+                </button>
             </div>
             {{end}}
-            
+
             <!-- SUBSCRIPTION -->
-            <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+            <div class="flex items-center justify-between pt-4 border-t border-slate-700">
                 <div>
-                    <h4 class="text-sm font-medium text-white">Subscription</h4>
-                    <p class="text-sm text-gray-400">{{.tierName}} plan</p>
+                    <h4 class="text-sm font-semibold text-slate-300">Subscription</h4>
+                    <p class="text-sm text-slate-400 mt-0.5">{{.tierName}} plan</p>
                 </div>
                 <div class="flex space-x-3">
                     {{if ne .tierName "Free"}}
-                    <button onclick="openBillingPortal(event)" class="text-sm text-cyan-400 hover:text-cyan-300">
+                    <button onclick="openBillingPortal(event)" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
                         Manage Subscription
                     </button>
                     {{end}}
                     {{if ne .tierName "Professional"}}
-                    <a href="/pricing" class="text-sm text-cyan-400 hover:text-cyan-300">
+                    <a href="/pricing" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
                         Upgrade
                     </a>
                     {{end}}
                 </div>
             </div>
-            
+
             <!-- DANGER ZONE -->
-            <div class="pt-4 border-t border-gray-700">
-                <h4 class="text-sm font-medium text-red-400 mb-2">Danger Zone</h4>
-                <a href="/account/delete" class="inline-flex items-center px-4 py-2 border border-red-500 text-sm font-medium rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    Delete Account
-                </a>
+            <div class="pt-4 border-t-2 border-red-500/50">
+                <div class="bg-red-500/5 border-2 border-red-500 rounded-xl p-6">
+                    <h4 class="text-lg font-bold text-red-400 mb-2">Danger Zone</h4>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Once you delete your account, there is no going back. This will permanently delete your account,
+                        processing history, and any files stored on our servers.
+                    </p>
+                    <a href="/account/delete" class="inline-flex items-center px-4 py-2 border-2 border-red-500 text-sm font-semibold rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Delete Account Permanently
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Name Change Modal -->
-<div id="nameModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-md w-full mx-4">
+<!-- Email Change Modal -->
+<div id="emailModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 bg-black/50">
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-white">
+            <h3 class="text-xl font-bold text-white">
+                Change Email Address
+            </h3>
+            <button onclick="hideEmailModal()" class="text-slate-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        {{if .emailError}}
+        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3">
+            <div class="text-sm text-red-400 font-medium">
+                {{if eq .emailError "missing_fields"}}
+                    Please fill in all fields
+                {{else if eq .emailError "email_mismatch"}}
+                    Email addresses do not match
+                {{else if eq .emailError "same_email"}}
+                    New email is the same as your current email
+                {{else if eq .emailError "invalid_email"}}
+                    Please enter a valid email address
+                {{else if eq .emailError "invalid_password"}}
+                    Current password is incorrect
+                {{else if eq .emailError "email_exists"}}
+                    An account with this email already exists
+                {{else if eq .emailError "update_failed"}}
+                    Failed to update email. Please try again
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        {{if .emailSuccess}}
+        <div class="mb-4 rounded-lg bg-success/10 border border-success/50 p-3">
+            <div class="text-sm text-success font-medium">
+                ✓ Email successfully updated!
+            </div>
+        </div>
+        {{end}}
+
+        <div class="bg-slate-700/30 rounded-lg p-3 mb-4">
+            <div class="flex items-center text-sm">
+                <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                </svg>
+                <span class="text-slate-400">Current: <span class="text-white font-medium">{{.user.Email}}</span></span>
+            </div>
+        </div>
+
+        <form action="/account/change-email" method="POST" class="space-y-4">
+            <div>
+                <label for="new_email" class="block text-sm font-semibold text-slate-300 mb-2">
+                    New Email Address
+                </label>
+                <input
+                    id="new_email"
+                    name="new_email"
+                    type="email"
+                    required
+                    placeholder="your.new@email.com"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                >
+            </div>
+
+            <div>
+                <label for="confirm_email" class="block text-sm font-semibold text-slate-300 mb-2">
+                    Confirm New Email
+                </label>
+                <input
+                    id="confirm_email"
+                    name="confirm_email"
+                    type="email"
+                    required
+                    placeholder="your.new@email.com"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                >
+            </div>
+
+            <div>
+                <label for="email_current_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                    Current Password
+                </label>
+                <input
+                    id="email_current_password"
+                    name="current_password"
+                    type="password"
+                    required
+                    placeholder="For security verification"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                >
+                <p class="mt-2 text-xs text-slate-400">Required for security verification</p>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button
+                    type="button"
+                    onclick="hideEmailModal()"
+                    class="flex-1 py-3 px-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    class="flex-1 py-3 px-4 text-legendary-teal border-2 border-legendary-teal font-semibold rounded-lg hover:bg-legendary-teal/10 transition-all duration-300"
+                >
+                    Update Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div id="passwordModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 bg-black/50">
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">
+                Change Password
+            </h3>
+            <button onclick="hidePasswordModal()" class="text-slate-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        {{if .passwordError}}
+        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3">
+            <div class="text-sm text-red-400 font-medium">
+                {{if eq .passwordError "missing_fields"}}
+                    Please fill in all fields
+                {{else if eq .passwordError "password_mismatch"}}
+                    New passwords do not match
+                {{else if eq .passwordError "password_short"}}
+                    New password must be at least 8 characters
+                {{else if eq .passwordError "invalid_password"}}
+                    Current password is incorrect
+                {{else if eq .passwordError "same_password"}}
+                    New password must be different from current
+                {{else if eq .passwordError "update_failed"}}
+                    Failed to update password. Please try again
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        {{if .passwordSuccess}}
+        <div class="mb-4 rounded-lg bg-success/10 border border-success/50 p-3">
+            <div class="text-sm text-success font-medium">
+                ✓ Password successfully updated!
+            </div>
+        </div>
+        {{end}}
+
+        <form action="/account/change-password" method="POST" class="space-y-4">
+            <div>
+                <label for="pass_current_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                    Current Password
+                </label>
+                <input
+                    id="pass_current_password"
+                    name="current_password"
+                    type="password"
+                    required
+                    placeholder="Enter your current password"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                >
+            </div>
+
+            <div class="pt-2 border-t border-slate-700">
+                <label for="new_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                    New Password
+                </label>
+                <input
+                    id="new_password"
+                    name="new_password"
+                    type="password"
+                    required
+                    minlength="8"
+                    placeholder="Enter your new password"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                >
+                <p class="mt-2 text-xs text-slate-400">Must be at least 8 characters</p>
+            </div>
+
+            <div>
+                <label for="confirm_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                    Confirm New Password
+                </label>
+                <input
+                    id="confirm_password"
+                    name="confirm_password"
+                    type="password"
+                    required
+                    minlength="8"
+                    placeholder="Confirm your new password"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                >
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button
+                    type="button"
+                    onclick="hidePasswordModal()"
+                    class="flex-1 py-3 px-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    class="flex-1 py-3 px-4 text-legendary-teal border-2 border-legendary-teal font-semibold rounded-lg hover:bg-legendary-teal/10 transition-all duration-300"
+                >
+                    Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Name Change Modal -->
+<div id="nameModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 bg-black/50">
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">
                 {{if .user.HasName}}Change Your Name{{else}}Add Your Name{{end}}
             </h3>
-            <button onclick="hideNameModal()" class="text-gray-400 hover:text-white">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="hideNameModal()" class="text-slate-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
 
         {{if .nameError}}
-        <div class="mb-4 rounded-lg bg-red-900/20 border border-red-500/50 p-3">
-            <div class="text-sm text-red-400">
+        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3">
+            <div class="text-sm text-red-400 font-medium">
                 {{if eq .nameError "name_required"}}
                     Name cannot be empty
                 {{else if eq .nameError "name_too_long"}}
@@ -283,8 +551,8 @@
         {{end}}
 
         {{if .nameSuccess}}
-        <div class="mb-4 rounded-lg bg-green-900/20 border border-green-500/50 p-3">
-            <div class="text-sm text-green-400">
+        <div class="mb-4 rounded-lg bg-success/10 border border-success/50 p-3">
+            <div class="text-sm text-success font-medium">
                 ✓ Name updated successfully!
             </div>
         </div>
@@ -292,33 +560,33 @@
 
         <form action="/account/update-name" method="POST" class="space-y-4">
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">
+                <label for="name" class="block text-sm font-semibold text-slate-300 mb-2">
                     Name
                 </label>
-                <input 
-                    id="name" 
-                    name="name" 
-                    type="text" 
+                <input
+                    id="name"
+                    name="name"
+                    type="text"
                     value="{{if .user.HasName}}{{.user.Name}}{{end}}"
                     required
                     maxlength="100"
                     placeholder="Your name or stage name"
-                    class="appearance-none block w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm"
+                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
                 >
-                <p class="mt-1 text-xs text-gray-500">What should we call you?</p>
+                <p class="mt-2 text-xs text-slate-400">What should we call you?</p>
             </div>
 
-            <div class="flex space-x-3">
-                <button 
-                    type="button" 
-                    onclick="hideNameModal()" 
-                    class="flex-1 py-2 px-4 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            <div class="flex space-x-3 pt-2">
+                <button
+                    type="button"
+                    onclick="hideNameModal()"
+                    class="flex-1 py-3 px-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300"
                 >
                     Cancel
                 </button>
-                <button 
-                    type="submit" 
-                    class="flex-1 py-2 px-4 bg-cyan-400 text-gray-900 font-medium rounded-lg hover:bg-cyan-300 transition-colors"
+                <button
+                    type="submit"
+                    class="flex-1 py-3 px-4 text-legendary-teal border-2 border-legendary-teal font-semibold rounded-lg hover:bg-legendary-teal/10 transition-all duration-300"
                 >
                     Save
                 </button>
@@ -331,6 +599,13 @@
 .spinner {
     border: 2px solid rgba(59, 130, 246, 0.2);
     border-top-color: rgb(59, 130, 246);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-legendary {
+    border: 3px solid rgba(230, 158, 57, 0.3);
+    border-top-color: #e69e39;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }

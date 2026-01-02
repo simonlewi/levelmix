@@ -4,30 +4,37 @@
 
 {{define "results_content"}}
 <div class="flex items-center justify-center min-h-screen px-6">
-    <div class="text-center max-w-md w-full">
-        <h2 class="text-4xl font-bold mb-8">Processing Complete!</h2>
-            
-        <div class="bg-gray-800 p-8 rounded-xl">
-            <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="mx-auto" style="max-width: 1200px;">
+        <div class="bg-slate-800 border-2 border-slate-600 rounded-lg p-8">
+            <!-- Completion Header -->
+            <div class="flex items-center gap-6 mb-6">
+                <div class="w-16 h-16 bg-success rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                </svg>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-2xl font-bold text-white mb-2">Processing Complete!</h2>
+                    <p class="text-slate-400">
+                        Your audio has been normalized to {{.targetLUFS}} LUFS
+                    </p>
+                </div>
             </div>
-                
-            <p class="text-gray-300 mb-6">
-                    Your audio has been normalized to {{.targetLUFS}} LUFS
-            </p>
-                
-            <a href="/download/{{.fileID}}" 
-                class="inline-block w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 mb-4"
+
+            <!-- Download Section -->
+            <div class="border-t border-slate-600 pt-6 mt-2">
+            <a href="/download/{{.fileID}}"
+                class="inline-block w-full text-white px-6 py-3 rounded-lg font-bold mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-legendary/40"
+                style="background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%);"
                 download>
                 Download Processed Audio
             </a>
-                
-            <a href="/upload" 
-                class="inline-block w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-500">
+
+            <a href="/upload"
+                class="inline-block w-full bg-slate-700 text-slate-300 px-6 py-3 rounded-lg hover:bg-slate-600 transition-all border border-slate-600 font-semibold">
                 Process Another File
             </a>
+            </div>
         </div>
     </div>
 </div>

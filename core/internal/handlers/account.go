@@ -223,44 +223,44 @@ func (h *AccountHandler) HandleChangeEmail(c *gin.Context) {
 
 	// Validate inputs
 	if currentPassword == "" || newEmail == "" || confirmEmail == "" {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=missing_fields")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=missing_fields")
 		return
 	}
 
 	// Check if emails match
 	if newEmail != confirmEmail {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=email_mismatch")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=email_mismatch")
 		return
 	}
 
 	// Check if new email is same as current
 	if newEmail == user.Email {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=same_email")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=same_email")
 		return
 	}
 
 	// Validate email format
 	if !isValidEmail(newEmail) {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=invalid_email")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=invalid_email")
 		return
 	}
 
 	// Verify current password
 	if user.PasswordHash == nil {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=invalid_password")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=invalid_password")
 		return
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(currentPassword))
 	if err != nil {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=invalid_password")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=invalid_password")
 		return
 	}
 
 	// Check if new email already exists
 	existingUser, _ := h.metadata.GetUserByEmail(c.Request.Context(), newEmail)
 	if existingUser != nil {
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=email_exists")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=email_exists")
 		return
 	}
 
@@ -271,7 +271,7 @@ func (h *AccountHandler) HandleChangeEmail(c *gin.Context) {
 
 	if err := h.metadata.UpdateUser(c.Request.Context(), user); err != nil {
 		log.Printf("Failed to update email for user %s: %v", user.ID, err)
-		c.Redirect(http.StatusSeeOther, "/account/change-email?error=update_failed")
+		c.Redirect(http.StatusSeeOther, "/dashboard?emailError=update_failed")
 		return
 	}
 
@@ -292,7 +292,7 @@ func (h *AccountHandler) HandleChangeEmail(c *gin.Context) {
 		}()
 	}
 
-	c.Redirect(http.StatusSeeOther, "/account/change-email?success=true")
+	c.Redirect(http.StatusSeeOther, "/dashboard?emailSuccess=true")
 }
 
 // ShowChangePassword displays the change password form
@@ -343,38 +343,38 @@ func (h *AccountHandler) HandleChangePassword(c *gin.Context) {
 
 	// Validate inputs
 	if currentPassword == "" || newPassword == "" || confirmPassword == "" {
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=missing_fields")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=missing_fields")
 		return
 	}
 
 	// Check if passwords match
 	if newPassword != confirmPassword {
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=password_mismatch")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=password_mismatch")
 		return
 	}
 
 	// Check password length
 	if len(newPassword) < 8 {
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=password_short")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=password_short")
 		return
 	}
 
 	// Verify current password
 	if user.PasswordHash == nil {
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=invalid_password")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=invalid_password")
 		return
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(currentPassword))
 	if err != nil {
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=invalid_password")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=invalid_password")
 		return
 	}
 
 	// Check if new password is same as current
 	err = bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(newPassword))
 	if err == nil {
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=same_password")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=same_password")
 		return
 	}
 
@@ -382,7 +382,7 @@ func (h *AccountHandler) HandleChangePassword(c *gin.Context) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Failed to hash password for user %s: %v", user.ID, err)
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=server_error")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=update_failed")
 		return
 	}
 
@@ -393,7 +393,7 @@ func (h *AccountHandler) HandleChangePassword(c *gin.Context) {
 
 	if err := h.metadata.UpdateUser(c.Request.Context(), user); err != nil {
 		log.Printf("Failed to update password for user %s: %v", user.ID, err)
-		c.Redirect(http.StatusSeeOther, "/account/change-password?error=update_failed")
+		c.Redirect(http.StatusSeeOther, "/dashboard?passwordError=update_failed")
 		return
 	}
 
@@ -406,7 +406,7 @@ func (h *AccountHandler) HandleChangePassword(c *gin.Context) {
 		}()
 	}
 
-	c.Redirect(http.StatusSeeOther, "/account/change-password?success=true")
+	c.Redirect(http.StatusSeeOther, "/dashboard?passwordSuccess=true")
 }
 
 // Helper function to validate email format

@@ -2,6 +2,8 @@ let selectedFile = null;
 let pollInterval = null;
 let selectedProcessingMode = 'fast';
 let selectedPreset = 'dj';
+let selectedLufsTarget = -7;
+
 
 // Preset display names (keys match dropdown values, values are what shows in completion message)
 const presetDisplayNames = {
@@ -136,55 +138,30 @@ function getDetailedProgress(status, baseProgress, fileSize, elapsedTime, mode =
 }
 
 function animateProgress(targetProgress, message) {
+    // Update current and target progress
     progressSimulation.targetProgress = Math.min(targetProgress, 100);
+    progressSimulation.currentProgress = progressSimulation.targetProgress;
 
-    if (progressSimulation.animationId) {
-        cancelAnimationFrame(progressSimulation.animationId);
+    // Let CSS transitions handle the smooth animation
+    const progressBar = document.getElementById('progress-bar');
+    const statusText = document.getElementById('status-text');
+
+    if (progressBar) {
+        progressBar.style.width = `${progressSimulation.currentProgress}%`;
     }
 
-    function updateProgress() {
-        const diff = progressSimulation.targetProgress - progressSimulation.currentProgress;
-        if (Math.abs(diff) > 0.1) {
-            progressSimulation.currentProgress += diff * 0.02;
-
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            const statusText = document.getElementById('status-text');
-
-            if (progressBar && progressText) {
-                const roundedProgress = Math.round(progressSimulation.currentProgress);
-                progressBar.style.width = `${progressSimulation.currentProgress}%`;
-                progressText.textContent = `${roundedProgress}%`;
-            }
-
-            if (statusText && message) {
-                statusText.textContent = message;
-            }
-
-            progressSimulation.animationId = requestAnimationFrame(updateProgress);
-        } else {
-            progressSimulation.currentProgress = progressSimulation.targetProgress;
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-
-            if (progressBar && progressText) {
-                progressBar.style.width = `${progressSimulation.currentProgress}%`;
-                progressText.textContent = `${Math.round(progressSimulation.currentProgress)}%`;
-            }
-        }
+    if (statusText && message) {
+        statusText.textContent = message;
     }
-
-    updateProgress();
 }
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     const dropArea = document.getElementById('drop-area');
-    const presetSelect = document.getElementById('preset-select');
-    const customInput = document.getElementById('custom-lufs-input');
-    const presetDescription = document.getElementById('preset-description');
+    const uploadContent = document.getElementById('upload_content');
     const uploadForm = document.getElementById('upload-form');
     const processingModeInputs = document.querySelectorAll('input[name="processing_mode"]');
+    const presetInputs = document.querySelectorAll('input[name="preset"]');
 
     // Handle processing mode selection
     processingModeInputs.forEach(input => {
@@ -193,74 +170,125 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Handle preset selection
-    if (presetSelect) {
-        // Initialize description on page load
-        if (presetDescription) {
-            presetDescription.textContent = presetDescriptions[presetSelect.value] || '';
+    // Handle LUFS slider (only exists for premium/professional users)
+    const lufsSlider = document.getElementById('lufs-slider');
+    const lufsValue = document.getElementById('lufs-value');
+    const lufsContainer = document.getElementById('lufs-container');
+
+    if (lufsSlider && lufsValue && lufsContainer) {
+        // Initialize display from slider's current value
+        selectedLufsTarget = parseInt(lufsSlider.value);
+        lufsValue.textContent = selectedLufsTarget;
+
+        // Activate custom LUFS and deselect presets
+        function activateCustomLufs() {
+            lufsContainer.classList.add('active');
+            // Uncheck all preset radio buttons
+            presetInputs.forEach(input => {
+                input.checked = false;
+            });
+            selectedPreset = 'custom';
         }
 
-        presetSelect.addEventListener('change', function() {
-            selectedPreset = this.value;
-            console.log('[Upload] Preset changed to:', selectedPreset);
+        // Deactivate custom LUFS when preset is selected
+        function deactivateCustomLufs() {
+            lufsContainer.classList.remove('active');
+        }
 
-            // Update description
-            if (presetDescription) {
-                presetDescription.textContent = presetDescriptions[this.value] || '';
-            }
+        // Activate on click
+        lufsContainer.addEventListener('click', function() {
+            activateCustomLufs();
+        });
 
-            // Toggle custom input
-            if (customInput) {
-                if (this.value === 'custom') {
-                    customInput.classList.remove('hidden');
-                } else {
-                    customInput.classList.add('hidden');
-                }
-            }
+        // Update value on input and ensure active state
+        lufsSlider.addEventListener('input', function() {
+            selectedLufsTarget = parseInt(this.value);
+            lufsValue.textContent = selectedLufsTarget;
+            activateCustomLufs();
+        });
+
+        // Handle preset card selection - deactivate custom LUFS
+        presetInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                selectedPreset = this.value;
+                deactivateCustomLufs();
+                console.log('[Upload] Preset changed to:', selectedPreset);
+            });
+        });
+    } else {
+        // If no LUFS slider (non-premium users), just handle preset selection
+        presetInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                selectedPreset = this.value;
+                console.log('[Upload] Preset changed to:', selectedPreset);
+            });
         });
     }
 
-    // Drag and drop handling
+    // Drag and drop handling - make entire page droppable
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (dropArea) {
+            dropArea.classList.add('drag-over');
+        }
+    }
+
+    function handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Only remove drag-over if we're leaving the upload content entirely
+        if (e.target === uploadContent && dropArea) {
+            dropArea.classList.remove('drag-over');
+        }
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (dropArea) {
+            dropArea.classList.remove('drag-over');
+        }
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            const fileType = file.type;
+            const fileName = file.name.toLowerCase();
+
+            let isValidFile = false;
+            if (isPremiumUser) {
+                isValidFile = fileType.startsWith('audio/') || fileName.endsWith('.mp3') || fileName.endsWith('.wav');
+            } else {
+                isValidFile = fileType.startsWith('audio/mpeg') || fileName.endsWith('.mp3');
+            }
+
+            if (isValidFile) {
+                const fileInput = document.getElementById('file-input');
+                fileInput.files = files;
+                handleFileSelect(fileInput);
+            } else {
+                if (isPremiumUser) {
+                    alert('Please upload an audio file (MP3 or WAV supported)');
+                } else {
+                    alert('Please upload an audio file (MP3 only - WAV support available with Premium)');
+                }
+            }
+        }
+    }
+
+    // Attach drag-and-drop to entire upload content area
+    if (uploadContent) {
+        uploadContent.addEventListener('dragover', handleDragOver);
+        uploadContent.addEventListener('dragleave', handleDragLeave);
+        uploadContent.addEventListener('drop', handleDrop);
+    }
+
+    // Also keep the drop area events for visual feedback
     if (dropArea) {
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropArea.classList.add('drag-over');
-        });
-
-        dropArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('drag-over');
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('drag-over');
-
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-                const fileType = file.type;
-                const fileName = file.name.toLowerCase();
-
-                let isValidFile = false;
-                if (isPremiumUser) {
-                    isValidFile = fileType.startsWith('audio/') || fileName.endsWith('.mp3') || fileName.endsWith('.wav');
-                } else {
-                    isValidFile = fileType.startsWith('audio/mpeg') || fileName.endsWith('.mp3');
-                }
-
-                if (isValidFile) {
-                    const fileInput = document.getElementById('file-input');
-                    fileInput.files = files;
-                    handleFileSelect(fileInput);
-                } else {
-                    if (isPremiumUser) {
-                        alert('Please upload an audio file (MP3 or WAV supported)');
-                    } else {
-                        alert('Please upload an audio file (MP3 only - WAV support available with Premium)');
-                    }
-                }
-            }
+            e.stopPropagation();
         });
     }
 
@@ -269,17 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const customValue = document.getElementById('custom_lufs_value');
-
-            // Validate custom LUFS if selected
-            if (selectedPreset === 'custom' && customValue) {
-                const value = parseFloat(customValue.value);
-                if (isNaN(value) || value < -30 || value > -2) {
-                    alert('Please enter a valid LUFS value between -30 and -2');
-                    return;
-                }
-            }
-
             if (!selectedFile) {
                 alert('Please select a file to upload');
                 return;
@@ -287,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             try {
                 showUploadingState();
-                await uploadFileWithPresignedURL(selectedFile, selectedPreset, selectedProcessingMode);
+                await uploadFileWithPresignedURL(selectedFile, selectedPreset, selectedProcessingMode, selectedLufsTarget);
             } catch (error) {
                 console.error('Upload error:', error);
                 showErrorState(error.message || 'Upload failed. Please try again.');
@@ -329,6 +346,12 @@ function startStatusPolling(fileId) {
                 }
 
                 animateProgress(finalProgress, finalMessage);
+
+                // Update status badge based on current status
+                updateStatusBadge(data.status, finalProgress);
+
+                // Update file metadata from backend (duration and extension)
+                updateFileMetadataFromBackend(data);
 
                 const cancelBtn = document.getElementById('cancel-btn');
                 if (cancelBtn && finalProgress >= 90) {
@@ -377,48 +400,83 @@ function getMessageForBackendProgress(status, progress, mode = 'precise') {
 function showCompletedState(fileId, data) {
     animateProgress(100, 'Processing complete!');
 
-    const modeIconSrc = selectedProcessingMode === 'fast' ? '/static/images/fast-icon.png' : '/static/images/precise-icon.png';
-    const modeText = selectedProcessingMode === 'fast' ? 'Fast Processing' : 'Precise Processing';
-
     // Get preset display name from the mapping
     const presetText = presetDisplayNames[selectedPreset] || selectedPreset;
+    const fullFileName = selectedFile ? selectedFile.name : 'Your audio file';
+    const fileName = fullFileName.substring(0, fullFileName.lastIndexOf('.')) || fullFileName;
+
+    // Format duration
+    let durationText = '--';
+    if (data.durationSeconds !== undefined && data.durationSeconds !== null) {
+        const minutes = Math.floor(data.durationSeconds / 60);
+        const seconds = data.durationSeconds % 60;
+        durationText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Get extension
+    const extensionText = data.format ? data.format.toUpperCase() : '--';
+
+    // Get queue type
+    const queueText = isPremiumUser ? 'Fast Queue' : 'Standard Queue';
+    const queueClass = isPremiumUser ? 'queue-badge queue-fast' : 'queue-badge queue-precise';
+
+    // Check for silence trimmed
+    const showSilenceTrimNotice = data.silenceTrimmed || false;
 
     setTimeout(() => {
-        document.getElementById('main-container').innerHTML = `
+        const mainContainer = document.getElementById('main-container');
+        mainContainer.className = 'state-transition mx-auto'; // Keep same layout as processing
+        mainContainer.style.maxWidth = '960px'; // Match processing state width
+        mainContainer.innerHTML = `
             <div id="completed-state" class="state-transition">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 checkmark">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                        </svg>
+                <div class="processing-card complete border-2 rounded-lg p-8">
+                    <!-- File Info Header -->
+                    <div class="file-info-header flex items-center gap-6 mb-6">
+                        <div class="file-icon-box w-16 h-16 bg-gradient-to-br from-legendary to-legendary-teal rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                            </svg>
+                        </div>
+                        <div class="file-details flex-1 min-w-0">
+                            <div class="text-white text-lg font-semibold truncate mb-2 text-left">${fileName}</div>
+                            <div class="file-meta-display flex gap-3 text-sm text-slate-400 items-center text-left">
+                                <span>${durationText}</span>
+                                <span>•</span>
+                                <span class="uppercase">${extensionText}</span>
+                                <span>•</span>
+                                <span class="${queueClass}">${queueText}</span>
+                            </div>
+                            ${showSilenceTrimNotice ? '<div class="text-xs text-teal-400 mt-3 text-left">• Silence trimmed from start/end</div>' : ''}
+                        </div>
+                        <span class="status-badge status-complete flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                            </svg>
+                            Complete
+                        </span>
                     </div>
 
-                    <h2 class="text-3xl font-bold mb-4 flex items-center justify-center">
-                        <img src="${modeIconSrc}" alt="${modeText}" class="w-6 h-6 mr-2">
-                        ${modeText} Complete!
-                    </h2>
-                    <p class="text-gray-300 mb-8">Your audio has been optimized for <strong>${presetText}</strong></p>
+                    <!-- Progress Bar -->
+                    <div class="bg-slate-700 rounded-full mb-4" style="height: 8px;">
+                        <div class="progress-bar complete rounded-full" style="width: 100%; height: 8px;"></div>
+                    </div>
 
-                    <div class="space-y-4">
+                    <!-- Success Message and Download Button -->
+                    <p class="text-sm text-success font-medium mb-6">Processing complete! Ready to download.</p>
+
+                    <div class="space-y-3">
                         <button onclick="downloadFile('${fileId}')"
-                                class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                class="w-full bg-success text-white px-6 py-3 rounded-lg font-semibold hover:bg-success/90 transition-all duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
                             Download Processed Audio
                         </button>
 
                         <button onclick="uploadAnother()"
-                                class="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition-colors">
+                                class="w-full bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 transition-colors">
                             Process Another File
                         </button>
-                    </div>
-
-                    <div class="mt-8 p-4 bg-gray-800 rounded-lg text-sm text-gray-400">
-                        <p>✓ High-quality encoding preserved</p>
-                        <p>✓ Headroom for streaming services preserved</p>
-                        <p>✓ Silence trimmed from the start and end of the file</p>
-                        <p>✓ Ready for upload</p>
                     </div>
                 </div>
             </div>
@@ -428,7 +486,10 @@ function showCompletedState(fileId, data) {
 
 // Error state
 function showErrorState(error) {
-    document.getElementById('main-container').innerHTML = `
+    const mainContainer = document.getElementById('main-container');
+    mainContainer.className = 'state-transition mx-auto';
+    mainContainer.style.maxWidth = '960px';
+    mainContainer.innerHTML = `
         <div id="error-state" class="state-transition">
             <div class="text-center">
                 <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -438,10 +499,10 @@ function showErrorState(error) {
                 </div>
 
                 <h2 class="text-3xl font-bold mb-4 text-red-400">Processing Failed</h2>
-                <p class="text-gray-300 mb-8">${error}</p>
+                <p class="text-slate-300 mb-8">${error}</p>
 
                 <button onclick="uploadAnother()"
-                        class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors">
+                        class="w-full bg-legendary-teal text-white px-6 py-3 rounded-lg font-bold hover:bg-legendary-teal/90 transition-all duration-300 hover:-translate-y-0.5">
                     Try Again
                 </button>
             </div>
@@ -531,7 +592,10 @@ function cancelProcessing() {
 }
 
 function showCancelledState() {
-    document.getElementById('main-container').innerHTML = `
+    const mainContainer = document.getElementById('main-container');
+    mainContainer.className = 'state-transition mx-auto';
+    mainContainer.style.maxWidth = '960px';
+    mainContainer.innerHTML = `
         <div id="cancelled-state" class="state-transition">
             <div class="text-center">
                 <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -541,10 +605,10 @@ function showCancelledState() {
                 </div>
 
                 <h2 class="text-3xl font-bold mb-4 text-red-400">Processing Cancelled</h2>
-                <p class="text-gray-300 mb-8">Your processing job has been cancelled.</p>
+                <p class="text-slate-300 mb-8">Your processing job has been cancelled.</p>
 
                 <button onclick="uploadAnother()"
-                        class="w-full bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-cyan-300 transition-colors">
+                        class="w-full bg-legendary-teal text-white px-6 py-3 rounded-lg font-bold hover:bg-legendary-teal/90 transition-all duration-300 hover:-translate-y-0.5">
                     Upload Another File
                 </button>
             </div>
@@ -553,10 +617,10 @@ function showCancelledState() {
 }
 
 // Presigned URL upload flow
-async function uploadFileWithPresignedURL(file, preset, processingMode) {
+async function uploadFileWithPresignedURL(file, preset, processingMode, lufsTarget) {
     const presignedData = await getPresignedUploadURL(file);
     await uploadToS3(file, presignedData.upload_url, presignedData.content_type);
-    await confirmUploadAndProcess(presignedData.file_id, file.name, preset, processingMode);
+    await confirmUploadAndProcess(presignedData.file_id, file.name, preset, processingMode, lufsTarget);
 }
 
 async function getPresignedUploadURL(file) {
@@ -640,19 +704,16 @@ async function uploadToS3(file, uploadURL, contentType) {
     });
 }
 
-async function confirmUploadAndProcess(fileId, filename, preset, processingMode) {
+async function confirmUploadAndProcess(fileId, filename, preset, processingMode, lufsTarget) {
     const formData = new FormData();
     formData.append('file_id', fileId);
     formData.append('filename', filename);
     formData.append('preset', preset);
     formData.append('processing_mode', processingMode);
 
-    // If custom preset, also send the custom value
-    if (preset === 'custom') {
-        const customValue = document.getElementById('custom_lufs_value');
-        if (customValue) {
-            formData.append('custom_lufs_value', customValue.value);
-        }
+    // Only send target_lufs if it's defined (premium/professional users)
+    if (lufsTarget !== undefined && lufsTarget !== null) {
+        formData.append('target_lufs', lufsTarget.toString());
     }
 
     const response = await fetch('/api/confirm-upload', {
@@ -669,8 +730,13 @@ async function confirmUploadAndProcess(fileId, filename, preset, processingMode)
 
     const template = document.getElementById('processing-template');
     const clone = template.content.cloneNode(true);
-    document.getElementById('main-container').innerHTML = '';
-    document.getElementById('main-container').appendChild(clone);
+    const mainContainer = document.getElementById('main-container');
+    mainContainer.innerHTML = '';
+    mainContainer.className = 'state-transition mx-auto'; // Remove max-w-md for processing state but keep centered
+    mainContainer.appendChild(clone);
+
+    // Populate file information
+    populateFileInfo(filename);
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -679,29 +745,134 @@ async function confirmUploadAndProcess(fileId, filename, preset, processingMode)
     currentFileId = extractedFileId;
     progressSimulation.currentProgress = 0;
     progressSimulation.targetProgress = 0;
-    animateProgress(5, 'Upload complete, queuing for processing...');
+    animateProgress(1, 'Upload complete, queuing for processing...');
     startStatusPolling(extractedFileId);
 }
 
+function populateFileInfo(filename) {
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const queueTypeBadge = document.getElementById('queue-type-badge');
+    const extensionElement = document.getElementById('file-extension');
+
+    if (fileNameDisplay) {
+        // Remove extension from display name
+        const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
+        fileNameDisplay.textContent = nameWithoutExt;
+    }
+
+    // Populate extension from filename
+    if (extensionElement) {
+        const ext = filename.substring(filename.lastIndexOf('.') + 1).toUpperCase();
+        if (ext) {
+            extensionElement.textContent = ext;
+        }
+    }
+
+    if (queueTypeBadge) {
+        // Queue type based on user tier
+        if (isPremiumUser) {
+            queueTypeBadge.textContent = 'Fast Queue';
+            queueTypeBadge.className = 'queue-badge queue-fast';
+        } else {
+            queueTypeBadge.textContent = 'Standard Queue';
+            queueTypeBadge.className = 'queue-badge queue-precise';
+        }
+    }
+}
+
+function updateFileMetadataFromBackend(data) {
+    // Update duration - only update if we have valid duration data
+    const durationElement = document.getElementById('file-duration');
+    if (durationElement && data.durationSeconds !== undefined && data.durationSeconds !== null) {
+        const minutes = Math.floor(data.durationSeconds / 60);
+        const seconds = data.durationSeconds % 60;
+
+        // Format as "MM:SS" for better precision
+        const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        durationElement.textContent = formattedDuration;
+    }
+
+    // Update extension from backend if available and not already set
+    const extensionElement = document.getElementById('file-extension');
+    if (data.format && extensionElement && extensionElement.textContent === '--') {
+        extensionElement.textContent = data.format.toUpperCase();
+    }
+
+    // Show silence trim notice if silence was removed
+    const silenceTrimNotice = document.getElementById('silence-trim-notice');
+    if (data.silenceTrimmed && silenceTrimNotice) {
+        silenceTrimNotice.classList.remove('hidden');
+    }
+}
+
+function updateStatusBadge(status, progress) {
+    const statusBadge = document.getElementById('status-badge');
+    const processingCard = document.querySelector('.processing-card');
+
+    if (!statusBadge) return;
+
+    const roundedProgress = Math.round(progress);
+
+    // Check if status is a processing state
+    const processingStates = ['processing', 'downloading', 'fast_analyzing', 'precise_analyzing', 'normalizing', 'uploading'];
+    const isProcessing = processingStates.includes(status);
+
+    if (status === 'queued' || status === 'uploaded') {
+        statusBadge.className = 'status-badge status-queued';
+        statusBadge.innerHTML = `
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+            </svg>
+            Queued
+        `;
+        if (processingCard) processingCard.classList.remove('processing', 'complete');
+    } else if (isProcessing) {
+        statusBadge.className = 'status-badge status-processing';
+        statusBadge.innerHTML = `${roundedProgress}%`;
+        if (processingCard) {
+            processingCard.classList.add('processing');
+            processingCard.classList.remove('complete');
+        }
+    } else if (status === 'completed') {
+        statusBadge.className = 'status-badge status-complete';
+        statusBadge.innerHTML = `
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+            </svg>
+            Complete
+        `;
+        if (processingCard) {
+            processingCard.classList.add('complete');
+            processingCard.classList.remove('processing');
+        }
+
+        const progressBar = document.getElementById('progress-bar');
+        if (progressBar) progressBar.classList.add('complete');
+    }
+}
+
 function showUploadingState() {
-    document.getElementById('main-container').innerHTML = `
+    const mainContainer = document.getElementById('main-container');
+    mainContainer.className = 'state-transition mx-auto';
+    mainContainer.style.maxWidth = '960px';
+    mainContainer.innerHTML = `
         <div id="uploading-state" class="state-transition">
             <div class="text-center">
-                <div class="spinner mx-auto mb-6"></div>
-                <h2 class="text-3xl font-bold mb-4">Uploading Your File</h2>
-                <p id="upload-status-text" class="text-gray-300 mb-8">Uploading to cloud storage...</p>
+                <div class="spinner-legendary mx-auto mb-6 w-16 h-16"></div>
+                <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">Uploading Your File</h2>
+                <p id="upload-status-text" class="text-slate-300 mb-8">Uploading to cloud storage...</p>
 
-                <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <div class="bg-slate-800 border-2 border-legendary/30 rounded-lg p-6 mb-6">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-gray-400">Upload Progress</span>
-                        <span id="upload-progress-text" class="text-sm text-cyan-400">0%</span>
+                        <span class="text-sm text-slate-400">Upload Progress</span>
+                        <span id="upload-progress-text" class="text-sm text-legendary-teal font-semibold">0%</span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div id="upload-progress-bar" class="bg-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div class="w-full bg-slate-700 rounded-full h-2">
+                        <div id="upload-progress-bar" class="bg-gradient-to-r from-legendary to-legendary-teal h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
 
-                <p class="text-gray-400 text-sm">Large files may take a few moments to upload</p>
+                <p class="text-slate-400 text-sm">Large files may take a few moments to upload</p>
             </div>
         </div>
     `;

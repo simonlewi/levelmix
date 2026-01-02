@@ -98,6 +98,20 @@ func (p *Processor) updateProgress(ctx context.Context, jobID string, progress i
 	}
 }
 
+func (p *Processor) setSilenceTrimmed(ctx context.Context, jobID string, trimmed bool) {
+	if p.redisClient == nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	key := fmt.Sprintf("progress:%s", jobID)
+	if trimmed {
+		p.redisClient.HSet(ctx, key, "silence_trimmed", "true")
+	}
+}
+
 func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err error) {
 	// Panic recovery
 	defer func() {
@@ -150,7 +164,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		}
 	}()
 
-	p.updateProgress(ctx, task.FileID, 10, "processing")
+	p.updateProgress(ctx, task.FileID, 1, "processing")
 
 	now := time.Now()
 	job.Status = "processing"
@@ -169,7 +183,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 	}
 
 	// Download file
-	p.updateProgress(ctx, task.FileID, 20, "downloading")
+	p.updateProgress(ctx, task.FileID, 5, "downloading")
 	inputFile, err := p.downloadFileForProcessing(ctx, task.FileID, audioFile.Format)
 	if err != nil {
 		return p.failJob(ctx, job, task.FileID, fmt.Errorf("failed to download file: %w", err))
@@ -192,6 +206,11 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 		log.Printf("[WARN] Silence detection failed, continuing without trim: %v", err)
 	} else {
 		silenceInfo = si
+		if si.NeedsTrimming() {
+			p.setSilenceTrimmed(ctx, task.FileID, true)
+			log.Printf("[INFO] Silence detected: trimming %.2fs from start, %.2fs from end",
+				si.TrimStart, si.TotalDuration-si.TrimEnd)
+		}
 	}
 
 	if audioFile.DurationSeconds == nil {
@@ -225,7 +244,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 	default:
 		statusMsg = "analyzing"
 	}
-	p.updateProgress(ctx, task.FileID, 30, statusMsg)
+	p.updateProgress(ctx, task.FileID, 15, statusMsg)
 
 	// Process with timeout monitoring
 	processingCtx, processingCancel := context.WithTimeout(ctx, 20*time.Minute)
@@ -240,7 +259,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 	progressTicker := time.NewTicker(2 * time.Second)
 	defer progressTicker.Stop()
 
-	currentProgress := 30
+	currentProgress := 15
 	for {
 		select {
 		case err := <-processDone:
@@ -256,8 +275,8 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 			if p.isCancelled(ctx, task.FileID) {
 				return p.cancelJob(ctx, job, task.FileID)
 			}
-			// Incrementally update progress from 30% to 68% during processing
-			if currentProgress < 68 {
+			// Incrementally update progress from 15% to 80% during processing
+			if currentProgress < 80 {
 				currentProgress += 1
 				p.updateProgress(ctx, task.FileID, currentProgress, "normalizing")
 			}
@@ -265,14 +284,14 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 	}
 
 ProcessingComplete:
-	p.updateProgress(ctx, task.FileID, 70, "normalizing")
+	p.updateProgress(ctx, task.FileID, 85, "normalizing")
 
 	// Verify output file
 	if info, err := os.Stat(outputFile); err != nil || info.Size() == 0 {
 		return p.failJob(ctx, job, task.FileID, fmt.Errorf("processed file is invalid or empty"))
 	}
 
-	p.updateProgress(ctx, task.FileID, 85, "uploading")
+	p.updateProgress(ctx, task.FileID, 90, "uploading")
 
 	// Upload with timeout (handles up to 5GB files)
 	uploadCtx, uploadCancel := context.WithTimeout(ctx, 10*time.Minute)

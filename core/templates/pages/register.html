@@ -4,12 +4,12 @@
 <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div>
-            <h2 class="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <h2 class="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">
                 Create your account
             </h2>
             <p class="mt-2 text-center text-sm text-gray-400">
                 Or
-                <a href="/login" class="font-medium text-cyan-400 hover:text-cyan-300">
+                <a href="/login" class="font-medium text-teal-500 hover:text-teal-400">
                     sign in to existing account
                 </a>
             </p>
@@ -41,50 +41,53 @@
                     <label for="name" class="block text-sm font-medium text-gray-300">
                         Name <span class="text-red-400">*</span>
                     </label>
-                    <input 
-                        id="name" 
-                        name="name" 
-                        type="text" 
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
                         autocomplete="name"
                         required
                         maxlength="100"
                         placeholder="Your name or stage name"
-                        class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm"
+                        class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent sm:text-sm"
                     >
-                    <p class="mt-1 text-xs text-gray-500">What should we call you?</p>
+                    <p class="mt-1 text-xs text-gray-400">What should we call you?</p>
                 </div>
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-300">
                         Email address <span class="text-red-400">*</span>
                     </label>
-                    <input 
-                        id="email" 
-                        name="email" 
-                        type="email" 
-                        autocomplete="email" 
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
                         required
-                        class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm">
+                        class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent sm:text-sm">
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-300">
                         Password <span class="text-red-400">*</span>
                     </label>
                     <input id="password" name="password" type="password" autocomplete="new-password" required
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm">
-                    <p class="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-400">Must be at least 8 characters</p>
                 </div>
                 <div>
                     <label for="confirm_password" class="block text-sm font-medium text-gray-300">
                         Confirm password <span class="text-red-400">*</span>
                     </label>
                     <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent sm:text-sm">
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent sm:text-sm">
                 </div>
             </div>
 
             <div>
                 <button type="submit"
-                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 transition-all duration-200">
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-gray-900 bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-300 hover:-translate-y-0.5"
+                        style="box-shadow: 0 0 0 rgba(20, 184, 166, 0); transition: all 0.3s ease;"
+                        onmouseenter="this.style.boxShadow='0 0 10px rgba(20, 184, 166, 0.5)'"
+                        onmouseleave="this.style.boxShadow='0 0 0 rgba(20, 184, 166, 0)'">
                     Create account
                 </button>
             </div>
