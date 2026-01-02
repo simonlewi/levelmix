@@ -68,7 +68,7 @@
                         <label class="block text-sm font-medium mb-2">Processing Mode:</label>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="processing-mode-option border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
-                                <input type="radio" name="processing_mode" value="fast" class="hidden" checked>
+                                <input type="radio" name="processing_mode" value="fast" class="hidden">
                                 <div class="p-4 rounded-lg transition-all">
                                     <div class="flex items-center mb-2">
                                         <div class="mode-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
@@ -83,7 +83,7 @@
                             </label>
 
                             <label class="processing-mode-option border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
-                                <input type="radio" name="processing_mode" value="precise" class="hidden">
+                                <input type="radio" name="processing_mode" value="precise" class="hidden" checked>
                                 <div class="p-4 rounded-lg transition-all">
                                     <div class="flex items-center mb-2">
                                         <div class="mode-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
@@ -196,9 +196,9 @@
                             id="upload-btn"
                             disabled
                             class="w-full text-white px-6 py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                            style="background: #1e293b; border: 2px solid #e69e39; box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);"
+                            style="background: #1e293b; border: 2px solid #e69e39;"
                             onmouseenter="if (!this.disabled) this.style.boxShadow='0 0 30px rgba(230, 158, 57, 0.6)'; if (!this.disabled) this.style.transform='translateY(-2px)'"
-                            onmouseleave="if (!this.disabled) this.style.boxShadow='0 0 20px rgba(230, 158, 57, 0.4)'; if (!this.disabled) this.style.transform='translateY(0)'">
+                            onmouseleave="if (!this.disabled) this.style.boxShadow=''; if (!this.disabled) this.style.transform='translateY(0)'">
                         Upload & Process
                     </button>
 
@@ -284,7 +284,6 @@
 .processing-mode-option:has(input[type="radio"]:checked) {
     border-color: #14b8a6 !important;
     background-color: rgba(20, 184, 166, 0.1);
-    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
 }
 
 .processing-mode-option:has(input[type="radio"]:checked) .mode-icon {
@@ -308,7 +307,6 @@
 .preset-card:has(input[type="radio"]:checked) {
     border-color: #14b8a6 !important;
     background-color: rgba(20, 184, 166, 0.1);
-    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
 }
 
 .preset-card:has(input[type="radio"]:checked) .preset-icon {
@@ -396,7 +394,6 @@
 .lufs-card.active {
     border-color: #14b8a6 !important;
     background-color: rgba(20, 184, 166, 0.1);
-    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
 }
 
 .lufs-card.active .lufs-icon {
