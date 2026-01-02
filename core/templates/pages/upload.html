@@ -7,7 +7,7 @@
      data-user-tier="{{if and .IsLoggedIn .user}}{{.user.SubscriptionTier}}{{else}}0{{end}}"
      data-is-logged-in="{{.IsLoggedIn}}">
     <div class="text-center w-full">
-        <div id="main-container" class="state-transition max-w-xl mx-auto">
+        <div id="main-container" class="state-transition max-w-2xl mx-auto">
             
             <!-- STATE 1: Upload Form (Initial) -->
             <div id="upload-state">
@@ -102,7 +102,7 @@
                     <!-- Preset Selection -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium mb-2">Optimize for:</label>
-                        <div class="grid grid-cols-4 gap-2">
+                        <div class="preset-grid gap-2">
                             <!-- DJ Mix -->
                             <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
                                 <input type="radio" name="preset" value="dj" class="hidden" checked>
@@ -269,6 +269,18 @@
 <script src="/static/js/upload.js"></script>
 
 <style>
+/* Preset Grid - Responsive */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+    .preset-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 /* Drop Area Hover Effect */
 #drop-area:hover {
     border-color: #e69e39;
