@@ -888,13 +888,24 @@ func (h *UploadHandler) parseTargetLUFS(lufsStr string) (float64, error) {
 	return parsed, nil
 }
 
-// cleanup removes uploaded file and metadata on error
+// cleanup removes uploaded file, processed file, and metadata on error
 func (h *UploadHandler) cleanup(ctx *gin.Context, fileID string, fileFormat string) {
 	// Try to delete the uploaded file (ignore errors)
-	h.storage.Delete(ctx.Request.Context(), h.storage.GetUploadKey(fileID, fileFormat))
+	uploadKey := h.storage.GetUploadKey(fileID, fileFormat)
+	if err := h.storage.Delete(ctx.Request.Context(), uploadKey); err != nil {
+		log.Printf("cleanup: Failed to delete uploaded file %s: %v", uploadKey, err)
+	}
+
+	// Try to delete the processed file if it exists (ignore errors)
+	processedKey := h.storage.GetProcessedKey(fileID, fileFormat)
+	if err := h.storage.Delete(ctx.Request.Context(), processedKey); err != nil {
+		log.Printf("cleanup: Failed to delete processed file %s: %v", processedKey, err)
+	}
 
 	// Try to delete metadata (ignore errors)
-	h.metadata.DeleteAudioFile(ctx.Request.Context(), fileID)
+	if err := h.metadata.DeleteAudioFile(ctx.Request.Context(), fileID); err != nil {
+		log.Printf("cleanup: Failed to delete metadata for file %s: %v", fileID, err)
+	}
 }
 
 func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader, userTier int) error {

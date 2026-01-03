@@ -608,7 +608,7 @@ function showCancelledState() {
                 <p class="text-slate-300 mb-8">Your processing job has been cancelled.</p>
 
                 <button onclick="uploadAnother()"
-                        class="w-full bg-legendary-teal text-white px-6 py-3 rounded-lg font-bold hover:bg-legendary-teal/90 transition-all duration-300 hover:-translate-y-0.5">
+                        class="w-full bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 transition-colors">
                     Upload Another File
                 </button>
             </div>
