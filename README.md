@@ -4,14 +4,14 @@ A web-based SaaS application that normalizes longer audio files to specified LUF
 
 ## Description
 
-LevelMix is a powerful yet simple audio normalization service designed for content creators who need to ensure consistent loudness levels across their audio content. Built with Go and HTMX, it provides a fast, efficient way to process audio files without the need for complex software or technical expertise.
+LevelMix is a powerful yet simple audio normalization service designed for content creators who need to ensure consistent loudness levels across their audio content. Built with Go and Vanilla JS, it provides a fast, efficient way to process audio files without the need for complex software or technical expertise.
 
 **Key Features:**
 - **Audio Normalization**: Automatically normalize audio files to industry-standard LUFS levels
-- **Multiple Presets**: Choose from streaming (-14 LUFS), broadcast (-23 LUFS), or EDM club-ready (-7 LUFS) presets
+- **Multiple Presets**: Choose from streaming, broadcast, or EDM club-ready presets
 - **Fast Processing**: Efficient FFmpeg-based processing pipeline with real-time progress tracking
 - **Secure Storage**: AWS S3 integration for reliable file storage and delivery
-- **User-Friendly**: Clean, responsive interface built with HTMX and TailwindCSS
+- **User-Friendly**: Clean, responsive interface built with Vanilla JS and TailwindCSS
 - **Multi-Tier Service**: Freemium model with options for different user needs
 
 ## Why?
@@ -145,12 +145,12 @@ DATADOG_API_KEY=your-datadog-api-key
 3. **Process & Download**
    - Monitor real-time processing progress
    - Download the processed file when complete
-   - Access your processing history in the dashboard (registered users)
+   - Access your processing history in the dashboard
 
 ### Subscription Tiers
 
 - **Free Tier**: 2 hours of processed audio per month, MP3 format only, up to 300MB
-- **Premium Tier**: 10 hours of processed audio per month, MP3 + WAV support, priority processing, custom LUFS targets
+- **Premium Tier**: 10 hours of processed audio per month, MP3 + WAV support, priority processing, custom LUFS targets, up to 5GB
 - **Professional Tier**: 40 hours of processed audio per month, multiple formats, batch processing, priority support
 
 ## Contributing
