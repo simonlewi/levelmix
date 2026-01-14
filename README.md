@@ -7,21 +7,21 @@ A web-based SaaS application that normalizes longer audio files to specified LUF
 LevelMix is a powerful yet simple audio normalization service designed for content creators who need to ensure consistent loudness levels across their audio content. Built with Go and HTMX, it provides a fast, efficient way to process audio files without the need for complex software or technical expertise.
 
 **Key Features:**
-- 🎵 **Audio Normalization**: Automatically normalize audio files to industry-standard LUFS levels
-- 📊 **Multiple Presets**: Choose from streaming (-14 LUFS), broadcast (-23 LUFS), or EDM club-ready (-7 LUFS) presets
-- 🚀 **Fast Processing**: Efficient FFmpeg-based processing pipeline with real-time progress tracking
-- 💾 **Secure Storage**: AWS S3 integration for reliable file storage and delivery
-- 🎯 **User-Friendly**: Clean, responsive interface built with HTMX and TailwindCSS
-- 📱 **Multi-Tier Service**: Freemium model with options for different user needs
+- **Audio Normalization**: Automatically normalize audio files to industry-standard LUFS levels
+- **Multiple Presets**: Choose from streaming (-14 LUFS), broadcast (-23 LUFS), or EDM club-ready (-7 LUFS) presets
+- **Fast Processing**: Efficient FFmpeg-based processing pipeline with real-time progress tracking
+- **Secure Storage**: AWS S3 integration for reliable file storage and delivery
+- **User-Friendly**: Clean, responsive interface built with HTMX and TailwindCSS
+- **Multi-Tier Service**: Freemium model with options for different user needs
 
 ## Why?
 
 ### The Problem
 Content creators across various industries face a common challenge: **inconsistent audio levels**. Whether you're a:
-- 🎧 **DJ** creating seamless mixes
-- 🎙️ **Podcaster** ensuring consistent episode volumes
-- 🎵 **Music Producer** preparing tracks for different platforms
-- 🎬 **Video Editor** balancing audio across clips
+- **DJ** creating seamless mixes
+- **Podcaster** ensuring consistent episode volumes
+- **Music Producer** preparing tracks for different platforms
+- **Video Editor** balancing audio across clips
 
 You've likely encountered the tedious process of manually adjusting audio levels to meet platform requirements or maintain professional quality standards.
 
@@ -139,10 +139,8 @@ DATADOG_API_KEY=your-datadog-api-key
    - Select from preset LUFS targets:
      - **Streaming** (-14 LUFS): Perfect for Spotify, Apple Music, etc.
      - **Podcast** (-16 LUFS): Optimized for podcast platforms
-     - **Radio** (-23 LUFS): EBU R128 standard for TV/radio
-     - **Club Mix** (-7 LUFS): High-energy for club systems
-     - **Festival Mix** (-5 LUFS): Maximum impact EDM masters
-     - **Custom LUFS** (Premium/Pro only): Set your own target level
+     - **Broadcast** (-23 LUFS): EBU R128 standard for TV/radio
+     - **DJ Mix** (-5 LUFS): High-energy for club systems
 
 3. **Process & Download**
    - Monitor real-time processing progress
@@ -151,9 +149,9 @@ DATADOG_API_KEY=your-datadog-api-key
 
 ### Subscription Tiers
 
-- **Free Tier**: 1 upload per week, MP3 format only, up to 300MB
-- **Premium Tier**: 5 uploads per week, MP3 + WAV support, priority processing, custom LUFS targets
-- **Professional Tier**: 20 uploads per week, multiple formats, batch processing, priority support
+- **Free Tier**: 2 hours of processed audio per month, MP3 format only, up to 300MB
+- **Premium Tier**: 10 hours of processed audio per month, MP3 + WAV support, priority processing, custom LUFS targets
+- **Professional Tier**: 40 hours of processed audio per month, multiple formats, batch processing, priority support
 
 ## Contributing
 
@@ -231,14 +229,14 @@ levelmix/
 
 ### Areas for Contribution
 
-- 🐛 **Bug fixes** and performance improvements
-- 📚 **Documentation** enhancements
-- 🎨 **UI/UX** improvements
-- 🔧 **New audio formats** support (FLAC, AAC, etc.)
-- 🚀 **Performance optimizations**
-- 🧪 **Testing** coverage expansion
-- 🔒 **Security** enhancements
-- 🎛️ **Additional audio processing features**
+- **Bug fixes** and performance improvements
+- **Documentation** enhancements
+- **UI/UX** improvements
+- **New audio formats** support (FLAC, AAC, etc.)
+- **Performance optimizations**
+- **Testing** coverage expansion
+- **Security** enhancements
+- **Additional audio processing features**
 
 ### Code Style
 
@@ -251,9 +249,9 @@ levelmix/
 
 ### Getting Help
 
-- 📋 **Issues**: Report bugs or request features via GitHub Issues
-- 💬 **Discussions**: Join community discussions for questions and ideas
-- 📧 **Contact**: Reach out to maintainers for major contributions
+- **Issues**: Report bugs or request features via GitHub Issues
+- **Discussions**: Join community discussions for questions and ideas
+- **Contact**: Reach out to maintainers for major contributions
 
 ## Development
 
