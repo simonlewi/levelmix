@@ -1,5 +1,7 @@
 # LevelMix
 
+[![CI](https://github.com/simonlewi/levelmix/actions/workflows/ci.yml/badge.svg)](https://github.com/simonlewi/levelmix/actions/workflows/ci.yml)
+
 A web-based SaaS application that normalizes longer audio files to specified LUFS target levels, making audio content consistent and professional.
 
 ## Description
