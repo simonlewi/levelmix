@@ -17,7 +17,6 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
-	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -513,35 +512,26 @@ func (p *Processor) downloadFileForProcessing(ctx context.Context, fileID, forma
 	downloadCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
-	// Use the S3Storage method to get the correct key with extension
-	var uploadKey string
-	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
-		uploadKey = s3Storage.GetUploadKey(fileID, format)
+	// Get the correct key with extension
+	uploadKey := p.audioStorage.GetUploadKey(fileID, format)
 
-		// Try optimized multipart download with timeout
-		err := s3Storage.DownloadToFile(downloadCtx, uploadKey, tempFileName)
-		if err == nil {
-			// Verify the downloaded file
-			if info, err := os.Stat(tempFileName); err == nil && info.Size() > 0 {
-				if debugMode {
-					log.Printf("[DEBUG] Downloaded %s (%.2f MB)", uploadKey, float64(info.Size())/(1024*1024))
-				}
-				return tempFileName, nil
+	// Try optimized multipart download with timeout
+	err = p.audioStorage.DownloadToFile(downloadCtx, uploadKey, tempFileName)
+	if err == nil {
+		// Verify the downloaded file
+		if info, err := os.Stat(tempFileName); err == nil && info.Size() > 0 {
+			if debugMode {
+				log.Printf("[DEBUG] Downloaded %s (%.2f MB)", uploadKey, float64(info.Size())/(1024*1024))
 			}
+			return tempFileName, nil
 		}
-		// Only log fallback in debug mode
-		if debugMode {
-			log.Printf("[DEBUG] Multipart download failed, using stream: %v", err)
-		}
+	}
+	// Only log fallback in debug mode
+	if debugMode {
+		log.Printf("[DEBUG] Multipart download failed, using stream: %v", err)
 	}
 
 	// Fallback to stream download
-	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
-		uploadKey = s3Storage.GetUploadKey(fileID, format)
-	} else {
-		uploadKey = "uploads/" + fileID
-	}
-
 	reader, err := p.audioStorage.Download(downloadCtx, uploadKey)
 	if err != nil {
 		os.Remove(tempFileName)
@@ -590,18 +580,7 @@ func (p *Processor) uploadProcessedFile(ctx context.Context, fileID, filePath, o
 	uploadCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 
-	// Cast to the concrete S3Storage type if available
-	if s3Storage, ok := p.audioStorage.(*ee_storage.S3Storage); ok {
-		err := s3Storage.UploadProcessed(uploadCtx, fileID, file, outputFormat)
-		if err != nil {
-			return fmt.Errorf("S3 upload failed: %w", err)
-		}
-		return nil
-	}
-
-	// Fallback to generic upload
-	processedKey := "processed/" + fileID
-	err = p.audioStorage.Upload(uploadCtx, processedKey, file, outputFormat)
+	err = p.audioStorage.UploadProcessed(uploadCtx, fileID, file, outputFormat)
 	if err != nil {
 		return fmt.Errorf("upload failed: %w", err)
 	}
