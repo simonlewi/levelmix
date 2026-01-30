@@ -23,6 +23,9 @@ type AudioStorage interface {
 	GetProcessedKey(fileID string, format string) string
 	GetObjectInfo(ctx context.Context, key string) (*ObjectInfo, error)
 	GetPresignedUploadURL(ctx context.Context, key string, contentType string, duration time.Duration) (string, error)
+	DownloadToFile(ctx context.Context, key string, localPath string) error
+	UploadProcessed(ctx context.Context, fileID string, reader io.Reader, format string) error
+	GetPresignedDownloadURL(ctx context.Context, key string, downloadFilename string, contentType string, duration time.Duration) (string, error)
 }
 
 // MetadataStorage handles database operations

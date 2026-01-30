@@ -142,7 +142,7 @@ echo ""
 # Step 3: Pre-flight Go compilation check
 # ---------------------------------------------------------------------------
 echo -e "${YELLOW}Step 3: Pre-flight compilation check...${NC}"
-go build -o /tmp/levelmix-preflight-$$ ./core/cmd/server 2>&1 | tee /tmp/build-errors-$$.log || {
+go build -tags ee -o /tmp/levelmix-preflight-$$ ./core/cmd/server 2>&1 | tee /tmp/build-errors-$$.log || {
     echo -e "${RED}  Go compilation failed!${NC}"
     cat /tmp/build-errors-$$.log
     rm -f /tmp/build-errors-$$.log

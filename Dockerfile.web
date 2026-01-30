@@ -16,8 +16,11 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the web server
-RUN CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -ldflags="-w -s" -o main ./core/cmd/server
+# Accept build argument for git commit hash
+ARG GIT_COMMIT=dev
+
+# Build the web server with git commit hash injected
+RUN CGO_ENABLED=0 GOOS=linux go build -tags ee -installsuffix cgo -ldflags="-w -s -X main.GitCommit=${GIT_COMMIT}" -o main ./core/cmd/server
 
 # Final stage
 FROM alpine:latest
