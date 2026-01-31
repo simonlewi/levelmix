@@ -98,6 +98,7 @@ if [ "$SKIP_UPDATE" = false ]; then
     if [ -d "$REPO_DIR/ee" ]; then
         mkdir -p "$BACKUP_DIR"
         cp -r "$REPO_DIR/ee" "$BACKUP_DIR/ee-backup-$(date +%Y%m%d-%H%M%S)"
+        rm -rf "$BACKUP_DIR/ee-latest"
         cp -r "$REPO_DIR/ee" "$BACKUP_DIR/ee-latest"
         echo -e "${BLUE}  ee/ backed up${NC}"
     else
