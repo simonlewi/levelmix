@@ -20,10 +20,10 @@ LevelMix is a powerful yet simple audio normalization service designed for conte
 
 ### The Problem
 Content creators across various industries face a common challenge: **inconsistent audio levels**. Whether you're a:
-- 🎧 **DJ** creating seamless mixes
-- 🎙️ **Podcaster** ensuring consistent episode volumes
-- 🎵 **Music Producer** preparing tracks for different platforms
-- 🎬 **Video Editor** balancing audio across clips
+- **DJ** creating seamless mixes
+- **Podcaster** ensuring consistent episode volumes
+- **Music Producer** preparing tracks for different platforms
+- **Video Editor** balancing audio across clips
 
 You've likely encountered the tedious process of manually adjusting audio levels to meet platform requirements or maintain professional quality standards.
 
@@ -165,7 +165,7 @@ EMAIL_FROM_NAME=YourName
 3. **Process & Download**
    - Monitor real-time processing progress
    - Download the processed file when complete
-   - Access your processing history in the dashboard (registered users)
+   - Access your processing history in the dashboard
 
 ### Subscription Tiers
 
@@ -249,14 +249,14 @@ levelmix/
 
 ### Areas for Contribution
 
-- 🐛 **Bug fixes** and performance improvements
-- 📚 **Documentation** enhancements
-- 🎨 **UI/UX** improvements
-- 🔧 **New audio formats** support (FLAC, AAC, etc.)
-- 🚀 **Performance optimizations**
-- 🧪 **Testing** coverage expansion
-- 🔒 **Security** enhancements
-- 🎛️ **Additional audio processing features**
+- **Bug fixes** and performance improvements
+- **Documentation** enhancements
+- **UI/UX** improvements
+- **New audio formats** support (FLAC, AAC, etc.)
+- **Performance optimizations**
+- **Testing** coverage expansion
+- **Security** enhancements
+- **Additional audio processing features**
 
 ### Code Style
 
@@ -269,9 +269,9 @@ levelmix/
 
 ### Getting Help
 
-- 📋 **Issues**: Report bugs or request features via GitHub Issues
-- 💬 **Discussions**: Join community discussions for questions and ideas
-- 📧 **Contact**: Reach out to maintainers for major contributions
+- **Issues**: Report bugs or request features via GitHub Issues
+- **Discussions**: Join community discussions for questions and ideas
+- **Contact**: Reach out to maintainers for major contributions
 
 ## Development
 
