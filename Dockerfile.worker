@@ -15,19 +15,17 @@ WORKDIR /app
 # Clone the private enterprise repo using deploy key
 RUN --mount=type=ssh git clone git@github.com:simonlewi/levelmix-enterprise.git /app/enterprise
 
-# Copy go mod files
-COPY go.mod go.sum ./
+# Copy source code first
+COPY . .
 
 # Add enterprise module dependency and point to the local clone
+# (must be after COPY . . to avoid go.mod being overwritten)
 RUN go mod edit \
     -require=github.com/simonlewi/levelmix-enterprise@v0.0.0 \
     -replace=github.com/simonlewi/levelmix-enterprise=/app/enterprise
 
 # Download dependencies (including enterprise's transitive deps)
 RUN go mod tidy && go mod download
-
-# Copy source code
-COPY . .
 
 # Build the worker
 RUN CGO_ENABLED=0 GOOS=linux go build -tags ee -installsuffix cgo -ldflags="-w -s" -o worker ./core/cmd/worker
