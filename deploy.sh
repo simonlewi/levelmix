@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # LevelMix Deploy Script
-# One-command deployment: pull code, preserve ee/, build, migrate, restart
+# One-command deployment: pull code, build with enterprise repo, migrate, restart
+#
+# Prerequisites:
+#   - SSH deploy key for levelmix-enterprise at ~/.ssh/levelmix-enterprise-deploy
+#   - DOCKER_BUILDKIT=1 (set below)
 #
 # Usage:
 #   ./deploy.sh                          # Full deploy (pull + build + migrate + restart)
@@ -14,6 +18,9 @@ set -e
 
 set -eo pipefail
 
+# Enable BuildKit for --mount=type=ssh support
+export DOCKER_BUILDKIT=1
+
 # Colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -23,7 +30,7 @@ NC='\033[0m'
 
 # Configuration
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="$REPO_DIR/private-backup"
+DEPLOY_KEY="$HOME/.ssh/levelmix-enterprise-deploy"
 
 # Parse flags
 DOCKER_BUILD_FLAGS=""
@@ -89,21 +96,24 @@ $SKIP_MIGRATE && echo -e "${YELLOW}Skipping migrations${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 1: Update code from GitHub (preserving ee/)
+# Pre-flight: Check deploy key exists
+# ---------------------------------------------------------------------------
+if [ ! -f "$DEPLOY_KEY" ]; then
+    echo -e "${RED}  Deploy key not found at $DEPLOY_KEY${NC}"
+    echo -e "${BLUE}  Generate one with: ssh-keygen -t ed25519 -f $DEPLOY_KEY -N \"\"${NC}"
+    echo -e "${BLUE}  Then add the public key to github.com/simonlewi/levelmix-enterprise -> Settings -> Deploy keys${NC}"
+    exit 1
+fi
+
+# Ensure ssh-agent has the deploy key loaded
+eval "$(ssh-agent -s)" > /dev/null 2>&1
+ssh-add "$DEPLOY_KEY" 2>/dev/null
+
+# ---------------------------------------------------------------------------
+# Step 1: Update code from GitHub
 # ---------------------------------------------------------------------------
 if [ "$SKIP_UPDATE" = false ]; then
     echo -e "${YELLOW}Step 1: Updating code from GitHub...${NC}"
-
-    # Back up ee/ directory
-    if [ -d "$REPO_DIR/ee" ]; then
-        mkdir -p "$BACKUP_DIR"
-        cp -r "$REPO_DIR/ee" "$BACKUP_DIR/ee-backup-$(date +%Y%m%d-%H%M%S)"
-        cp -r "$REPO_DIR/ee" "$BACKUP_DIR/ee-latest"
-        echo -e "${BLUE}  ee/ backed up${NC}"
-    else
-        echo -e "${RED}  ee/ directory not found -- aborting${NC}"
-        exit 1
-    fi
 
     # Stash local changes if any
     if ! git diff-index --quiet HEAD --; then
@@ -113,17 +123,6 @@ if [ "$SKIP_UPDATE" = false ]; then
 
     # Pull latest
     git pull origin main
-    echo -e "${BLUE}  Pulled latest from main${NC}"
-
-    # Restore ee/
-    if [ -d "$BACKUP_DIR/ee-latest" ]; then
-        cp -r "$BACKUP_DIR/ee-latest" "$REPO_DIR/ee"
-        echo -e "${BLUE}  ee/ restored${NC}"
-    else
-        echo -e "${RED}  ee/ backup not found -- aborting${NC}"
-        exit 1
-    fi
-
     echo -e "${GREEN}  Code updated${NC}"
     echo ""
 else
@@ -141,27 +140,14 @@ echo -e "${BLUE}  Branch: ${GIT_BRANCH}  Commit: ${GIT_COMMIT}${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 3: Pre-flight Go compilation check
+# Step 3: Build Docker images (enterprise repo cloned inside build via deploy key)
 # ---------------------------------------------------------------------------
-echo -e "${YELLOW}Step 3: Pre-flight compilation check...${NC}"
-go build -tags ee -o /tmp/levelmix-preflight-$$ ./core/cmd/server 2>&1 | tee /tmp/build-errors-$$.log || {
-    echo -e "${RED}  Go compilation failed!${NC}"
-    cat /tmp/build-errors-$$.log
-    rm -f /tmp/build-errors-$$.log
-    exit 1
-}
-rm -f /tmp/levelmix-preflight-$$ /tmp/build-errors-$$.log
-echo -e "${GREEN}  Compilation OK${NC}"
-echo ""
-
-# ---------------------------------------------------------------------------
-# Step 4: Build Docker images
-# ---------------------------------------------------------------------------
-echo -e "${YELLOW}Step 4: Building Docker images...${NC}"
+echo -e "${YELLOW}Step 3: Building Docker images...${NC}"
 
 echo -e "${BLUE}  Building web service...${NC}"
 docker build \
   --build-arg GIT_COMMIT=$GIT_COMMIT \
+  --ssh default="$DEPLOY_KEY" \
   $DOCKER_BUILD_FLAGS \
   -f Dockerfile.web \
   -t levelmix-web:latest \
@@ -186,10 +172,10 @@ echo -e "${GREEN}  Worker: levelmix-worker:${GIT_COMMIT}${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 5: Run database migrations
+# Step 4: Run database migrations
 # ---------------------------------------------------------------------------
 if [ "$SKIP_MIGRATE" = false ]; then
-    echo -e "${YELLOW}Step 5: Running database migrations...${NC}"
+    echo -e "${YELLOW}Step 4: Running database migrations...${NC}"
     if [ -f "./migrate.sh" ]; then
         ./migrate.sh || {
             echo -e "${RED}  Migrations failed -- aborting before restart${NC}"
@@ -202,14 +188,14 @@ if [ "$SKIP_MIGRATE" = false ]; then
     fi
     echo ""
 else
-    echo -e "${YELLOW}Step 5: Skipped (--skip-migrate)${NC}"
+    echo -e "${YELLOW}Step 4: Skipped (--skip-migrate)${NC}"
     echo ""
 fi
 
 # ---------------------------------------------------------------------------
-# Step 6: Restart services
+# Step 5: Restart services
 # ---------------------------------------------------------------------------
-echo -e "${YELLOW}Step 6: Restarting services...${NC}"
+echo -e "${YELLOW}Step 5: Restarting services...${NC}"
 
 if [ -f "docker-compose.yml" ]; then
     GIT_COMMIT=$GIT_COMMIT docker-compose up -d
