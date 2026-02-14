@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
-	"github.com/simonlewi/levelmix/ee/cleanup"
-	"github.com/simonlewi/levelmix/ee/storage"
+	"github.com/simonlewi/levelmix-enterprise/cleanup"
+	"github.com/simonlewi/levelmix-enterprise/storage"
 )
 
 func run() {

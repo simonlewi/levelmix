@@ -20,10 +20,10 @@ import (
 
 	"github.com/simonlewi/levelmix/core/internal/audio"
 	"github.com/simonlewi/levelmix/core/internal/handlers"
-	ee_auth "github.com/simonlewi/levelmix/ee/auth"
-	ee_payment "github.com/simonlewi/levelmix/ee/payment"
-	payment_handlers "github.com/simonlewi/levelmix/ee/payment/handlers"
-	ee_storage "github.com/simonlewi/levelmix/ee/storage"
+	ee_auth "github.com/simonlewi/levelmix-enterprise/auth"
+	ee_payment "github.com/simonlewi/levelmix-enterprise/payment"
+	payment_handlers "github.com/simonlewi/levelmix-enterprise/payment/handlers"
+	ee_storage "github.com/simonlewi/levelmix-enterprise/storage"
 	"github.com/simonlewi/levelmix/pkg/email"
 )
 

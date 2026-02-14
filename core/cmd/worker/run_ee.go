@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/simonlewi/levelmix/core/internal/audio"
-	ee_storage "github.com/simonlewi/levelmix/ee/storage"
+	ee_storage "github.com/simonlewi/levelmix-enterprise/storage"
 )
 
 func run() {

@@ -160,6 +160,7 @@ echo -e "${GREEN}  Web: levelmix-web:${GIT_COMMIT}${NC}"
 
 echo -e "${BLUE}  Building worker service...${NC}"
 docker build \
+  --ssh default="$DEPLOY_KEY" \
   $DOCKER_BUILD_FLAGS \
   -f Dockerfile.worker \
   -t levelmix-worker:latest \
