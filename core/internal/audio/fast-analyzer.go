@@ -8,7 +8,7 @@ import (
 
 // ProcessAudioWithMode processes audio using the specified mode
 // This is the main entry point that routes to appropriate analysis method
-func ProcessAudioWithMode(inputFile, outputFile string, targetLUFS float64, options OutputOptions, mode ProcessingMode, silenceInfo *SilenceInfo) error {
+func ProcessAudioWithMode(inputFile, outputFile string, targetLUFS float64, options OutputOptions, mode ProcessingMode, silenceInfo *SilenceInfo, noiseReduction bool) error {
 	var loudnessInfo *LoudnessInfo
 	var err error
 
@@ -43,7 +43,7 @@ func ProcessAudioWithMode(inputFile, outputFile string, targetLUFS float64, opti
 
 	// Normalize using dynamics-aware single-pass processing
 	// No segment cutting - preserves original audio structure perfectly
-	return NormalizeLoudness(inputFile, outputFile, targetLUFS, loudnessInfo, options, silenceInfo)
+	return NormalizeLoudness(inputFile, outputFile, targetLUFS, loudnessInfo, options, silenceInfo, noiseReduction)
 }
 
 // ValidateProcessingMode checks if the processing mode is valid and returns the canonical form

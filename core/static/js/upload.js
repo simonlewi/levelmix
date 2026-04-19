@@ -3,6 +3,7 @@ let pollInterval = null;
 let selectedProcessingMode = 'fast';
 let selectedPreset = 'dj';
 let selectedLufsTarget = -7;
+let noiseReductionEnabled = false;
 
 
 // Preset display names (keys match dropdown values, values are what shows in completion message)
@@ -67,6 +68,30 @@ function removeFile() {
 
     document.getElementById('drop-content').classList.remove('hidden');
     document.getElementById('file-info').classList.add('hidden');
+}
+
+// Noise reduction toggle
+function toggleNoiseReduction() {
+    noiseReductionEnabled = !noiseReductionEnabled;
+    const switchEl = document.getElementById('nr-switch');
+    if (switchEl) {
+        switchEl.classList.toggle('on', noiseReductionEnabled);
+    }
+}
+
+function updateNoiseReductionVisibility(preset) {
+    const option = document.getElementById('noise-reduction-option');
+    const switchEl = document.getElementById('nr-switch');
+    if (!option) return;
+
+    if (preset === 'podcast') {
+        option.classList.remove('hidden');
+        noiseReductionEnabled = true;
+        if (switchEl) switchEl.classList.add('on');
+    } else {
+        option.classList.add('hidden');
+        noiseReductionEnabled = false;
+    }
 }
 
 // Progress helpers
@@ -212,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('change', function() {
                 selectedPreset = this.value;
                 deactivateCustomLufs();
+                updateNoiseReductionVisibility(selectedPreset);
                 console.log('[Upload] Preset changed to:', selectedPreset);
             });
         });
@@ -220,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
         presetInputs.forEach(input => {
             input.addEventListener('change', function() {
                 selectedPreset = this.value;
+                updateNoiseReductionVisibility(selectedPreset);
                 console.log('[Upload] Preset changed to:', selectedPreset);
             });
         });
@@ -715,6 +742,8 @@ async function confirmUploadAndProcess(fileId, filename, preset, processingMode,
     if (lufsTarget !== undefined && lufsTarget !== null) {
         formData.append('target_lufs', lufsTarget.toString());
     }
+
+    formData.append('noise_reduction', noiseReductionEnabled ? 'true' : 'false');
 
     const response = await fetch('/api/confirm-upload', {
         method: 'POST',

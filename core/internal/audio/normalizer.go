@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *LoudnessInfo, options OutputOptions, silenceInfo *SilenceInfo) error {
+func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *LoudnessInfo, options OutputOptions, silenceInfo *SilenceInfo, noiseReduction bool) error {
 	numThreads := runtime.NumCPU()
 
 	if targetLUFS < MinLUFS || targetLUFS > MaxLUFS {
@@ -57,6 +57,12 @@ func NormalizeLoudness(inputFile, outputFile string, targetLUFS float64, info *L
 		log.Printf("[INFO] Trimming: removing %.2fs from start, %.2fs from end",
 			silenceInfo.TrimStart,
 			silenceInfo.TotalDuration-silenceInfo.TrimEnd)
+	}
+
+	// Add noise reduction if enabled (after trim, before gain)
+	if noiseReduction {
+		filters = append(filters, "afftdn=nr=10:nf=-25:tn=1")
+		log.Printf("[INFO] Noise reduction enabled (afftdn)")
 	}
 
 	// Add normalization chain: gain + limiter (at DJ level)
