@@ -251,7 +251,7 @@ func (p *Processor) HandleAudioProcess(ctx context.Context, t *asynq.Task) (err 
 
 	processDone := make(chan error, 1)
 	go func() {
-		processDone <- ProcessAudioWithMode(inputFile, outputFile, task.TargetLUFS, outputOptions, task.ProcessingMode, silenceInfo)
+		processDone <- ProcessAudioWithMode(inputFile, outputFile, task.TargetLUFS, outputOptions, task.ProcessingMode, silenceInfo, task.NoiseReduction)
 	}()
 
 	// Update progress during normalization phase

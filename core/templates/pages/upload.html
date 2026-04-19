@@ -158,6 +158,16 @@
                         </div>
                     </div>
 
+                    <!-- Noise Reduction (Podcast preset only) -->
+                    <div id="noise-reduction-option" class="hidden mb-6">
+                        <div class="flex items-center justify-between p-3 border-2 border-slate-600 rounded-lg cursor-pointer transition-all hover:border-slate-500" onclick="toggleNoiseReduction()">
+                            <span class="text-sm font-semibold text-white">Noise Reduction</span>
+                            <div class="nr-switch" id="nr-switch">
+                                <div class="nr-thumb"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Custom LUFS Target (Premium & Professional Only) -->
                     {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
                     <div class="mb-6">
@@ -515,6 +525,36 @@
 /* Progress Bar Complete State */
 .progress-bar.complete {
     background: linear-gradient(90deg, #41c44e 0%, #14b8a6 100%);
+}
+
+/* Noise Reduction Toggle */
+.nr-switch {
+    width: 36px;
+    height: 20px;
+    background: #475569;
+    border-radius: 10px;
+    position: relative;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+}
+
+.nr-switch.on {
+    background: #14b8a6;
+}
+
+.nr-thumb {
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s ease;
+}
+
+.nr-switch.on .nr-thumb {
+    transform: translateX(16px);
 }
 </style>
 {{end}}
