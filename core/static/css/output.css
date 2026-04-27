@@ -440,6 +440,9 @@
   .max-h-\[90vh\] {
     max-height: 90vh;
   }
+  .min-h-\[100svh\] {
+    min-height: 100svh;
+  }
   .min-h-\[calc\(100vh-4rem\)\] {
     min-height: calc(100vh - 4rem);
   }
@@ -1452,6 +1455,11 @@
       display: none;
     }
   }
+  .md\:min-h-\[921px\] {
+    @media (width >= 48rem) {
+      min-height: 921px;
+    }
+  }
   .md\:grid-cols-2 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1532,6 +1540,7 @@
   text-transform: uppercase;
   padding: 0.625rem 1.25rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: opacity 200ms ease, transform 150ms ease;
 }
 .btn-sand:hover {
@@ -1551,6 +1560,7 @@
   text-transform: uppercase;
   padding: 0.625rem 1.25rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: opacity 200ms ease, transform 150ms ease;
 }
 .btn-arctic:hover {
@@ -1570,6 +1580,7 @@
   text-transform: uppercase;
   padding: 0.625rem 1.25rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: color 200ms ease, background 200ms ease;
 }
 .btn-ghost:hover {

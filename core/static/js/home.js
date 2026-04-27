@@ -81,7 +81,7 @@
 
         const speed      = 0.00675; // 25% slower
         const amplitude  = 55;
-        const cols       = 80;
+        const cols       = W < 768 ? 40 : 80;
         const rows       = Math.round(cols * 0.65);
         const tiltAmount = 0.42;
         const depthScale = 0.9;
