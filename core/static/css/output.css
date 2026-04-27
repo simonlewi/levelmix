@@ -440,6 +440,9 @@
   .max-h-\[90vh\] {
     max-height: 90vh;
   }
+  .min-h-\[100svh\] {
+    min-height: 100svh;
+  }
   .min-h-\[calc\(100vh-4rem\)\] {
     min-height: calc(100vh - 4rem);
   }
@@ -1450,6 +1453,11 @@
   .md\:hidden {
     @media (width >= 48rem) {
       display: none;
+    }
+  }
+  .md\:min-h-\[921px\] {
+    @media (width >= 48rem) {
+      min-height: 921px;
     }
   }
   .md\:grid-cols-2 {
