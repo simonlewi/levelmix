@@ -8,16 +8,20 @@
      data-is-logged-in="{{.IsLoggedIn}}">
     <div class="text-center w-full">
         <div id="main-container" class="state-transition max-w-2xl mx-auto">
-            
+
             <!-- STATE 1: Upload Form (Initial) -->
             <div id="upload-state">
-                <h2 class="text-4xl font-bold mb-8 bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">Upload your audio</h2>
+                <h2 class="text-4xl font-bold mb-3 text-text-primary">Upload your audio</h2>
+                <p class="text-text-tertiary text-sm mb-8">
+                    Not sure which preset to use? <a href="/how-to-use" class="text-arctic hover:text-text-primary transition-colors">See how it works →</a>
+                </p>
 
                 <form id="upload-form">
 
                     <!-- File Drop Area -->
                     <div id="drop-area"
-                         class="drop-area mb-6 border-2 border-dashed border-slate-600 rounded-lg p-8 cursor-pointer transition-all duration-300"
+                         class="drop-area mb-6 border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all duration-300 bg-surface-container-high"
+                         style="border-color: rgba(65,71,80,0.5);"
                          onclick="document.getElementById('file-input').click()"
                          role="button"
                          tabindex="0"
@@ -25,12 +29,10 @@
 
                         <div id="drop-content" style="pointer-events: none;">
                             <div class="w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
+                                <span class="material-symbols-outlined text-text-tertiary" style="font-size: 48px;">cloud_upload</span>
                             </div>
-                            <p class="text-slate-300 mb-2 font-semibold">Click to upload or drag and drop</p>
-                            <p class="text-slate-400 text-sm">
+                            <p class="text-text-secondary mb-2 font-semibold">Click to upload or drag and drop</p>
+                            <p class="text-text-tertiary text-sm">
                                 {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
                                     MP3 and WAV files up to 5GB
                                 {{else}}
@@ -41,118 +43,103 @@
 
                         <!-- Selected file info (hidden initially) -->
                         <div id="file-info" class="hidden" style="pointer-events: none;">
-                            <svg class="w-8 h-8 text-legendary-teal mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                            </svg>
-                            <p id="file-name" class="text-legendary-teal font-medium"></p>
-                            <p id="file-size" class="text-slate-400 text-sm"></p>
+                            <span class="material-symbols-outlined text-arctic mx-auto mb-2 block" style="font-size: 32px;">audio_file</span>
+                            <p id="file-name" class="text-arctic font-medium"></p>
+                            <p id="file-size" class="text-text-tertiary text-sm"></p>
                             <button type="button"
                                     onclick="removeFile(); event.stopPropagation();"
-                                    class="text-red-400 text-sm mt-2 hover:text-red-300 cursor-pointer"
+                                    class="text-error text-sm mt-2 hover:opacity-80 cursor-pointer"
                                     style="pointer-events: auto;">
                                 Remove file
                             </button>
                         </div>
                     </div>
-                    
-                    <input type="file" 
+
+                    <input type="file"
                            id="file-input"
-                           name="audio_file" 
-                           accept="audio/*" 
+                           name="audio_file"
+                           accept="audio/*"
                            required
                            class="hidden"
                            onchange="handleFileSelect(this)">
-                    
+
                     <!-- Processing Mode Selection -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium mb-2">Processing mode:</label>
+                    <div class="mb-6 text-left">
+                        <label class="block label-sm text-text-tertiary mb-3">Processing mode:</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="processing-mode-option border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                            <label class="processing-mode-option rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="processing_mode" value="fast" class="hidden">
-                                <div class="p-4 rounded-lg transition-all">
+                                <div class="p-4 rounded-xl transition-all">
                                     <div class="flex items-center mb-2">
-                                        <div class="mode-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                            </svg>
+                                        <div class="mode-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mr-3">
+                                            <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">bolt</span>
                                         </div>
-                                        <span class="font-semibold text-white">Fast</span>
+                                        <span class="font-semibold text-text-primary">Fast</span>
                                     </div>
-                                    <p class="text-xs text-slate-400">Adaptive analysis. Quick results with good quality.</p>
+                                    <p class="text-xs text-text-tertiary">Adaptive analysis. Quick results with good quality.</p>
                                 </div>
                             </label>
 
-                            <label class="processing-mode-option border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                            <label class="processing-mode-option rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="processing_mode" value="precise" class="hidden" checked>
-                                <div class="p-4 rounded-lg transition-all">
+                                <div class="p-4 rounded-xl transition-all">
                                     <div class="flex items-center mb-2">
-                                        <div class="mode-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                            </svg>
+                                        <div class="mode-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mr-3">
+                                            <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">verified</span>
                                         </div>
-                                        <span class="font-semibold text-white">Precise</span>
+                                        <span class="font-semibold text-text-primary">Precise</span>
                                     </div>
-                                    <p class="text-xs text-slate-400">Full analysis. Recommended for music content like DJ mixes.</p>
+                                    <p class="text-xs text-text-tertiary">Full analysis. Recommended for music content like DJ mixes.</p>
                                 </div>
                             </label>
                         </div>
                     </div>
-                    
+
                     <!-- Preset Selection -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium mb-2">Optimize for:</label>
+                    <div class="mb-6 text-left">
+                        <label class="block label-sm text-text-tertiary mb-3">Optimize for:</label>
                         <div class="preset-grid gap-2">
                             <!-- DJ Mix -->
-                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                            <label class="preset-card rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="preset" value="dj" class="hidden" checked>
-                                <div class="p-3 rounded-lg transition-all">
-                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                                        </svg>
+                                <div class="p-3 rounded-xl transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">music_note</span>
                                     </div>
-                                    <div class="text-center text-sm font-semibold text-white">DJ Mix</div>
+                                    <div class="text-center text-sm font-semibold text-text-primary">DJ Mix</div>
                                 </div>
                             </label>
 
                             <!-- Streaming -->
-                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                            <label class="preset-card rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="preset" value="streaming" class="hidden">
-                                <div class="p-3 rounded-lg transition-all">
-                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
+                                <div class="p-3 rounded-xl transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">podcasts</span>
                                     </div>
-                                    <div class="text-center text-sm font-semibold text-white">Streaming</div>
+                                    <div class="text-center text-sm font-semibold text-text-primary">Streaming</div>
                                 </div>
                             </label>
 
                             <!-- Podcast -->
-                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                            <label class="preset-card rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="preset" value="podcast" class="hidden">
-                                <div class="p-3 rounded-lg transition-all">
-                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                                        </svg>
+                                <div class="p-3 rounded-xl transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">mic</span>
                                     </div>
-                                    <div class="text-center text-sm font-semibold text-white">Podcast</div>
+                                    <div class="text-center text-sm font-semibold text-text-primary">Podcast</div>
                                 </div>
                             </label>
 
                             <!-- Broadcast -->
-                            <label class="preset-card border-2 border-slate-600 rounded-lg cursor-pointer transition-all">
+                            <label class="preset-card rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="preset" value="broadcast" class="hidden">
-                                <div class="p-3 rounded-lg transition-all">
-                                    <div class="preset-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                        </svg>
+                                <div class="p-3 rounded-xl transition-all">
+                                    <div class="preset-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                                        <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">broadcast_on_home</span>
                                     </div>
-                                    <div class="text-center text-sm font-semibold text-white">Broadcast</div>
+                                    <div class="text-center text-sm font-semibold text-text-primary">Broadcast</div>
                                 </div>
                             </label>
                         </div>
@@ -160,8 +147,8 @@
 
                     <!-- Noise Reduction (Podcast preset only) -->
                     <div id="noise-reduction-option" class="hidden mb-6">
-                        <div class="flex items-center justify-between p-3 border-2 border-slate-600 rounded-lg cursor-pointer transition-all hover:border-slate-500" onclick="toggleNoiseReduction()">
-                            <span class="text-sm font-semibold text-white">Noise Reduction</span>
+                        <div class="flex items-center justify-between p-3 bg-surface-container-high rounded-xl cursor-pointer transition-all hover:bg-surface-container-highest" onclick="toggleNoiseReduction()">
+                            <span class="text-sm font-semibold text-text-primary">Noise Reduction</span>
                             <div class="nr-switch" id="nr-switch">
                                 <div class="nr-thumb"></div>
                             </div>
@@ -170,19 +157,17 @@
 
                     <!-- Custom LUFS Target (Premium & Professional Only) -->
                     {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium mb-2">Custom LUFS Target:</label>
-                        <div id="lufs-container" class="lufs-card border-2 border-slate-600 rounded-lg p-4 cursor-pointer transition-all">
+                    <div class="mb-6 text-left opacity-50 hover:opacity-100 transition-opacity duration-300">
+                        <label class="block label-sm text-text-tertiary mb-3">Custom LUFS Target:</label>
+                        <div id="lufs-container" class="lufs-card bg-surface-container-high rounded-xl p-4 cursor-pointer transition-all" style="border: 2px solid transparent;">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center">
-                                    <div class="lufs-icon w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mr-3">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-                                        </svg>
+                                    <div class="lufs-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mr-3">
+                                        <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">tune</span>
                                     </div>
-                                    <span class="font-semibold text-white">Custom Target</span>
+                                    <span class="font-semibold text-text-primary">Custom Target</span>
                                 </div>
-                                <span id="lufs-value" class="text-2xl font-bold text-white"></span>
+                                <span id="lufs-value" class="text-2xl font-bold text-text-primary label-sm" style="font-size: 1.25rem; letter-spacing: normal;"></span>
                             </div>
                             <div class="relative">
                                 <input type="range"
@@ -193,7 +178,7 @@
                                        value="-7"
                                        step="1"
                                        class="lufs-slider w-full h-2 rounded-lg appearance-none cursor-pointer">
-                                <div class="flex justify-between text-xs text-slate-400 mt-2">
+                                <div class="flex justify-between text-xs text-text-tertiary mt-2">
                                     <span>Quieter</span>
                                     <span>Louder</span>
                                 </div>
@@ -205,20 +190,16 @@
                     <button type="submit"
                             id="upload-btn"
                             disabled
-                            class="w-full text-white px-6 py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                            style="background: #1e293b; border: 2px solid #e69e39;"
-                            onmouseenter="if (!this.disabled) this.style.boxShadow='0 0 30px rgba(230, 158, 57, 0.6)'; if (!this.disabled) this.style.transform='translateY(-2px)'"
-                            onmouseleave="if (!this.disabled) this.style.boxShadow=''; if (!this.disabled) this.style.transform='translateY(0)'">
-                        Upload & process
+                            class="w-full btn-sand text-sm py-3 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
+                            style="font-size: 0.875rem; padding: 0.875rem 1.5rem;">
+                        Upload &amp; process
                     </button>
 
-                    <!-- Helpful tip about cloud storage -->
-                    <div class="mt-4 p-3 bg-slate-800 border border-slate-700 rounded-lg">
-                        <div class="flex items-start">                            
-                            <p class="text-sm text-slate-400">
-                                <strong class="text-slate-300">Note:</strong> If your file is in cloud storage (Google Drive, Dropbox, OneDrive), please download it to your device first.
-                            </p>
-                        </div>
+                    <!-- Helpful tip -->
+                    <div class="mt-4 p-3 bg-surface-container-high rounded-xl">
+                        <p class="text-sm text-text-tertiary">
+                            <strong class="text-text-secondary">Note:</strong> If your file is in cloud storage (Google Drive, Dropbox, OneDrive), please download it to your device first.
+                        </p>
                     </div>
                 </form>
             </div>
@@ -229,32 +210,29 @@
 <!-- Processing State Template -->
 <template id="processing-template">
     <div id="processing-state" class="state-transition mx-auto" style="max-width: 960px;">
-        <div class="processing-card bg-slate-800 border-2 border-slate-600 rounded-lg p-4 sm:p-8 mb-4">
+        <div class="processing-card bg-surface-container-high rounded-xl p-4 sm:p-8 mb-4">
             <!-- File Info Header -->
             <div class="file-info-header mb-6">
                 <!-- Top Row: Icon, File Name, and Status Badge -->
                 <div class="flex items-start gap-3 sm:gap-4 mb-3">
-                    <div class="file-icon-box w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-legendary to-legendary-teal rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                        </svg>
+                    <div class="file-icon-box w-12 h-12 sm:w-16 sm:h-16 bg-arctic/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-arctic" style="font-size: 28px;">music_note</span>
                     </div>
                     <div class="file-details flex-1 min-w-0">
-                        <div id="file-name-display" class="text-white text-base sm:text-lg font-semibold truncate mb-2 text-left"></div>
-                        <!-- Mobile: Stack metadata vertically -->
-                        <div class="file-meta-display flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-slate-400 items-center text-left">
+                        <div id="file-name-display" class="text-text-primary text-base sm:text-lg font-semibold truncate mb-2 text-left"></div>
+                        <div class="file-meta-display flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-text-tertiary items-center text-left">
                             <span id="file-duration">--</span>
-                            <span class="hidden sm:inline">•</span>
-                            <span id="file-extension" class="uppercase">--</span>
-                            <span class="hidden sm:inline">•</span>
+                            <span class="hidden sm:inline">·</span>
+                            <span id="file-extension" class="uppercase label-sm"></span>
+                            <span class="hidden sm:inline">·</span>
                             <span id="queue-type-badge" class="queue-badge"></span>
                         </div>
-                        <div id="silence-trim-notice" class="hidden text-xs text-teal-400 mt-2 text-left">
-                            • Silence trimmed from start/end
+                        <div id="silence-trim-notice" class="hidden text-xs text-arctic mt-2 text-left">
+                            · Silence trimmed from start/end
                         </div>
                     </div>
                 </div>
-                <!-- Status Badge Row (separate on mobile for better visibility) -->
+                <!-- Status Badge -->
                 <div class="flex justify-start sm:justify-end -mt-2 sm:mt-0">
                     <span id="status-badge" class="status-badge status-queued">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -266,24 +244,25 @@
             </div>
 
             <!-- Progress Bar -->
-            <div class="bg-slate-700 rounded-full mb-4" style="height: 8px;">
+            <div class="bg-surface-container-lowest rounded-full mb-4" style="height: 8px;">
                 <div id="progress-bar" class="progress-bar rounded-full" style="width: 0%; height: 8px;"></div>
             </div>
 
             <!-- Status Text -->
-            <p id="status-text" class="text-sm text-slate-400">Initializing...</p>
+            <p id="status-text" class="text-sm text-text-tertiary">Initializing...</p>
         </div>
 
-        <!-- Cancel Button (Outside Card) -->
+        <!-- Cancel Button -->
         <button id="cancel-btn"
                 onclick="cancelProcessing()"
-                class="w-full bg-slate-700 text-slate-300 px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-slate-600">
+                class="w-full btn-ghost disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                style="padding: 0.875rem 1.5rem;">
             Cancel Processing
         </button>
     </div>
 </template>
 
-<script src="/static/js/upload.js"></script>
+<script src="/static/js/upload.js?v={{.AppVersion}}"></script>
 
 <style>
 /* Preset Grid - Responsive */
@@ -298,88 +277,60 @@
     }
 }
 
-/* Drop Area Hover Effect */
-#drop-area:hover {
-    border-color: #e69e39;
-    background: rgba(230, 158, 57, 0.05);
-    box-shadow: 0 0 30px rgba(230, 158, 57, 0.2);
-}
-
 /* Processing Mode Selection */
 .processing-mode-option {
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .processing-mode-option:has(input[type="radio"]:checked) {
-    border-color: #14b8a6 !important;
-    background-color: rgba(20, 184, 166, 0.1);
+    border-color: rgba(74, 138, 199, 0.5) !important;
+    background-color: rgba(74, 138, 199, 0.08);
 }
 
 .processing-mode-option:has(input[type="radio"]:checked) .mode-icon {
-    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+    background: rgba(74, 138, 199, 0.2);
+}
+
+.processing-mode-option:has(input[type="radio"]:checked) .mode-icon .material-symbols-outlined {
+    color: #4A8AC7;
 }
 
 .processing-mode-option:not(:has(input[type="radio"]:checked)):hover {
-    border-color: #14b8a6;
-    background-color: rgba(20, 184, 166, 0.05);
-}
-
-.processing-mode-option:not(:has(input[type="radio"]:checked)):hover .mode-icon {
-    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+    border-color: rgba(74, 138, 199, 0.2) !important;
 }
 
 /* Preset Card Selection */
 .preset-card {
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .preset-card:has(input[type="radio"]:checked) {
-    border-color: #14b8a6 !important;
-    background-color: rgba(20, 184, 166, 0.1);
+    border-color: rgba(74, 138, 199, 0.5) !important;
+    background-color: rgba(74, 138, 199, 0.08);
 }
 
 .preset-card:has(input[type="radio"]:checked) .preset-icon {
-    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+    background: rgba(74, 138, 199, 0.2);
 }
 
-.preset-card:has(input[type="radio"]:checked) .preset-icon svg {
-    color: white;
+.preset-card:has(input[type="radio"]:checked) .preset-icon .material-symbols-outlined {
+    color: #4A8AC7;
 }
 
 .preset-card:not(:has(input[type="radio"]:checked)):hover {
-    border-color: #14b8a6;
-    background-color: rgba(20, 184, 166, 0.05);
+    border-color: rgba(74, 138, 199, 0.2) !important;
 }
 
-.preset-card:not(:has(input[type="radio"]:checked)):hover .preset-icon {
-    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+/* Drop area hover / drag */
+#drop-area:hover,
+#drop-area.drag-over {
+    border-color: rgba(212, 169, 94, 0.4) !important;
+    background-color: rgba(212, 169, 94, 0.05);
 }
 
-.preset-card:not(:has(input[type="radio"]:checked)):hover .preset-icon svg {
-    color: white;
-}
-
-/* Progress Bar */
-.progress-bar {
-    background: linear-gradient(90deg, #e69e39 0%, #14b8a6 100%);
-    transition: width 0.5s ease;
-}
-
-/* Spinner */
-.spinner-legendary {
-    border: 3px solid rgba(230, 158, 57, 0.3);
-    border-top-color: #e69e39;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* LUFS Slider Styles */
+/* LUFS Slider */
 .lufs-slider {
-    background: linear-gradient(90deg, #e69e39 0%, #14b8a6 100%);
+    background: linear-gradient(90deg, #2A2A28 0%, #4A8AC7 100%);
     outline: none;
 }
 
@@ -388,109 +339,82 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: white;
+    background: #EDEAE3;
     cursor: pointer;
-    box-shadow: 0 0 10px rgba(230, 158, 57, 0.5), 0 0 20px rgba(20, 184, 166, 0.3);
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease;
 }
 
-.lufs-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 15px rgba(230, 158, 57, 0.8), 0 0 30px rgba(20, 184, 166, 0.5);
-}
+.lufs-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
 .lufs-slider::-moz-range-thumb {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: white;
+    background: #EDEAE3;
     cursor: pointer;
     border: none;
-    box-shadow: 0 0 10px rgba(230, 158, 57, 0.5), 0 0 20px rgba(20, 184, 166, 0.3);
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease;
 }
 
-.lufs-slider::-moz-range-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 15px rgba(230, 158, 57, 0.8), 0 0 30px rgba(20, 184, 166, 0.5);
-}
-
-/* LUFS Card Styles */
-.lufs-card {
-    transition: all 0.3s ease;
-}
-
+/* LUFS Card active */
 .lufs-card.active {
-    border-color: #14b8a6 !important;
-    background-color: rgba(20, 184, 166, 0.1);
+    border-color: rgba(74, 138, 199, 0.5) !important;
+    background-color: rgba(74, 138, 199, 0.08);
 }
 
 .lufs-card.active .lufs-icon {
-    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
+    background: rgba(74, 138, 199, 0.2);
 }
 
 .lufs-card:not(.active):hover {
-    border-color: #14b8a6;
-    background-color: rgba(20, 184, 166, 0.05);
+    border-color: rgba(74, 138, 199, 0.2) !important;
 }
 
-.lufs-card:not(.active):hover .lufs-icon {
-    background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);
-}
-
-/* Processing Card Styles */
-.processing-card {
-    transition: all 0.3s ease;
-}
-
+/* Processing card states */
 .processing-card.processing {
-    border-color: rgba(230, 158, 57, 0.5) !important;
-    box-shadow: 0 0 20px rgba(230, 158, 57, 0.3);
+    border: 2px solid rgba(74, 138, 199, 0.3);
 }
 
 .processing-card.complete {
-    border-color: rgba(65, 196, 78, 0.5) !important;
-    box-shadow: 0 0 20px rgba(65, 196, 78, 0.2);
+    border: 2px solid rgba(65, 196, 78, 0.3);
 }
 
-/* Status Badge Styles */
+/* Status badges */
 .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.375rem 0.875rem;
     border-radius: 9999px;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
 .status-queued {
-    background: rgba(148, 163, 184, 0.2);
-    color: #94a3b8;
-    border: 1px solid #475569;
+    background: rgba(65, 71, 80, 0.3);
+    color: #7A7770;
+    border: 1px solid rgba(65, 71, 80, 0.5);
 }
 
 .status-processing {
-    background: rgba(230, 158, 57, 0.2);
-    color: #e69e39;
-    border: 1px solid rgba(230, 158, 57, 0.5);
+    background: rgba(74, 138, 199, 0.15);
+    color: #4A8AC7;
+    border: 1px solid rgba(74, 138, 199, 0.3);
 }
 
 .status-complete {
-    background: rgba(65, 196, 78, 0.2);
+    background: rgba(65, 196, 78, 0.15);
     color: #41c44e;
-    border: 1px solid rgba(65, 196, 78, 0.5);
+    border: 1px solid rgba(65, 196, 78, 0.3);
 }
 
-/* Pulse Animation for Processing Dot */
+/* Pulse dot */
 @keyframes pulse-dot {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
 }
 
 .pulse-dot {
@@ -501,46 +425,46 @@
     animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Queue Badge Styles */
+/* Queue badge */
 .queue-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.75rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 0.375rem;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     white-space: nowrap;
 }
 
 .queue-precise {
-    background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    background: rgba(74, 138, 199, 0.15);
+    color: #4A8AC7;
 }
 
 .queue-fast {
-    background: rgba(230, 158, 57, 0.2);
-    color: #e69e39;
+    background: rgba(212, 169, 94, 0.15);
+    color: #D4A95E;
 }
 
-/* Progress Bar Complete State */
+/* Progress bar complete */
 .progress-bar.complete {
-    background: linear-gradient(90deg, #41c44e 0%, #14b8a6 100%);
+    background: #41c44e;
 }
 
 /* Noise Reduction Toggle */
 .nr-switch {
     width: 36px;
     height: 20px;
-    background: #475569;
+    background: #414750;
     border-radius: 10px;
     position: relative;
     transition: background 0.3s ease;
     flex-shrink: 0;
 }
 
-.nr-switch.on {
-    background: #14b8a6;
-}
+.nr-switch.on { background: #4A8AC7; }
 
 .nr-thumb {
     width: 16px;
@@ -553,8 +477,6 @@
     transition: transform 0.3s ease;
 }
 
-.nr-switch.on .nr-thumb {
-    transform: translateX(16px);
-}
+.nr-switch.on .nr-thumb { transform: translateX(16px); }
 </style>
 {{end}}

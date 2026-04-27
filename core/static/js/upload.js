@@ -456,24 +456,24 @@ function showCompletedState(fileId, data) {
         mainContainer.style.maxWidth = '960px'; // Match processing state width
         mainContainer.innerHTML = `
             <div id="completed-state" class="state-transition">
-                <div class="processing-card complete border-2 rounded-lg p-8">
+                <div class="processing-card complete rounded-xl p-8">
                     <!-- File Info Header -->
                     <div class="file-info-header flex items-center gap-6 mb-6">
-                        <div class="file-icon-box w-16 h-16 bg-gradient-to-br from-legendary to-legendary-teal rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <div class="file-icon-box w-16 h-16 bg-success/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-8 h-8 text-success" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
                             </svg>
                         </div>
                         <div class="file-details flex-1 min-w-0">
-                            <div class="text-white text-lg font-semibold truncate mb-2 text-left">${fileName}</div>
-                            <div class="file-meta-display flex gap-3 text-sm text-slate-400 items-center text-left">
+                            <div class="text-text-primary text-lg font-semibold truncate mb-2 text-left">${fileName}</div>
+                            <div class="file-meta-display flex gap-3 text-sm text-text-tertiary items-center text-left">
                                 <span>${durationText}</span>
-                                <span>•</span>
-                                <span class="uppercase">${extensionText}</span>
-                                <span>•</span>
+                                <span>·</span>
+                                <span class="uppercase label-sm">${extensionText}</span>
+                                <span>·</span>
                                 <span class="${queueClass}">${queueText}</span>
                             </div>
-                            ${showSilenceTrimNotice ? '<div class="text-xs text-teal-400 mt-3 text-left">• Silence trimmed from start/end</div>' : ''}
+                            ${showSilenceTrimNotice ? '<div class="text-xs text-arctic mt-3 text-left">· Silence trimmed from start/end</div>' : ''}
                         </div>
                         <span class="status-badge status-complete flex-shrink-0">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -484,7 +484,7 @@ function showCompletedState(fileId, data) {
                     </div>
 
                     <!-- Progress Bar -->
-                    <div class="bg-slate-700 rounded-full mb-4" style="height: 8px;">
+                    <div class="bg-surface-container-lowest rounded-full mb-4" style="height: 8px;">
                         <div class="progress-bar complete rounded-full" style="width: 100%; height: 8px;"></div>
                     </div>
 
@@ -493,7 +493,8 @@ function showCompletedState(fileId, data) {
 
                     <div class="space-y-3">
                         <button onclick="downloadFile('${fileId}')"
-                                class="w-full bg-success text-white px-6 py-3 rounded-lg font-semibold hover:bg-success/90 transition-all duration-300 flex items-center justify-center gap-2">
+                                class="w-full btn-sand flex items-center justify-center gap-2"
+                                style="padding: 0.875rem 1.5rem; font-size: 0.875rem;">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
@@ -501,7 +502,8 @@ function showCompletedState(fileId, data) {
                         </button>
 
                         <button onclick="uploadAnother()"
-                                class="w-full bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 transition-colors">
+                                class="w-full btn-ghost"
+                                style="padding: 0.875rem 1.5rem;">
                             Process Another File
                         </button>
                     </div>
@@ -519,17 +521,18 @@ function showErrorState(error) {
     mainContainer.innerHTML = `
         <div id="error-state" class="state-transition">
             <div class="text-center">
-                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-16 h-16 bg-error/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </div>
 
-                <h2 class="text-3xl font-bold mb-4 text-red-400">Processing Failed</h2>
-                <p class="text-slate-300 mb-8">${error}</p>
+                <h2 class="text-3xl font-bold mb-4 text-error">Processing Failed</h2>
+                <p class="text-text-secondary mb-8">${error}</p>
 
                 <button onclick="uploadAnother()"
-                        class="w-full bg-legendary-teal text-white px-6 py-3 rounded-lg font-bold hover:bg-legendary-teal/90 transition-all duration-300 hover:-translate-y-0.5">
+                        class="w-full btn-arctic"
+                        style="padding: 0.875rem 1.5rem;">
                     Try Again
                 </button>
             </div>
@@ -625,17 +628,18 @@ function showCancelledState() {
     mainContainer.innerHTML = `
         <div id="cancelled-state" class="state-transition">
             <div class="text-center">
-                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div class="w-16 h-16 bg-error/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-error" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
                     </svg>
                 </div>
 
-                <h2 class="text-3xl font-bold mb-4 text-red-400">Processing Cancelled</h2>
-                <p class="text-slate-300 mb-8">Your processing job has been cancelled.</p>
+                <h2 class="text-3xl font-bold mb-4 text-error">Processing Cancelled</h2>
+                <p class="text-text-secondary mb-8">Your processing job has been cancelled.</p>
 
                 <button onclick="uploadAnother()"
-                        class="w-full bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 transition-colors">
+                        class="w-full btn-ghost"
+                        style="padding: 0.875rem 1.5rem;">
                     Upload Another File
                 </button>
             </div>
@@ -887,21 +891,21 @@ function showUploadingState() {
     mainContainer.innerHTML = `
         <div id="uploading-state" class="state-transition">
             <div class="text-center">
-                <div class="spinner-legendary mx-auto mb-6 w-16 h-16"></div>
-                <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">Uploading Your File</h2>
-                <p id="upload-status-text" class="text-slate-300 mb-8">Uploading to cloud storage...</p>
+                <div class="spinner mx-auto mb-6"></div>
+                <h2 class="text-3xl font-bold mb-4 text-text-primary">Uploading Your File</h2>
+                <p id="upload-status-text" class="text-text-secondary mb-8">Uploading to cloud storage...</p>
 
-                <div class="bg-slate-800 border-2 border-legendary/30 rounded-lg p-6 mb-6">
+                <div class="bg-surface-container-high rounded-xl p-6 mb-6">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-slate-400">Upload Progress</span>
-                        <span id="upload-progress-text" class="text-sm text-legendary-teal font-semibold">0%</span>
+                        <span class="text-sm text-text-tertiary label-sm">Upload Progress</span>
+                        <span id="upload-progress-text" class="text-sm text-arctic font-semibold">0%</span>
                     </div>
-                    <div class="w-full bg-slate-700 rounded-full h-2">
-                        <div id="upload-progress-bar" class="bg-gradient-to-r from-legendary to-legendary-teal h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div class="w-full bg-surface-container-lowest rounded-full h-2">
+                        <div id="upload-progress-bar" class="h-2 rounded-full transition-all duration-300" style="width: 0%; background: #4A8AC7;"></div>
                     </div>
                 </div>
 
-                <p class="text-slate-400 text-sm">Large files may take a few moments to upload</p>
+                <p class="text-text-tertiary text-sm">Large files may take a few moments to upload</p>
             </div>
         </div>
     `;
