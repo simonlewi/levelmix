@@ -84,7 +84,7 @@ function updateNoiseReductionVisibility(preset) {
     const switchEl = document.getElementById('nr-switch');
     if (!option) return;
 
-    if (preset === 'podcast') {
+    if (preset === 'podcast' || preset === 'broadcast') {
         option.classList.remove('hidden');
         noiseReductionEnabled = true;
         if (switchEl) switchEl.classList.add('on');
