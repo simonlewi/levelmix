@@ -40,6 +40,7 @@
   text-transform: uppercase;
   padding: 0.625rem 1.25rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: opacity 200ms ease, transform 150ms ease;
 }
 .btn-sand:hover  { opacity: 0.9; }
@@ -56,6 +57,7 @@
   text-transform: uppercase;
   padding: 0.625rem 1.25rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: opacity 200ms ease, transform 150ms ease;
 }
 .btn-arctic:hover  { opacity: 0.85; }
@@ -72,6 +74,7 @@
   text-transform: uppercase;
   padding: 0.625rem 1.25rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: color 200ms ease, background 200ms ease;
 }
 .btn-ghost:hover {
