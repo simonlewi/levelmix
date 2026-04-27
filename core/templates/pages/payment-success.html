@@ -8,28 +8,24 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #41c44e;
+    background: rgba(65, 196, 78, 0.15);
+    border: 2px solid rgba(65, 196, 78, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 2rem;
     animation: scaleIn 0.5s ease-out;
-    box-shadow: 0 0 30px rgba(65, 196, 78, 0.5), 0 0 60px rgba(65, 196, 78, 0.3);
 }
 
 @keyframes scaleIn {
-    from {
-        transform: scale(0);
-    }
-    to {
-        transform: scale(1);
-    }
+    from { transform: scale(0); }
+    to   { transform: scale(1); }
 }
 
 .checkmark {
-    width: 50px;
-    height: 50px;
-    stroke: white;
+    width: 44px;
+    height: 44px;
+    stroke: #41c44e;
     stroke-width: 3;
     fill: none;
     stroke-linecap: round;
@@ -39,20 +35,18 @@
 }
 
 @keyframes drawCheck {
-    to {
-        stroke-dashoffset: 0;
-    }
+    to { stroke-dashoffset: 0; }
 }
 </style>
 {{end}}
 
-{{define "main-classes"}}bg-slate-900{{end}}
+{{define "main-classes"}}bg-surface{{end}}
 
 {{define "payment_success_content"}}
 <div class="min-h-screen flex items-center justify-center px-6 py-16">
     <div class="max-w-2xl w-full">
         <!-- Success Card -->
-        <div class="bg-slate-800 rounded-2xl border-2 border-slate-600 p-8 md:p-12 text-center">
+        <div class="bg-surface-container-high rounded-xl p-8 md:p-12 text-center">
             <!-- Animated Checkmark -->
             <div class="checkmark-circle">
                 <svg class="checkmark" viewBox="0 0 52 52">
@@ -61,38 +55,38 @@
             </div>
 
             <!-- Success Message -->
-            <h1 class="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-text-primary mb-4">
                 Payment Successful!
             </h1>
 
-            <p class="text-xl text-slate-300 mb-8">
+            <p class="text-lg text-text-secondary mb-8">
                 Thank you for subscribing to LevelMix {{if .TierName}}{{.TierName}}{{else}}Premium{{end}}!
             </p>
 
             <!-- What's Next -->
-            <div class="bg-slate-900 rounded-xl border-2 border-slate-700 p-6 mb-8 text-left">
-                <h2 class="text-xl font-semibold text-legendary-teal mb-4">What happens next?</h2>
-                <ul class="space-y-3 text-slate-300">
+            <div class="bg-surface rounded-xl p-6 mb-8 text-left">
+                <h2 class="text-lg font-semibold text-arctic mb-4">What happens next?</h2>
+                <ul class="space-y-3 text-text-secondary">
                     <li class="flex items-start">
-                        <svg class="w-6 h-6 mr-3 flex-shrink-0 mt-0.5" style="color: #41c44e;" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5 text-success" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        <span>Your subscription is now <strong>active</strong></span>
+                        <span>Your subscription is now <strong class="text-text-primary">active</strong></span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="w-6 h-6 mr-3 flex-shrink-0 mt-0.5" style="color: #41c44e;" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5 text-success" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         <span>A confirmation email has been sent to your inbox</span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="w-6 h-6 mr-3 flex-shrink-0 mt-0.5" style="color: #41c44e;" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5 text-success" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         <span>You can now access all premium features</span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="w-6 h-6 mr-3 flex-shrink-0 mt-0.5" style="color: #41c44e;" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5 text-success" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         <span>Manage your subscription in your dashboard</span>
@@ -102,19 +96,10 @@
 
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                    href="/upload"
-                    class="text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300"
-                    style="border: 2px solid transparent; background-image: linear-gradient(#1e293b, #1e293b), linear-gradient(45deg, #e69e39 0%, #14b8a6 100%); background-origin: border-box; background-clip: padding-box, border-box; box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);"
-                    onmouseover="this.style.boxShadow='0 0 30px rgba(230, 158, 57, 0.6)'; this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.boxShadow='0 0 20px rgba(230, 158, 57, 0.4)'; this.style.transform='translateY(0)'"
-                >
+                <a href="/upload" class="btn-sand" style="text-decoration: none; padding: 0.875rem 2rem;">
                     Start Processing Audio
                 </a>
-                <a
-                    href="/dashboard"
-                    class="bg-slate-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-slate-600 transition-colors border-2 border-slate-600"
-                >
+                <a href="/dashboard" class="btn-ghost" style="text-decoration: none; padding: 0.875rem 2rem;">
                     Go to Dashboard
                 </a>
             </div>
@@ -122,8 +107,8 @@
 
         <!-- Help Section -->
         <div class="mt-6 text-center">
-            <p class="text-slate-400">
-                Need help? <a href="/about" class="text-legendary-teal hover:text-legendary">Contact Support</a>
+            <p class="text-text-tertiary text-sm">
+                Need help? <a href="/about" class="text-arctic hover:text-text-primary transition-colors">Contact Support</a>
             </p>
         </div>
     </div>

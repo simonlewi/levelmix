@@ -1,13 +1,3 @@
-console.log('Pricing page scripts loaded - v2');
-// HTMX event handlers for navigation
-document.body.addEventListener('htmx:beforeRequest', function(evt) {
-    console.log('Navigation request started');
-});
-
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    console.log('Navigation completed');
-});
-
 // Start checkout process
 async function startCheckout(event, planId, billingInterval) {
     // Check if user is logged in by checking for user data in page

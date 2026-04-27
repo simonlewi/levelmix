@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Inter Font (2026 Design System) -->
+    <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Material Symbols Outlined -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet">
 
-    <link rel="stylesheet" href="/static/css/output.css">
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="/static/css/output.css?v={{.AppVersion}}">
     <title>{{if .PageTitle}}{{.PageTitle}} - LevelMix{{else}}LevelMix - Audio Normalization{{end}}</title>
 
     <!-- Favicon -->
@@ -18,123 +19,62 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/favicon/apple-touch-icon.png">
-    
+
     <!-- Web App Manifest -->
     <link rel="manifest" href="/static/images/favicon/site.webmanifest">
-    <meta name="theme-color" content="#14b8a6">
+    <meta name="theme-color" content="#0F0F0D">
 
     <style>
-        /* Smooth transitions between states */
-        .state-transition {
-            transition: all 0.3s ease-in-out;
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
-        .hero-image {
-        background-image: url('/static/images/party-crowd.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        position: relative;
-        min-height: 500px;
-        }
-
-        .hero-overlay {
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(55, 65, 81, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%);
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 10;
-        }
-
-        .upload-gradient {
-            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-        }
-
-        .pulse-glow-breathing {
-            position: relative;
-            z-index: 1;
-        }
-
-        .pulse-glow-breathing::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: inherit;
-            z-index: -1;
-            animation: pulse-breathing 3s infinite cubic-bezier(0.4, 0, 0.6, 1);
-        }
-
-        @keyframes pulse-breathing {
-            0%, 100% {
-                box-shadow: 
-                0 0 0 0 rgba(58, 168, 163, 0.5),
-                0 0 20px rgba(58, 168, 163, 0.2);
-            }
-            50% {
-                box-shadow: 
-                0 0 0 12px rgba(58, 168, 163, 0),
-                0 0 35px rgba(58, 168, 163, 0.4);
-            }
-        }        
-        
         /* Loading spinner */
         .spinner {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: conic-gradient(from 90deg, rgb(6, 182, 212) 0deg, transparent 360deg);
+            background: conic-gradient(from 90deg, #4A8AC7 0deg, transparent 360deg);
             mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
             -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), white calc(100% - 4px));
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
-        /* Progress bar animation */
+
+        /* Progress bar */
         .progress-bar {
-            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            background: #4A8AC7;
             transition: width 0.5s ease;
         }
-        
+
         /* File drop area */
         .drop-area {
             transition: all 0.3s ease;
             cursor: pointer !important;
         }
-        
+
         .drop-area.drag-over {
-            border-color: #14b8a6;
-            background-color: rgba(20, 184, 166, 0.1);
+            border-color: rgba(212, 169, 94, 0.4) !important;
+            background-color: rgba(212, 169, 94, 0.05);
         }
 
         .drop-area:hover {
             cursor: pointer !important;
-            border-color: #14b8a6;
-            background-color: rgba(20, 184, 166, 0.1);
+            border-color: rgba(212, 169, 94, 0.4) !important;
+            background-color: rgba(212, 169, 94, 0.05);
         }
 
-        /* Ensure all child elements inherit pointer cursor */
         .drop-area * {
             cursor: pointer !important;
         }
 
-        /* File input styling */
         #file-input {
             cursor: pointer;
         }
 
-        /* Button styling */
         #upload-btn:not(:disabled) {
             cursor: pointer;
         }
@@ -143,7 +83,6 @@
             cursor: not-allowed;
         }
 
-        /* All buttons should have pointer cursor */
         button {
             cursor: pointer;
         }
@@ -151,47 +90,19 @@
         button:disabled {
             cursor: not-allowed;
         }
-        
+
         /* Success checkmark animation */
         .checkmark {
             animation: checkmark-appear 0.5s ease-in-out;
         }
-        
+
         @keyframes checkmark-appear {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
+            0%   { transform: scale(0); opacity: 0; }
+            50%  { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Hover animations */
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .hover-lift:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #1f2937;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
-        }
-
-        /* Cookie banner animations */
+        /* Cookie banner */
         .cookie-banner {
             position: fixed !important;
             bottom: 24px !important;
@@ -201,33 +112,29 @@
             max-width: 600px !important;
             z-index: 9999 !important;
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-in-out !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
-            border-radius: 16px !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
+            box-shadow: 0 20px 80px -10px rgba(0, 0, 0, 0.6) !important;
+            border-radius: 12px !important;
         }
-        
+
         .cookie-banner.hidden {
             transform: translateX(-50%) translateY(120%) !important;
             opacity: 0 !important;
             pointer-events: none !important;
         }
-        
+
         .cookie-banner.show {
             transform: translateX(-50%) translateY(0) !important;
             opacity: 1 !important;
         }
 
-        /* Responsive design for mobile */
         @media (max-width: 640px) {
             .cookie-banner {
                 width: 95% !important;
                 bottom: 16px !important;
-                border-radius: 12px !important;
             }
         }
-        
-        /* Cookie preferences modal */
+
+        /* Cookie modal */
         .cookie-modal {
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
             backdrop-filter: blur(8px);
@@ -246,40 +153,30 @@
             display: flex !important;
         }
 
-        /* Ensure modal is above cookie banner */
         #cookieModal {
-            z-index: 10000 !important; /* Higher than cookie banner's 9999 */
+            z-index: 10000 !important;
         }
 
-        /* Ensure modal content is properly positioned */
         #cookieModal > div {
             position: relative;
             z-index: 10001;
         }
-        
+
         /* Toggle switch */
         .toggle {
             transition: all 0.3s ease;
         }
-        
-        .toggle input:checked + .toggle-switch {
-            background-color: #14b8a6;
-        }
-        
-        .toggle input:checked + .toggle-switch .toggle-handle {
-            transform: translateX(20px);
-        }
-        
+
         .toggle-switch {
             width: 44px;
             height: 24px;
-            background-color: #64748b;
+            background-color: #414750;
             border-radius: 12px;
             position: relative;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .toggle-handle {
             width: 20px;
             height: 20px;
@@ -298,30 +195,14 @@
 
         .cookie-banner .cookie-button {
             padding: 10px 16px !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            border-radius: 8px !important;
+            font-size: 0.6875rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+            border-radius: 6px !important;
             transition: all 0.2s ease !important;
             white-space: nowrap !important;
             min-width: fit-content !important;
-        }
-
-        .cookie-banner .cookie-button:hover {
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        /* Mobile button adjustments */
-        @media (max-width: 640px) {
-            .cookie-banner .cookie-buttons {
-                gap: 8px !important;
-                flex-direction: column !important;
-            }
-            
-            .cookie-banner .cookie-button {
-                width: 100% !important;
-                text-align: center !important;
-            }
         }
 
         .cookie-banner-content {
@@ -329,16 +210,43 @@
         }
 
         @media (max-width: 640px) {
+            .cookie-banner .cookie-buttons {
+                gap: 8px !important;
+                flex-direction: column !important;
+            }
+            .cookie-banner .cookie-button {
+                width: 100% !important;
+                text-align: center !important;
+            }
             .cookie-banner-content {
                 padding: 20px !important;
+            }
+        }
+
+        /* Focus rings for accessibility */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid #4A8AC7;
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
     {{block "styles" .}}{{end}}
 </head>
-<body class="bg-slate-900 text-white min-h-screen" style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+<body class="bg-surface text-text-primary min-h-screen" style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
     <!-- Navigation -->
-    <nav class="flex items-center justify-between px-6 py-4 relative z-10 bg-gray-900 border-b border-gray-800">
+    <nav class="flex items-center justify-between px-6 py-4 relative z-10 bg-surface-container-low">
         <div class="flex items-center">
             <a href="/" class="hover:opacity-80 transition-opacity">
                 <img
@@ -348,39 +256,32 @@
                 />
             </a>
         </div>
-        
+
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-8 max-w-6xl absolute left-1/2 transform -translate-x-1/2">
-            <a href="/upload" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-teal-500{{end}}">Upload</a>
-            <a href="/pricing" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-teal-500{{end}}">Pricing</a>
-            <a href="/about" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-teal-500{{end}}">About</a>
-            <a href="/how-to-use" class="text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-teal-500{{end}}">How To Use</a>
+            <a href="/upload" class="label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "upload"}}text-arctic{{end}}">Upload</a>
+            <a href="/pricing" class="label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "pricing"}}text-arctic{{end}}">Pricing</a>
+            <a href="/about" class="label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "about"}}text-arctic{{end}}">About</a>
+            <a href="/how-to-use" class="label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "how-to-use"}}text-arctic{{end}}">How To Use</a>
         </div>
-        
-        <!-- Desktop Auth Buttons - Updated with new conditional logic -->
-        <div class="hidden md:flex items-center space-x-4">
+
+        <!-- Desktop Auth Buttons -->
+        <div class="hidden md:flex items-center space-x-3">
             {{if .IsLoggedIn}}
-                <a href="/logout" class="border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors">
-                    Logout
-                </a>
-                <a href="/dashboard" class="bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium border-2 border-teal-500 hover:border-teal-600">
-                    Dashboard
-                </a>
+                <a href="/logout" class="btn-ghost inline-block text-center" style="text-decoration: none;">Logout</a>
+                <a href="/dashboard" class="btn-arctic inline-block text-center" style="text-decoration: none;">Dashboard</a>
             {{else}}
-                <a href="/login" class="border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-gray-900 transition-colors">
-                    Log In
-                </a>
-                <a href="/register" class="bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium border-2 border-teal-500 hover:border-teal-600">
-                    Get Started
-                </a>
+                <a href="/login" class="btn-ghost inline-block text-center" style="text-decoration: none;">Log In</a>
+                <a href="/register" class="btn-sand inline-block text-center" style="text-decoration: none;">Get Started</a>
             {{end}}
         </div>
-        
+
         <!-- Mobile Menu Button -->
-        <button 
+        <button
             id="mobile-menu-btn"
-            class="md:hidden text-white focus:outline-none"
+            class="md:hidden text-text-secondary focus:outline-none"
             onclick="toggleMobileMenu()"
+            aria-label="Toggle navigation menu"
         >
             <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -391,28 +292,20 @@
         </button>
     </nav>
 
-    <!-- Mobile Menu - Updated with new conditional logic -->
-    <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-t border-gray-700">
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-surface-container">
         <div class="px-6 py-4 space-y-4">
-            <a href="/upload" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "upload"}}text-teal-500{{end}}">Upload</a>
-            <a href="/pricing" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "pricing"}}text-teal-500{{end}}">Pricing</a>
-            <a href="/about" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "about"}}text-teal-500{{end}}">About</a>
-            <a href="/how-to-use" class="block text-gray-300 hover:text-white transition-colors {{if eq .CurrentPage "how-to-use"}}text-teal-500{{end}}">How To Use</a>
-            <div class="pt-4 border-t border-gray-700 space-y-4">
+            <a href="/upload" class="block label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "upload"}}text-arctic{{end}}">Upload</a>
+            <a href="/pricing" class="block label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "pricing"}}text-arctic{{end}}">Pricing</a>
+            <a href="/about" class="block label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "about"}}text-arctic{{end}}">About</a>
+            <a href="/how-to-use" class="block label-sm text-text-tertiary hover:text-text-primary transition-colors duration-200 {{if eq .CurrentPage "how-to-use"}}text-arctic{{end}}">How To Use</a>
+            <div class="pt-4 space-y-3">
                 {{if .IsLoggedIn}}
-                    <a href="/logout" class="block w-full border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-gray-900 transition-colors text-center">
-                        Logout
-                    </a>
-                    <a href="/dashboard" class="block w-full bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium text-center border-2 border-teal-500 hover:border-teal-600">
-                        Dashboard
-                    </a>
+                    <a href="/logout" class="block w-full btn-ghost text-center" style="text-decoration: none;">Logout</a>
+                    <a href="/dashboard" class="block w-full btn-arctic text-center" style="text-decoration: none;">Dashboard</a>
                 {{else}}
-                    <a href="/login" class="block w-full border-2 border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-gray-900 transition-colors text-center">
-                        Log In
-                    </a>
-                    <a href="/register" class="block w-full bg-teal-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors font-medium text-center mt-3 border-2 border-teal-500 hover:border-teal-600">
-                        Get Started
-                    </a>
+                    <a href="/login" class="block w-full btn-ghost text-center" style="text-decoration: none;">Log In</a>
+                    <a href="/register" class="block w-full btn-sand text-center" style="text-decoration: none;">Get Started</a>
                 {{end}}
             </div>
         </div>
@@ -464,29 +357,62 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-700 py-6 px-6 text-gray-400 bg-gray-900">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
-            <p class="text-sm">© 2025 LevelMix. All rights reserved.</p>
-            <nav class="flex items-center space-x-6 text-sm">
-                <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
-                <a href="/cookies" class="hover:text-white transition-colors">Cookie Policy</a>
-                <a href="/terms-of-service" class="hover:text-white transition-colors">Terms of Service</a>
-            </nav>
+    <footer class="bg-surface border-t border-surface-container px-8 md:px-24 py-24">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto">
+
+            <!-- Brand -->
+            <div>
+                <div class="font-bold text-text-primary text-lg mb-6">LevelMix</div>
+                <p class="text-text-secondary text-sm leading-relaxed max-w-xs mb-6">
+                    Professional grade audio normalization for the modern creator economy. Precision engineering in every bit.
+                </p>
+                <div class="label-sm text-text-tertiary">© 2026 LevelMix Audio. Confident Precision.</div>
+            </div>
+
+            <!-- Platform + Company -->
+            <div class="grid grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h4 class="text-sand text-xs font-bold uppercase tracking-widest mb-6">Platform</h4>
+                    <a class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200" href="/upload">Upload</a>
+                    <a class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200" href="/pricing">Pricing</a>
+                    <a class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200" href="/how-to-use">How To Use</a>
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-sand text-xs font-bold uppercase tracking-widest mb-6">Company</h4>
+                    <a class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200" href="/about">About</a>
+                </div>
+            </div>
+
+            <!-- Legal + Social -->
+            <div class="space-y-4">
+                <h4 class="text-sand text-xs font-bold uppercase tracking-widest mb-6">Legal</h4>
+                <a class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200" href="/terms-of-service">Terms of Service</a>
+                <a class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200" href="/privacy">Privacy Policy</a>
+                <button onclick="showCookieModal()" class="block text-sm text-text-secondary hover:text-text-primary transition-colors duration-200 text-left">Cookie Settings</button>
+                <div class="mt-8 pt-8 border-t border-surface-container">
+                    <div class="flex gap-4">
+                        <span class="material-symbols-outlined text-text-tertiary hover:text-text-primary cursor-pointer transition-colors">brand_awareness</span>
+                        <span class="material-symbols-outlined text-text-tertiary hover:text-text-primary cursor-pointer transition-colors">podcasts</span>
+                        <span class="material-symbols-outlined text-text-tertiary hover:text-text-primary cursor-pointer transition-colors">music_video</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </footer>
 
     <!-- Cookie Banner -->
-    <div id="cookieBanner" class="cookie-banner hidden bg-gray-800 bg-opacity-80 border border-gray-700">
+    <div id="cookieBanner" class="cookie-banner hidden bg-surface-container-high">
         <div class="cookie-banner-content flex flex-col sm:flex-row items-center justify-between w-full">
-            <p class="text-gray-200 text-sm mb-4 sm:mb-0 sm:mr-4 text-center sm:text-left">
+            <p class="text-text-secondary text-sm mb-4 sm:mb-0 sm:mr-4 text-center sm:text-left">
                 We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
-                <a href="/cookies" class="text-teal-500 hover:text-legendary hover:underline">Learn More</a>.
+                <a href="/cookies" class="text-arctic hover:text-text-primary hover:underline">Learn More</a>.
             </p>
             <div class="cookie-buttons flex items-center justify-center sm:justify-end w-full sm:w-auto">
-                <button onclick="showCookieModal()" class="cookie-button bg-gray-700 hover:bg-gray-600 text-white">
+                <button onclick="showCookieModal()" class="cookie-button bg-surface-container-highest hover:bg-surface-bright text-text-secondary hover:text-text-primary transition-colors">
                     Preferences
                 </button>
-                <button onclick="acceptAllCookies()" class="cookie-button bg-teal-500 hover:bg-teal-600 text-white">
+                <button onclick="acceptAllCookies()" class="cookie-button btn-arctic">
                     Accept All
                 </button>
             </div>
@@ -494,13 +420,13 @@
     </div>
 
     <!-- Cookie Preferences Modal -->
-    <div id="cookieModal" class="cookie-modal fixed inset-0 backdrop-blur-md bg-black/10 flex items-center justify-center p-4 hidden" style="z-index: 10000 !important;">
-        <div class="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-600 shadow-2xl">
+    <div id="cookieModal" class="cookie-modal fixed inset-0 bg-black/40 flex items-center justify-center p-4 hidden" style="z-index: 10000 !important;">
+        <div class="bg-surface-container-high rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_20px_80px_-10px_rgba(0,0,0,0.6)]">
             <div class="p-6">
                 <!-- Header -->
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-white">Cookie Preferences</h2>
-                    <button onclick="hideCookieModal()" class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700">
+                    <h2 class="text-2xl font-bold text-text-primary">Cookie Preferences</h2>
+                    <button onclick="hideCookieModal()" class="text-text-tertiary hover:text-text-primary transition-colors p-2 rounded-lg hover:bg-surface-container-highest" aria-label="Close cookie preferences">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -508,33 +434,33 @@
                 </div>
 
                 <!-- Description -->
-                <p class="text-gray-300 mb-6">
+                <p class="text-text-secondary mb-6">
                     We use cookies to provide you with the best possible experience on our website. You can choose which categories of cookies to accept.
                 </p>
 
                 <!-- Cookie Categories -->
-                <div class="space-y-6">
+                <div class="space-y-4">
                     <!-- Essential Cookies -->
-                    <div class="border border-gray-700 rounded-lg p-4">
+                    <div class="bg-surface-container rounded-lg p-4">
                         <div class="flex items-center justify-between mb-3">
                             <div>
-                                <h3 class="font-semibold text-white">Essential Cookies</h3>
-                                <p class="text-sm text-gray-400">Always Active</p>
+                                <h3 class="font-semibold text-text-primary">Essential Cookies</h3>
+                                <p class="text-sm text-text-tertiary">Always Active</p>
                             </div>
                             <div class="toggle">
                                 <input type="checkbox" id="essential" checked disabled class="hidden">
-                                <div class="toggle-switch opacity-50 cursor-not-allowed" style="background-color: #14b8a6;">
+                                <div class="toggle-switch opacity-50 cursor-not-allowed" style="background-color: #4A8AC7;">
                                     <div class="toggle-handle" style="transform: translateX(20px);"></div>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-sm text-gray-300">
+                        <p class="text-sm text-text-secondary">
                             These cookies are necessary for the website to function properly. They enable basic features like page navigation, form submissions, and security.
                         </p>
                         <div class="mt-2">
-                            <details class="text-xs text-gray-400">
-                                <summary class="cursor-pointer hover:text-gray-300">Cookie Details</summary>
-                                <div class="mt-2 pl-4 border-l border-gray-600">
+                            <details class="text-xs text-text-tertiary">
+                                <summary class="cursor-pointer hover:text-text-secondary">Cookie Details</summary>
+                                <div class="mt-2 pl-4 border-l border-outline-variant/30">
                                     <p><strong>Session cookies:</strong> Authentication and basic functionality</p>
                                     <p><strong>Security cookies:</strong> CSRF protection and secure forms</p>
                                     <p><strong>Duration:</strong> Session or up to 7 days</p>
@@ -544,11 +470,11 @@
                     </div>
 
                     <!-- Analytics Cookies -->
-                    <div class="border border-gray-700 rounded-lg p-4">
+                    <div class="bg-surface-container rounded-lg p-4">
                         <div class="flex items-center justify-between mb-3">
                             <div>
-                                <h3 class="font-semibold text-white">Analytics Cookies</h3>
-                                <p class="text-sm text-gray-400">Optional</p>
+                                <h3 class="font-semibold text-text-primary">Analytics Cookies</h3>
+                                <p class="text-sm text-text-tertiary">Optional</p>
                             </div>
                             <div class="toggle">
                                 <input type="checkbox" id="analytics" class="hidden" onchange="updateAnalyticsToggle()">
@@ -557,13 +483,13 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-sm text-gray-300">
+                        <p class="text-sm text-text-secondary">
                             These cookies help us understand how you use our website by collecting anonymous usage statistics.
                         </p>
                         <div class="mt-2">
-                            <details class="text-xs text-gray-400">
-                                <summary class="cursor-pointer hover:text-gray-300">Cookie Details</summary>
-                                <div class="mt-2 pl-4 border-l border-gray-600">
+                            <details class="text-xs text-text-tertiary">
+                                <summary class="cursor-pointer hover:text-text-secondary">Cookie Details</summary>
+                                <div class="mt-2 pl-4 border-l border-outline-variant/30">
                                     <p><strong>Google Analytics:</strong> Website usage statistics (anonymized)</p>
                                     <p><strong>Performance monitoring:</strong> Page load times and errors</p>
                                     <p><strong>Duration:</strong> Up to 2 years</p>
@@ -573,11 +499,11 @@
                     </div>
 
                     <!-- Functional Cookies -->
-                    <div class="border border-gray-700 rounded-lg p-4">
+                    <div class="bg-surface-container rounded-lg p-4">
                         <div class="flex items-center justify-between mb-3">
                             <div>
-                                <h3 class="font-semibold text-white">Functional Cookies</h3>
-                                <p class="text-sm text-gray-400">Optional</p>
+                                <h3 class="font-semibold text-text-primary">Functional Cookies</h3>
+                                <p class="text-sm text-text-tertiary">Optional</p>
                             </div>
                             <div class="toggle">
                                 <input type="checkbox" id="functional" class="hidden" onchange="updateFunctionalToggle()">
@@ -586,13 +512,13 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-sm text-gray-300">
+                        <p class="text-sm text-text-secondary">
                             These cookies enable enhanced functionality and personalization, such as remembering your preferences.
                         </p>
                         <div class="mt-2">
-                            <details class="text-xs text-gray-400">
-                                <summary class="cursor-pointer hover:text-gray-300">Cookie Details</summary>
-                                <div class="mt-2 pl-4 border-l border-gray-600">
+                            <details class="text-xs text-text-tertiary">
+                                <summary class="cursor-pointer hover:text-text-secondary">Cookie Details</summary>
+                                <div class="mt-2 pl-4 border-l border-outline-variant/30">
                                     <p><strong>User preferences:</strong> LUFS settings, upload preferences</p>
                                     <p><strong>UI settings:</strong> Theme preferences, dashboard layout</p>
                                     <p><strong>Duration:</strong> Up to 1 year</p>
@@ -603,62 +529,45 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-gray-700">
-                    <button onclick="acceptEssentialOnly()" class="flex-1 px-4 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors font-medium">
-                        Essential Only
-                    </button>
-                    <button onclick="savePreferences()" class="flex-1 px-4 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium">
-                        Save Preferences
-                    </button>
-                    <button onclick="acceptAllCookies()" class="flex-1 px-4 py-3 text-white rounded-lg transition-colors font-medium" style="background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%);" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='1'">
-                        Accept All
-                    </button>
+                <div class="flex flex-col sm:flex-row gap-3 mt-8 pt-6">
+                    <button onclick="acceptEssentialOnly()" class="flex-1 btn-ghost">Essential Only</button>
+                    <button onclick="savePreferences()" class="flex-1 btn-arctic">Save Preferences</button>
+                    <button onclick="acceptAllCookies()" class="flex-1 btn-sand">Accept All</button>
                 </div>
 
                 <!-- Additional Links -->
-                <div class="mt-6 pt-4 border-t border-gray-700 text-center">
-                    <p class="text-xs text-gray-400">
+                <div class="mt-6 pt-4 text-center">
+                    <p class="text-xs text-text-tertiary">
                         For more information, read our
-                        <a href="/privacy" class="text-teal-500 hover:text-legendary underline">Privacy Policy</a> and
-                        <a href="/cookies" class="text-teal-500 hover:text-legendary underline">Cookie Policy</a>
+                        <a href="/privacy" class="text-arctic hover:text-text-primary underline">Privacy Policy</a> and
+                        <a href="/cookies" class="text-arctic hover:text-text-primary underline">Cookie Policy</a>
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript - Moved to separate script block for better organization -->
     <script>
         // Cookie consent management
         class CookieConsent {
             constructor() {
                 this.consentKey = 'levelmix_cookie_consent';
-                console.log('CookieConsent class initialized');
             }
 
             init() {
-                console.log('Initializing cookie consent...');
-                // Check if user has already given consent
                 const consent = this.getConsent();
                 if (!consent) {
-                    console.log('No existing consent found, showing banner');
                     this.showBanner();
                 } else {
-                    console.log('Existing consent found:', consent);
-                    // Apply saved preferences
                     this.applyConsent(consent);
                 }
             }
 
             showBanner() {
-                console.log('Attempting to show cookie banner...');
                 const banner = document.getElementById('cookieBanner');
                 if (banner) {
-                    console.log('Cookie banner element found, showing it');
                     banner.classList.remove('hidden');
                     setTimeout(() => banner.classList.add('show'), 100);
-                } else {
-                    console.error('Cookie banner element not found!');
                 }
             }
 
@@ -675,79 +584,42 @@
                     const consent = localStorage.getItem(this.consentKey);
                     return consent ? JSON.parse(consent) : null;
                 } catch (e) {
-                    console.error('Error reading consent from localStorage:', e);
                     return null;
                 }
             }
 
             setConsent(preferences) {
                 const consent = {
-                    essential: true, // Always true
+                    essential: true,
                     analytics: preferences.analytics || false,
                     functional: preferences.functional || false,
                     timestamp: new Date().toISOString(),
                     version: '1.0'
                 };
-
                 try {
                     localStorage.setItem(this.consentKey, JSON.stringify(consent));
                     this.applyConsent(consent);
                     this.hideBanner();
                     this.sendConsentToServer(consent);
-                } catch (e) {
-                    console.error('Error saving consent to localStorage:', e);
-                }
+                } catch (e) {}
             }
 
             applyConsent(consent) {
-                // Enable/disable analytics
-                if (consent.analytics) {
-                    this.enableAnalytics();
-                } else {
-                    this.disableAnalytics();
-                }
-
-                // Enable/disable functional cookies
-                if (consent.functional) {
-                    this.enableFunctional();
-                } else {
-                    this.disableFunctional();
-                }
-
-                console.log('Cookie consent applied:', consent);
+                if (consent.analytics) { this.enableAnalytics(); } else { this.disableAnalytics(); }
+                if (consent.functional) { this.enableFunctional(); } else { this.disableFunctional(); }
             }
 
-            enableAnalytics() {
-                console.log('Analytics enabled');
-                // Add your analytics initialization here
-            }
-
-            disableAnalytics() {
-                console.log('Analytics disabled');
-            }
-
-            enableFunctional() {
-                console.log('Functional cookies enabled');
-            }
-
-            disableFunctional() {
-                console.log('Functional cookies disabled');
-            }
+            enableAnalytics()  {}
+            disableAnalytics() {}
+            enableFunctional() {}
+            disableFunctional() {}
 
             sendConsentToServer(consent) {
                 fetch('/api/cookie-consent', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(consent)
-                }).then(response => {
-                    if (!response.ok) {
-                        console.error('Failed to send consent to server:', response.statusText);
-                    } else {
-                        console.log('Cookie consent sent to server successfully.');
-                    }
-                }).catch(err => console.error('Failed to send consent to server:', err));
+                }).catch(() => {});
             }
 
             resetConsent() {
@@ -756,15 +628,12 @@
             }
         }
 
-        // Global variable for cookie consent
         let cookieConsent;
 
-        // Mobile menu toggle functionality
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             const menuIcon = document.getElementById('menu-icon');
             const closeIcon = document.getElementById('close-icon');
-            
             if (menu && menuIcon && closeIcon) {
                 menu.classList.toggle('hidden');
                 menuIcon.classList.toggle('hidden');
@@ -772,230 +641,113 @@
             }
         }
 
-        // Cookie banner functions - these need to be global for onclick handlers
         function showCookieModal() {
-            console.log('showCookieModal called');
             const modal = document.getElementById('cookieModal');
             if (modal) {
-                console.log('Modal found, showing it');
-
                 window.scrollTo(0, 0);
-                
-                // Remove hidden class and force display
                 modal.classList.remove('hidden');
                 modal.style.display = 'flex';
-                
-                // Force a reflow to ensure the browser processes the display change
                 modal.offsetHeight;
-                
-                // Add show class for opacity transition
-                setTimeout(() => {
-                    modal.classList.add('show');
-                }, 10);
-
-                // Load current preferences into modal
+                setTimeout(() => modal.classList.add('show'), 10);
                 if (cookieConsent) {
                     const consent = cookieConsent.getConsent() || { analytics: false, functional: false };
                     const analyticsCheckbox = document.getElementById('analytics');
                     const functionalCheckbox = document.getElementById('functional');
-                    
-                    if (analyticsCheckbox) {
-                        analyticsCheckbox.checked = consent.analytics;
-                        updateAnalyticsToggle();
-                    }
-                    
-                    if (functionalCheckbox) {
-                        functionalCheckbox.checked = consent.functional;
-                        updateFunctionalToggle();
-                    }
+                    if (analyticsCheckbox) { analyticsCheckbox.checked = consent.analytics; updateAnalyticsToggle(); }
+                    if (functionalCheckbox) { functionalCheckbox.checked = consent.functional; updateFunctionalToggle(); }
                 }
-                
-                // Ensure body doesn't scroll when modal is open
                 document.body.style.overflow = 'hidden';
-            } else {
-                console.error('Cookie modal not found!');
             }
         }
 
         function hideCookieModal() {
-            console.log('hideCookieModal called');
             const modal = document.getElementById('cookieModal');
             if (modal) {
                 modal.classList.remove('show');
-                
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     modal.style.display = '';
-                    // Re-enable body scroll
                     document.body.style.overflow = '';
                 }, 300);
             }
         }
 
-        // Add this debug function to test modal visibility
-        function debugModal() {
-            const modal = document.getElementById('cookieModal');
-            if (modal) {
-                const rect = modal.getBoundingClientRect();
-                console.log('Modal position:', {
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height,
-                    visible: rect.width > 0 && rect.height > 0
-                });
-                
-                // Check if any parent has overflow hidden
-                let element = modal;
-                while (element) {
-                    const style = window.getComputedStyle(element);
-                    if (style.overflow === 'hidden' || style.position === 'fixed') {
-                        console.log('Parent element with potential issue:', element, {
-                            overflow: style.overflow,
-                            position: style.position
-                        });
-                    }
-                    element = element.parentElement;
-                }
-            }
-        }
-
-        // Call this after showing modal for debugging
-        function testModalVisibility() {
-            showCookieModal();
-            setTimeout(() => {
-                debugModal();
-            }, 100);
-        }
-
         function acceptAllCookies() {
-            console.log('acceptAllCookies called');
-            if (cookieConsent) {
-                cookieConsent.setConsent({
-                    analytics: true,
-                    functional: true
-                });
-            }
+            if (cookieConsent) { cookieConsent.setConsent({ analytics: true, functional: true }); }
             hideCookieModal();
         }
 
         function acceptEssentialOnly() {
-            console.log('acceptEssentialOnly called');
-            if (cookieConsent) {
-                cookieConsent.setConsent({
-                    analytics: false,
-                    functional: false
-                });
-            }
+            if (cookieConsent) { cookieConsent.setConsent({ analytics: false, functional: false }); }
             hideCookieModal();
         }
 
         function savePreferences() {
-            console.log('savePreferences called');
-            const analyticsCheckbox = document.getElementById('analytics');
+            const analyticsCheckbox  = document.getElementById('analytics');
             const functionalCheckbox = document.getElementById('functional');
-            
             if (cookieConsent && analyticsCheckbox && functionalCheckbox) {
-                cookieConsent.setConsent({
-                    analytics: analyticsCheckbox.checked,
-                    functional: functionalCheckbox.checked
-                });
+                cookieConsent.setConsent({ analytics: analyticsCheckbox.checked, functional: functionalCheckbox.checked });
             }
             hideCookieModal();
         }
 
         function toggleAnalytics() {
-            console.log('toggleAnalytics called');
             const checkbox = document.getElementById('analytics');
-            if (checkbox) {
-                checkbox.checked = !checkbox.checked;
-                updateAnalyticsToggle();
-            }
+            if (checkbox) { checkbox.checked = !checkbox.checked; updateAnalyticsToggle(); }
         }
 
         function toggleFunctional() {
-            console.log('toggleFunctional called');
             const checkbox = document.getElementById('functional');
-            if (checkbox) {
-                checkbox.checked = !checkbox.checked;
-                updateFunctionalToggle();
-            }
+            if (checkbox) { checkbox.checked = !checkbox.checked; updateFunctionalToggle(); }
         }
 
         function updateAnalyticsToggle() {
             const checkbox = document.getElementById('analytics');
-            const toggle = checkbox?.parentElement.querySelector('.toggle-switch');
-            const handle = toggle?.querySelector('.toggle-handle');
-
+            const toggle   = checkbox?.parentElement.querySelector('.toggle-switch');
+            const handle   = toggle?.querySelector('.toggle-handle');
             if (checkbox && toggle && handle) {
-                if (checkbox.checked) {
-                    toggle.style.backgroundColor = '#14b8a6';
-                    handle.style.transform = 'translateX(20px)';
-                } else {
-                    toggle.style.backgroundColor = '#64748b';
-                    handle.style.transform = 'translateX(2px)';
-                }
+                toggle.style.backgroundColor = checkbox.checked ? '#4A8AC7' : '#414750';
+                handle.style.transform = checkbox.checked ? 'translateX(20px)' : 'translateX(2px)';
             }
         }
 
         function updateFunctionalToggle() {
             const checkbox = document.getElementById('functional');
-            const toggle = checkbox?.parentElement.querySelector('.toggle-switch');
-            const handle = toggle?.querySelector('.toggle-handle');
-
+            const toggle   = checkbox?.parentElement.querySelector('.toggle-switch');
+            const handle   = toggle?.querySelector('.toggle-handle');
             if (checkbox && toggle && handle) {
-                if (checkbox.checked) {
-                    toggle.style.backgroundColor = '#14b8a6';
-                    handle.style.transform = 'translateX(20px)';
-                } else {
-                    toggle.style.backgroundColor = '#64748b';
-                    handle.style.transform = 'translateX(2px)';
-                }
+                toggle.style.backgroundColor = checkbox.checked ? '#4A8AC7' : '#414750';
+                handle.style.transform = checkbox.checked ? 'translateX(20px)' : 'translateX(2px)';
             }
         }
 
-        // Global function for testing (can be removed in production)
         function resetCookieConsent() {
-            if (cookieConsent) {
-                cookieConsent.resetConsent();
-            }
+            if (cookieConsent) { cookieConsent.resetConsent(); }
         }
 
-        // Initialize everything when DOM is ready
         function initializeApp() {
-            console.log('Initializing app...');
-            
-            // Initialize cookie consent
             if (typeof cookieConsent === 'undefined') {
                 cookieConsent = new CookieConsent();
                 cookieConsent.init();
             }
-            
-            // Event listeners for modal
+
             const cookieModal = document.getElementById('cookieModal');
             if (cookieModal) {
                 cookieModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        hideCookieModal();
-                    }
+                    if (e.target === this) { hideCookieModal(); }
                 });
             }
 
-            // Handle escape key
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    hideCookieModal();
-                }
+                if (e.key === 'Escape') { hideCookieModal(); }
             });
 
-            // Close mobile menu when clicking outside
             document.addEventListener('click', function(event) {
-                const menu = document.getElementById('mobile-menu');
+                const menu    = document.getElementById('mobile-menu');
                 const menuBtn = document.getElementById('mobile-menu-btn');
-                
                 if (menu && !menu.contains(event.target) && menuBtn && !menuBtn.contains(event.target)) {
                     menu.classList.add('hidden');
-                    const menuIcon = document.getElementById('menu-icon');
+                    const menuIcon  = document.getElementById('menu-icon');
                     const closeIcon = document.getElementById('close-icon');
                     if (menuIcon && closeIcon) {
                         menuIcon.classList.remove('hidden');
@@ -1003,11 +755,8 @@
                     }
                 }
             });
-
-            console.log('App initialization complete');
         }
 
-        // Initialize when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeApp);
         } else {
@@ -1017,17 +766,11 @@
 
     <!-- Page-specific JavaScript files -->
     {{if eq .CurrentPage "pricing"}}
-        <script src="/static/js/pricing.js"></script>
+        <script src="/static/js/pricing.js?v={{.AppVersion}}"></script>
     {{else if eq .CurrentPage "payment-success"}}
-        <script src="/static/js/payment-success.js"></script>
-    {{else if eq .CurrentPage "home"}}
-        <script src="/static/js/home.js"></script>
-    {{else if eq .CurrentPage "about"}}
-        <script src="/static/js/about.js"></script>
+        <script src="/static/js/payment-success.js?v={{.AppVersion}}"></script>
     {{else if eq .CurrentPage "dashboard"}}
-        <script src="/static/js/dashboard.js"></script>
-    {{else if eq .CurrentPage "how-to-use"}}
-        <script src="/static/js/how-to-use.js"></script>
+        <script src="/static/js/dashboard.js?v={{.AppVersion}}"></script>
     {{end}}
 </body>
 </html>
