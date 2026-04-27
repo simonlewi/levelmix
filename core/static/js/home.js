@@ -1,4 +1,32 @@
 (function () {
+    function initCycling() {
+        const words = ['mix', 'podcast', 'live set'];
+        const el = document.getElementById('cycling-word');
+        if (!el) return;
+        el.style.cssText = 'display:inline-block;transition:opacity 0.4s ease,transform 0.4s ease;';
+        let i = 0;
+        setInterval(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                i = (i + 1) % words.length;
+                el.textContent = words[i];
+                el.style.transform = 'translateY(10px)';
+                el.style.opacity = '0';
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }));
+            }, 400);
+        }, 2800);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCycling);
+    } else {
+        initCycling();
+    }
+
     const canvas = document.getElementById('hero-wave');
     if (!canvas) return;
 

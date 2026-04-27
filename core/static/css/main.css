@@ -148,3 +148,20 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-surface-bright);
 }
+
+/* ─── Scroll animations ─── */
+[data-animate] {
+    opacity: 0;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+[data-animate="up"]    { transform: translateY(24px); }
+[data-animate="left"]  { transform: translateX(-24px); }
+[data-animate="right"] { transform: translateX(24px); }
+[data-animate].visible { opacity: 1; transform: none; }
+
+/* ─── Display font (Syne) ─── */
+.font-display {
+    font-family: 'Syne', sans-serif;
+    letter-spacing: -0.04em;
+    font-weight: 700;
+}
