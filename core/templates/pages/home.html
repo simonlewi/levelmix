@@ -12,11 +12,11 @@
     <div class="signature-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px]"></div>
 
     <div class="relative z-10 max-w-4xl px-8 md:px-24">
-        <h1 class="font-extrabold text-5xl md:text-[60px] leading-[1.1] text-text-primary mb-6" style="letter-spacing: -0.02em;">
-            Your mix,<br><span class="text-arctic">platform-ready.</span>
+        <h1 class="font-display text-5xl md:text-[60px] leading-[1.1] text-text-primary mb-6">
+            Your <span id="cycling-word">mix</span>,<br><span class="text-arctic">platform-ready.</span>
         </h1>
         <p class="text-lg md:text-xl text-sand max-w-2xl mb-10 leading-relaxed">
-            Transparent loudness for your DJ mixes, live sets, or podcasts. Preserve your dynamics while hitting every platform target.
+            Automatic, transparent loudness for your DJ mixes, live sets, or podcasts. Preserve your dynamics while hitting every platform target.
         </p>
         <div class="flex flex-col sm:flex-row gap-4">
             {{if .user}}
@@ -42,9 +42,9 @@
 
 <!-- How It Works Section -->
 <section class="py-24 px-8 md:px-24 bg-surface-container-low">
-    <h2 class="font-bold text-[1.75rem] text-text-primary mb-16">How it works</h2>
+    <h2 class="font-display text-[1.75rem] text-text-primary mb-16" data-animate="up">How it works</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <article class="bg-surface-container-high p-8 rounded-xl hover-lift">
+        <article class="bg-surface-container-high p-8 rounded-xl hover-lift" data-animate="up" data-delay="0">
             <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-6" style="border: 1px solid rgba(74,138,199,0.2);">
                 <span class="material-symbols-outlined text-arctic">cloud_upload</span>
             </div>
@@ -54,7 +54,7 @@
             </p>
         </article>
 
-        <article class="bg-surface-container-high p-8 rounded-xl hover-lift">
+        <article class="bg-surface-container-high p-8 rounded-xl hover-lift" data-animate="up" data-delay="120">
             <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-6" style="border: 1px solid rgba(74,138,199,0.2);">
                 <span class="material-symbols-outlined text-arctic">tune</span>
             </div>
@@ -64,7 +64,7 @@
             </p>
         </article>
 
-        <article class="bg-surface-container-high p-8 rounded-xl hover-lift">
+        <article class="bg-surface-container-high p-8 rounded-xl hover-lift" data-animate="up" data-delay="240">
             <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-6" style="border: 1px solid rgba(74,138,199,0.2);">
                 <span class="material-symbols-outlined text-arctic">download</span>
             </div>
@@ -78,18 +78,18 @@
 
 <!-- Features Section -->
 <section class="py-24 px-8 md:px-24">
-    <h2 class="font-bold text-[1.75rem] text-text-primary mb-24 max-w-xl">Built for creators who care about sound</h2>
+    <h2 class="font-display text-[1.75rem] text-text-primary mb-24 max-w-xl" data-animate="up">Built for creators who care about sound</h2>
     <div class="space-y-32">
 
         <!-- Feature 1 -->
         <div class="flex flex-col md:flex-row items-center gap-16">
-            <div class="flex-1">
+            <div class="flex-1" data-animate="left">
                 <span class="label-sm text-arctic mb-4 block">Engine Intelligence</span>
                 <h3 class="text-3xl font-bold text-text-primary mb-6">Dynamics-Aware Processing</h3>
                 <p class="text-text-secondary text-lg leading-relaxed">Unlike simple limiters, LevelMix respects your transients. Our algorithm adjusts gain while maintaining the emotional impact of your mix's dynamic range.</p>
             </div>
-            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group">
-                <img class="w-full h-full object-cover" src="/static/images/soundboard.jpg" alt="Professional audio mixing console">
+            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group" data-animate="right">
+                <img class="w-full h-full object-cover" src="/static/images/soundboard.webp" alt="Professional audio mixing console">
                 <div class="absolute inset-0 bg-surface/65 group-hover:opacity-0 transition-opacity duration-500"></div>
                 <div class="absolute inset-0 bg-arctic/10 mix-blend-overlay"></div>
             </div>
@@ -97,13 +97,13 @@
 
         <!-- Feature 2 -->
         <div class="flex flex-col md:flex-row-reverse items-center gap-16">
-            <div class="flex-1">
+            <div class="flex-1" data-animate="right">
                 <span class="label-sm text-arctic mb-4 block">Compliance</span>
                 <h3 class="text-3xl font-bold text-text-primary mb-6">Industry-Standard Targets</h3>
                 <p class="text-text-secondary text-lg leading-relaxed">Stop guessing LUFS. From -14 LUFS for Spotify to EBU R128 for television, we ensure your audio never gets turned down by platform algorithms.</p>
             </div>
-            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group">
-                <img class="w-full h-full object-cover" src="/static/images/daw-waveforms.jpg" alt="Digital audio workstation showing waveforms">
+            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group" data-animate="left">
+                <img class="w-full h-full object-cover" src="/static/images/daw-waveforms.webp" alt="Digital audio workstation showing waveforms">
                 <div class="absolute inset-0 bg-surface/65 group-hover:opacity-0 transition-opacity duration-500"></div>
                 <div class="absolute inset-0 bg-arctic/10 mix-blend-overlay"></div>
             </div>
@@ -111,13 +111,13 @@
 
         <!-- Feature 3 -->
         <div class="flex flex-col md:flex-row items-center gap-16">
-            <div class="flex-1">
+            <div class="flex-1" data-animate="left">
                 <span class="label-sm text-arctic mb-4 block">Performance</span>
                 <h3 class="text-3xl font-bold text-text-primary mb-6">Long-Form Content Ready</h3>
                 <p class="text-text-secondary text-lg leading-relaxed">Optimized for DJ mixes, live sets and podcasts. Process 2-hour long recordings in under 2 minutes with zero quality degradation or phase shifting.</p>
             </div>
-            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group">
-                <img class="w-full h-full object-cover" src="/static/images/studio-mic.jpg" alt="Microphone in a professional recording studio">
+            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group" data-animate="right">
+                <img class="w-full h-full object-cover" src="/static/images/studio-mic.webp" alt="Microphone in a professional recording studio">
                 <div class="absolute inset-0 bg-surface/65 group-hover:opacity-0 transition-opacity duration-500"></div>
                 <div class="absolute inset-0 bg-arctic/10 mix-blend-overlay"></div>
             </div>
@@ -129,13 +129,13 @@
 <!-- Pricing Preview Section -->
 <section class="py-24 px-8 md:px-24 bg-surface-container-low">
     <div class="text-center mb-16">
-        <h2 class="font-bold text-[1.75rem] text-text-primary mb-4">Simple, Honest Pricing</h2>
+        <h2 class="font-display text-[1.75rem] text-text-primary mb-4" data-animate="up">Simple, Honest Pricing</h2>
         <p class="text-text-secondary">Precision tools for every stage of your career.</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
 
         <!-- Free -->
-        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift">
+        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift" data-animate="up" data-delay="0">
             <div class="mb-8">
                 <h4 class="label-sm text-text-tertiary mb-2">Free</h4>
                 <p class="text-text-secondary text-sm mt-4">Perfect for trying out LevelMix</p>
@@ -160,7 +160,7 @@
         </div>
 
         <!-- Premium -->
-        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift card-premium relative">
+        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift card-premium relative" data-animate="up" data-delay="120">
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-sand text-[#1A1A17] label-sm px-4 py-1 rounded-full" style="font-size: 0.625rem;">
                 Most Popular
             </div>
@@ -188,7 +188,7 @@
         </div>
 
         <!-- Professional -->
-        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift" style="border: 1px solid rgba(74,138,199,0.2);">
+        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift" style="border: 1px solid rgba(74,138,199,0.2);" data-animate="up" data-delay="240">
             <div class="mb-8">
                 <h4 class="label-sm text-arctic mb-2">Professional</h4>
                 <p class="text-text-secondary text-sm mt-4">Maximum power for audio professionals</p>
@@ -222,10 +222,10 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-24 px-8 md:px-24">
+<section class="py-24 px-8 md:px-24" data-animate="up">
     <div class="max-w-2xl mx-auto">
         <div class="bg-surface-container-high rounded-xl p-12 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold text-text-primary mb-4" style="line-height: 1.2;">
+            <h2 class="font-display text-3xl md:text-4xl text-text-primary mb-4" style="line-height: 1.2;">
                 Ready to normalize your audio?
             </h2>
             <p class="text-lg text-text-secondary mb-10 leading-relaxed">
