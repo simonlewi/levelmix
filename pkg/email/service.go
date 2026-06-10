@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/resendlabs/resend-go"
 )
@@ -23,6 +24,7 @@ type EmailService interface {
 	SendPaymentFailed(ctx context.Context, to string) error
 	SendSubscriptionCanceled(ctx context.Context, to, planName string) error
 	SendSubscriptionReactivated(ctx context.Context, to, planName string) error
+	SendTrialEnding(ctx context.Context, to, planName string, trialEndDate time.Time) error
 }
 
 // ResendService implements EmailService using Resend

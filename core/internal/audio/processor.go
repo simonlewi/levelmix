@@ -637,7 +637,12 @@ func (p *Processor) getOutputFilePath(fileID, jobID, outputFormat string) string
 	return filepath.Join("/tmp/levelmix", fmt.Sprintf("levelmix_output_%s_%s%s", fileID, jobID, outputExt))
 }
 
-func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.ServeMux) {
+// TrialReminderHandler is implemented by payment handlers to avoid a circular import.
+type TrialReminderHandler interface {
+	HandleTrialReminderTask(ctx context.Context, t *asynq.Task) error
+}
+
+func NewWorker(redisAddr string, processor *Processor, trialHandler TrialReminderHandler) (*asynq.Server, *asynq.ServeMux) {
 	maxConcurrency := runtime.NumCPU() * 2
 
 	// Cap concurrency to prevent resource exhaustion
@@ -680,9 +685,10 @@ func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.Se
 		asynq.Config{
 			Concurrency: maxConcurrency,
 			Queues: map[string]int{
-				QueueFast:     maxConcurrency * 5 / 10, // 50% for fast processing
-				QueuePremium:  maxConcurrency * 3 / 10, // 30% for premium
-				QueueStandard: standardPriority,        // 20% for standard
+				QueueFast:          maxConcurrency * 5 / 10, // 50% for fast processing
+				QueuePremium:       maxConcurrency * 3 / 10, // 30% for premium
+				QueueStandard:      standardPriority,        // 20% for standard
+				QueueNotifications: 1,                       // lowest weight; never competes with audio
 			},
 			StrictPriority: true, // Fast -> Premium -> Standard
 
@@ -716,6 +722,10 @@ func NewWorker(redisAddr string, processor *Processor) (*asynq.Server, *asynq.Se
 		}()
 		return processor.HandleAudioProcess(ctx, t)
 	})
+
+	if trialHandler != nil {
+		mux.HandleFunc("trial:ending_reminder", trialHandler.HandleTrialReminderTask)
+	}
 
 	return srv, mux
 }

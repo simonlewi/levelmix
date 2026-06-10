@@ -14,6 +14,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/simonlewi/levelmix/core/internal/audio"
+	"github.com/simonlewi/levelmix/pkg/email"
+	payment_handlers "github.com/simonlewi/levelmix-enterprise/payment/handlers"
 	ee_storage "github.com/simonlewi/levelmix-enterprise/storage"
 )
 
@@ -51,8 +53,24 @@ func run() {
 
 	processor := audio.NewProcessor(audioStorage, metadataStorage, os.Getenv("REDIS_URL"))
 
+	// Initialize email service for trial reminder handler
+	var emailService email.EmailService
+	if os.Getenv("EMAIL_SERVICE") == "mock" || os.Getenv("RESEND_API_KEY") == "" {
+		emailService = email.NewMockEmailService()
+	} else {
+		var err error
+		emailService, err = email.NewResendService()
+		if err != nil {
+			log.Printf("Failed to initialize email service in worker, falling back to mock: %v", err)
+			emailService = email.NewMockEmailService()
+		}
+	}
+
+	// Build a minimal handler for the trial reminder task — only emailService is used at consume time
+	trialHandler := payment_handlers.NewPaymentHandlers(nil, nil, emailService, nil)
+
 	// Start worker
-	srv, mux := audio.NewWorker(os.Getenv("REDIS_URL"), processor)
+	srv, mux := audio.NewWorker(os.Getenv("REDIS_URL"), processor, trialHandler)
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
