@@ -92,9 +92,12 @@ func run() {
 				log.Printf("Warning: Failed to initialize payment service: %v", err)
 			} else {
 				log.Printf("Payment service initialized successfully (Provider: %s)", paymentConfig.Provider)
-				asynqClient := asynq.NewClient(asynq.RedisClientOpt{Addr: os.Getenv("REDIS_URL")})
-				defer asynqClient.Close()
-				paymentHandlers = payment_handlers.NewPaymentHandlers(paymentService, tursoStorage, emailService, asynqClient)
+				notificationQueueClient := asynq.NewClient(asynq.RedisClientOpt{
+					Addr:     os.Getenv("REDIS_URL"),
+					Password: os.Getenv("REDIS_PASSWORD"),
+				})
+				defer notificationQueueClient.Close()
+				paymentHandlers = payment_handlers.NewPaymentHandlers(paymentService, tursoStorage, emailService, notificationQueueClient)
 			}
 		}
 	}
