@@ -52,7 +52,7 @@ func NewResendService() (EmailService, error) {
 
 	fromEmail := os.Getenv("EMAIL_FROM")
 	if fromEmail == "" {
-		fromEmail = "onboarding@resend.dev" // Default from email
+		fromEmail = "onboarding@resend.dev"
 	}
 
 	fromName := os.Getenv("EMAIL_FROM_NAME")
@@ -62,7 +62,7 @@ func NewResendService() (EmailService, error) {
 
 	baseURL := os.Getenv("APP_URL")
 	if baseURL == "" {
-		baseURL = "https://levelmix.io" // Default base URL
+		baseURL = "https://levelmix.io"
 	}
 
 	client := resend.NewClient(apiKey)
@@ -75,67 +75,81 @@ func NewResendService() (EmailService, error) {
 	}, nil
 }
 
+const emailCSS = `
+    body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #EDEAE3; background-color: #0F0F0D; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #1C1C19; border-radius: 8px; overflow: hidden; border: 1px solid #414750; }
+    .header { background: #20201D; padding: 28px 30px; border-bottom: 1px solid #414750; }
+    .wordmark { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #4A8AC7; text-transform: uppercase; margin: 0 0 8px 0; }
+    .title { font-size: 22px; font-weight: 600; color: #EDEAE3; margin: 0; line-height: 1.3; }
+    .content { padding: 30px; color: #B0ADA4; font-size: 15px; }
+    .content p { margin: 0 0 16px 0; }
+    .content strong, .content b { color: #EDEAE3; }
+    .content ul, .content ol { padding-left: 20px; margin: 0 0 16px 0; }
+    .content li { margin-bottom: 6px; }
+    .block { background: #20201D; border: 1px solid #414750; padding: 16px 20px; border-radius: 6px; margin: 20px 0; color: #B0ADA4; }
+    .block-success { border-color: #41c44e; }
+    .block-error { border-color: #ef4444; }
+    .block-warning { border-color: #D4A95E; }
+    .feature { background: #20201D; border: 1px solid #414750; padding: 14px 18px; border-radius: 6px; margin: 8px 0; }
+    .feature-label { font-weight: 600; color: #EDEAE3; font-size: 14px; }
+    .feature-desc { color: #B0ADA4; font-size: 13px; margin-top: 2px; }
+    .cta { text-align: center; margin: 24px 0; }
+    .button { display: inline-block; padding: 13px 28px; background: #4A8AC7; color: #FFFFFF; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; }
+    .link { color: #4A8AC7; word-break: break-all; }
+    .footer { padding: 20px 30px; border-top: 1px solid #414750; text-align: center; font-size: 12px; color: #7A7770; }
+    .footer p { margin: 0; }`
+
 // SendPasswordReset sends a password reset email
 func (s *ResendService) SendPasswordReset(ctx context.Context, to, token string) error {
 	resetLink := fmt.Sprintf("%s/reset-password?token=%s", s.baseURL, token)
 
-	html := fmt.Sprintf(`
-<!DOCTYPE html>
+	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Reset Your Password</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #06b6d4 0%%, #3b82f6 100%%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .button { display: inline-block; padding: 14px 30px; background: #06b6d4; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Reset your password</title>
+  <style>%s</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Password Reset Request</h1>
-        </div>
-        <div class="content">
-            <p>Hi there,</p>
-            <p>We received a request to reset your password for your LevelMix account. Click the button below to create a new password:</p>
-            <div style="text-align: center;">
-                <a href="%s" class="button">Reset Password</a>
-            </div>
-            <p>Or copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #06b6d4;">%s</p>
-            <p><strong>This link will expire in 1 hour for security reasons.</strong></p>
-            <p>If you didn't request a password reset, you can safely ignore this email. Your password won't be changed.</p>
-        </div>
-        <div class="footer">
-            <p>© 2025 LevelMix. All rights reserved.</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Reset your password</h1>
     </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <p>We received a request to reset your LevelMix password. Click the button below to choose a new one.</p>
+      <div class="cta">
+        <a href="%s" class="button">Reset password</a>
+      </div>
+      <p>Or copy this link into your browser:</p>
+      <p><a href="%s" class="link">%s</a></p>
+      <p><strong>This link expires in 1 hour.</strong></p>
+      <p>If you didn't request this, you can safely ignore this email.</p>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
 </body>
-</html>`, resetLink, resetLink)
+</html>`, emailCSS, resetLink, resetLink, resetLink)
 
-	text := fmt.Sprintf(`Password Reset Request
+	text := fmt.Sprintf(`Reset your password
 
 Hi there,
 
-We received a request to reset your password for your LevelMix account.
+We received a request to reset your LevelMix password.
 
-To reset your password, visit this link:
-%s
+Reset your password: %s
 
-This link will expire in 1 hour for security reasons.
+This link expires in 1 hour. If you didn't request this, you can safely ignore this email.
 
-If you didn't request a password reset, you can safely ignore this email. Your password won't be changed.
-
-© 2025 LevelMix. All rights reserved.`, resetLink)
+© 2026 LevelMix Audio. All rights reserved.`, resetLink)
 
 	request := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
 		To:      []string{to},
-		Subject: "Reset Your LevelMix Password",
+		Subject: "Reset your LevelMix password",
 		Html:    html,
 		Text:    text,
 	}
@@ -154,90 +168,66 @@ If you didn't request a password reset, you can safely ignore this email. Your p
 func (s *ResendService) SendWelcome(ctx context.Context, to string) error {
 	dashboardLink := fmt.Sprintf("%s/dashboard", s.baseURL)
 
-	html := fmt.Sprintf(`
-<!DOCTYPE html>
+	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Welcome to LevelMix!</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #06b6d4 0%%, #3b82f6 100%%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .button { display: inline-block; padding: 14px 30px; background: #06b6d4; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .feature { padding: 15px; background: white; border-radius: 5px; margin: 10px 0; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Welcome to LevelMix</title>
+  <style>%s</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome to LevelMix! 🎵</h1>
-        </div>
-        <div class="content">
-            <p>Hi there!</p>
-            <p>Welcome to LevelMix - your professional audio normalization solution. We're excited to have you on board!</p>
-            
-            <h3>What you can do with LevelMix:</h3>
-            <div class="feature">
-                <strong>🎚️ Normalize Audio Files</strong><br>
-                Achieve consistent loudness levels for all your audio content
-            </div>
-            <div class="feature">
-                <strong>🎯 Multiple LUFS Targets</strong><br>
-                Choose from streaming, podcast, radio, or club-ready presets
-            </div>
-            <div class="feature">
-                <strong>⚡ Fast Processing</strong><br>
-                Get your normalized audio in minutes
-            </div>
-            
-            <div style="text-align: center;">
-                <a href="%s" class="button">Go to Dashboard</a>
-            </div>
-            
-            <p>If you have any questions, feel free to reach out to our support team.</p>
-            <p>Happy mixing!</p>
-            <p>- The LevelMix Team</p>
-        </div>
-        <div class="footer">
-            <p>© 2025 LevelMix. All rights reserved.</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Welcome aboard.</h1>
     </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <p>Your LevelMix account is ready. Here's what you can do:</p>
+      <div class="feature">
+        <div class="feature-label">Normalize audio files</div>
+        <div class="feature-desc">Achieve consistent loudness across all your tracks.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-label">Choose your LUFS target</div>
+        <div class="feature-desc">Presets for streaming, podcast, radio, and club.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-label">Fast processing</div>
+        <div class="feature-desc">Processed and ready to download in minutes.</div>
+      </div>
+      <div class="cta">
+        <a href="%s" class="button">Go to dashboard</a>
+      </div>
+      <p>Questions? Reply to this email anytime.</p>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
 </body>
-</html>`, dashboardLink)
+</html>`, emailCSS, dashboardLink)
 
-	text := fmt.Sprintf(`Welcome to LevelMix! 🎵
+	text := fmt.Sprintf(`Welcome to LevelMix.
 
-Hi there!
+Hi there,
 
-Welcome to LevelMix - your professional audio normalization solution. We're excited to have you on board!
+Your LevelMix account is ready.
 
-What you can do with LevelMix:
+Normalize audio files — Achieve consistent loudness across all your tracks.
+Choose your LUFS target — Presets for streaming, podcast, radio, and club.
+Fast processing — Processed and ready to download in minutes.
 
-🎚️ Normalize Audio Files
-Achieve consistent loudness levels for all your audio content
+Go to dashboard: %s
 
-🎯 Multiple LUFS Targets
-Choose from streaming, podcast, radio, or club-ready presets
+Questions? Reply to this email anytime.
 
-⚡ Fast Processing
-Get your normalized audio in minutes
-
-Go to Dashboard: %s
-
-If you have any questions, feel free to reach out to our support team.
-
-Happy mixing!
-- The LevelMix Team
-
-© 2025 LevelMix. All rights reserved.`, dashboardLink)
+© 2026 LevelMix Audio. All rights reserved.`, dashboardLink)
 
 	request := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
 		To:      []string{to},
-		Subject: "Welcome to LevelMix! 🎵",
+		Subject: "Welcome to LevelMix",
 		Html:    html,
 		Text:    text,
 	}
@@ -254,72 +244,72 @@ Happy mixing!
 
 // SendAccountDeleted sends a confirmation email when account is deleted
 func (s *ResendService) SendAccountDeleted(ctx context.Context, to string) error {
-	html := `
-<!DOCTYPE html>
+	html := `<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Account Deleted</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #ef4444; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Account deleted</title>
+  <style>
+    body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #EDEAE3; background-color: #0F0F0D; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #1C1C19; border-radius: 8px; overflow: hidden; border: 1px solid #414750; }
+    .header { background: #20201D; padding: 28px 30px; border-bottom: 1px solid #414750; }
+    .wordmark { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #4A8AC7; text-transform: uppercase; margin: 0 0 8px 0; }
+    .title { font-size: 22px; font-weight: 600; color: #EDEAE3; margin: 0; }
+    .content { padding: 30px; color: #B0ADA4; font-size: 15px; }
+    .content p { margin: 0 0 16px 0; }
+    .content strong { color: #EDEAE3; }
+    .content ul { padding-left: 20px; margin: 0 0 16px 0; }
+    .content li { margin-bottom: 6px; }
+    .footer { padding: 20px 30px; border-top: 1px solid #414750; text-align: center; font-size: 12px; color: #7A7770; }
+    .footer p { margin: 0; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Account Deleted</h1>
-        </div>
-        <div class="content">
-            <p>Hi there,</p>
-            <p>This email confirms that your LevelMix account has been successfully deleted.</p>
-            <p><strong>What's been removed:</strong></p>
-            <ul>
-                <li>Your account and profile information</li>
-                <li>All uploaded and processed audio files</li>
-                <li>Processing history and statistics</li>
-                <li>Any active subscriptions</li>
-            </ul>
-            <p>We're sorry to see you go. If you ever want to come back, you're always welcome to create a new account.</p>
-            <p>If you didn't request this deletion, please contact our support team immediately.</p>
-            <p>Thank you for using LevelMix.</p>
-            <p>- The LevelMix Team</p>
-        </div>
-        <div class="footer">
-            <p>© 2025 LevelMix. All rights reserved.</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Account deleted</h1>
     </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <p>Your LevelMix account has been deleted. Here's what was removed:</p>
+      <ul>
+        <li>Your account and profile</li>
+        <li>All uploaded and processed audio files</li>
+        <li>Processing history and statistics</li>
+        <li>Any active subscriptions</li>
+      </ul>
+      <p>If you change your mind, you're welcome to create a new account at any time.</p>
+      <p>If you didn't request this deletion, contact our support team immediately.</p>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>`
 
-	text := `Account Deleted
+	text := `Account deleted
 
 Hi there,
 
-This email confirms that your LevelMix account has been successfully deleted.
+Your LevelMix account has been deleted. Here's what was removed:
 
-What's been removed:
-- Your account and profile information
+- Your account and profile
 - All uploaded and processed audio files
 - Processing history and statistics
 - Any active subscriptions
 
-We're sorry to see you go. If you ever want to come back, you're always welcome to create a new account.
+If you change your mind, you're welcome to create a new account at any time.
 
-If you didn't request this deletion, please contact our support team immediately.
+If you didn't request this deletion, contact our support team immediately.
 
-Thank you for using LevelMix.
-- The LevelMix Team
-
-© 2025 LevelMix. All rights reserved.`
+© 2026 LevelMix Audio. All rights reserved.`
 
 	request := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
 		To:      []string{to},
-		Subject: "Your LevelMix Account Has Been Deleted",
+		Subject: "Your LevelMix account has been deleted",
 		Html:    html,
 		Text:    text,
 	}
@@ -337,76 +327,58 @@ Thank you for using LevelMix.
 
 // SendEmailChanged notifies the old email address that the email has been changed
 func (s *ResendService) SendEmailChanged(ctx context.Context, oldEmail, newEmail string) error {
-	html := fmt.Sprintf(`
-<!DOCTYPE html>
+	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Email Address Changed</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #ef4444; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 5px; margin: 20px 0; }
-        .button { display: inline-block; padding: 14px 30px; background: #ef4444; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Email address changed</title>
+  <style>%s</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Email Address Changed</h1>
-        </div>
-        <div class="content">
-            <p>Hi there,</p>
-            <p>This email confirms that your LevelMix account email address has been changed.</p>
-            
-            <div class="warning">
-                <strong>⚠️ Important:</strong> Your email has been changed from <strong>%s</strong> to <strong>%s</strong>
-            </div>
-            
-            <p>If you made this change, no further action is needed. You'll need to use your new email address to sign in going forward.</p>
-            
-            <p><strong>If you didn't make this change:</strong></p>
-            <ol>
-                <li>Your account may have been compromised</li>
-                <li>Contact our support team immediately</li>
-                <li>Try to reset your password using the new email address</li>
-            </ol>
-            
-            <p>For security reasons, this notification has been sent to your previous email address.</p>
-        </div>
-        <div class="footer">
-            <p>© 2025 LevelMix. All rights reserved.</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Email address changed</h1>
     </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <div class="block block-warning">
+        Your account email was changed from <strong>%s</strong> to <strong>%s</strong>.
+      </div>
+      <p>If you made this change, no further action is needed. Use your new email to sign in going forward.</p>
+      <p><strong>If you didn't make this change:</strong></p>
+      <ol>
+        <li>Your account may be compromised.</li>
+        <li>Contact our support team immediately.</li>
+        <li>Try resetting your password using the new email address.</li>
+      </ol>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
 </body>
-</html>`, oldEmail, newEmail)
+</html>`, emailCSS, oldEmail, newEmail)
 
-	text := fmt.Sprintf(`Email Address Changed
+	text := fmt.Sprintf(`Email address changed
 
 Hi there,
 
-This email confirms that your LevelMix account email address has been changed.
+Your LevelMix account email was changed from %s to %s.
 
-⚠️ Important: Your email has been changed from %s to %s
-
-If you made this change, no further action is needed. You'll need to use your new email address to sign in going forward.
+If you made this change, no further action is needed. Use your new email to sign in going forward.
 
 If you didn't make this change:
-1. Your account may have been compromised
-2. Contact our support team immediately
-3. Try to reset your password using the new email address
+1. Your account may be compromised.
+2. Contact our support team immediately.
+3. Try resetting your password using the new email address.
 
-For security reasons, this notification has been sent to your previous email address.
-
-© 2025 LevelMix. All rights reserved.`, oldEmail, newEmail)
+© 2026 LevelMix Audio. All rights reserved.`, oldEmail, newEmail)
 
 	request := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
 		To:      []string{oldEmail},
-		Subject: "Your LevelMix Email Address Has Been Changed",
+		Subject: "Your LevelMix email address has been changed",
 		Html:    html,
 		Text:    text,
 	}
@@ -424,71 +396,63 @@ For security reasons, this notification has been sent to your previous email add
 func (s *ResendService) SendEmailChangeConfirmation(ctx context.Context, to string) error {
 	dashboardLink := fmt.Sprintf("%s/dashboard", s.baseURL)
 
-	html := fmt.Sprintf(`
-<!DOCTYPE html>
+	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Email Change Confirmed</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #06b6d4 0%%, #3b82f6 100%%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .button { display: inline-block; padding: 14px 30px; background: #06b6d4; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Email updated</title>
+  <style>%s</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Email Successfully Updated!</h1>
-        </div>
-        <div class="content">
-            <p>Hi there,</p>
-            <p>This email confirms that your LevelMix account email address has been successfully updated to this address.</p>
-            
-            <p>You can now use this email address to:</p>
-            <ul>
-                <li>Sign in to your account</li>
-                <li>Receive notifications and updates</li>
-                <li>Reset your password if needed</li>
-            </ul>
-            
-            <div style="text-align: center;">
-                <a href="%s" class="button">Go to Dashboard</a>
-            </div>
-            
-            <p>If you didn't make this change, please contact our support team immediately.</p>
-        </div>
-        <div class="footer">
-            <p>© 2025 LevelMix. All rights reserved.</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Email updated</h1>
     </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <div class="block block-success">
+        <strong>Your email address has been updated.</strong> This address is now active on your account.
+      </div>
+      <p>You can now use this email to:</p>
+      <ul>
+        <li>Sign in to your account</li>
+        <li>Receive notifications</li>
+        <li>Reset your password if needed</li>
+      </ul>
+      <div class="cta">
+        <a href="%s" class="button">Go to dashboard</a>
+      </div>
+      <p>If you didn't make this change, contact our support team immediately.</p>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
 </body>
-</html>`, dashboardLink)
+</html>`, emailCSS, dashboardLink)
 
-	text := fmt.Sprintf(`Email Successfully Updated!
+	text := fmt.Sprintf(`Email updated
 
 Hi there,
 
-This email confirms that your LevelMix account email address has been successfully updated to this address.
+Your LevelMix email address has been updated. This address is now active on your account.
 
-You can now use this email address to:
+You can now use this email to:
 - Sign in to your account
-- Receive notifications and updates
+- Receive notifications
 - Reset your password if needed
 
-Go to Dashboard: %s
+Go to dashboard: %s
 
-If you didn't make this change, please contact our support team immediately.
+If you didn't make this change, contact our support team immediately.
 
-© 2025 LevelMix. All rights reserved.`, dashboardLink)
+© 2026 LevelMix Audio. All rights reserved.`, dashboardLink)
 
 	request := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
 		To:      []string{to},
-		Subject: "Welcome to Your Updated LevelMix Email",
+		Subject: "Your LevelMix email has been updated",
 		Html:    html,
 		Text:    text,
 	}
@@ -504,82 +468,69 @@ If you didn't make this change, please contact our support team immediately.
 
 // SendPasswordChanged sends a confirmation when password is changed
 func (s *ResendService) SendPasswordChanged(ctx context.Context, to string) error {
-	html := `
-<!DOCTYPE html>
+	html := `<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Password Changed</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .success { background: #d1fae5; border: 1px solid #10b981; padding: 15px; border-radius: 5px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Password changed</title>
+  <style>
+    body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #EDEAE3; background-color: #0F0F0D; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #1C1C19; border-radius: 8px; overflow: hidden; border: 1px solid #414750; }
+    .header { background: #20201D; padding: 28px 30px; border-bottom: 1px solid #414750; }
+    .wordmark { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #4A8AC7; text-transform: uppercase; margin: 0 0 8px 0; }
+    .title { font-size: 22px; font-weight: 600; color: #EDEAE3; margin: 0; }
+    .content { padding: 30px; color: #B0ADA4; font-size: 15px; }
+    .content p { margin: 0 0 16px 0; }
+    .content strong { color: #EDEAE3; }
+    .content ol { padding-left: 20px; margin: 0 0 16px 0; }
+    .content li { margin-bottom: 6px; }
+    .block-success { background: #20201D; border: 1px solid #41c44e; padding: 16px 20px; border-radius: 6px; margin: 20px 0; }
+    .footer { padding: 20px 30px; border-top: 1px solid #414750; text-align: center; font-size: 12px; color: #7A7770; }
+    .footer p { margin: 0; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Password Successfully Changed</h1>
-        </div>
-        <div class="content">
-            <p>Hi there,</p>
-            
-            <div class="success">
-                <strong>✓ Success:</strong> Your password has been changed successfully.
-            </div>
-            
-            <p>This email confirms that your LevelMix account password was changed. You can now sign in with your new password.</p>
-            
-            <p><strong>Security Tips:</strong></p>
-            <ul>
-                <li>Never share your password with anyone</li>
-                <li>Use a unique password for each online account</li>
-                <li>Consider using a password manager</li>
-                <li>Enable two-factor authentication when available</li>
-            </ul>
-            
-            <p>If you didn't make this change, please:</p>
-            <ol>
-                <li>Reset your password immediately</li>
-                <li>Check your account for any unauthorized activity</li>
-                <li>Contact our support team</li>
-            </ol>
-        </div>
-        <div class="footer">
-            <p>© 2025 LevelMix. All rights reserved.</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Password changed</h1>
     </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <div class="block-success">
+        <strong>Your password has been changed successfully.</strong> You can sign in with your new password.
+      </div>
+      <p>If you didn't make this change:</p>
+      <ol>
+        <li>Reset your password immediately.</li>
+        <li>Check your account for unauthorized activity.</li>
+        <li>Contact our support team.</li>
+      </ol>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>`
 
-	text := `Password Successfully Changed
+	text := `Password changed
 
 Hi there,
 
-✓ Success: Your password has been changed successfully.
+Your LevelMix password has been changed successfully. You can sign in with your new password.
 
-This email confirms that your LevelMix account password was changed. You can now sign in with your new password.
+If you didn't make this change:
+1. Reset your password immediately.
+2. Check your account for unauthorized activity.
+3. Contact our support team.
 
-Security Tips:
-- Never share your password with anyone
-- Use a unique password for each online account
-- Consider using a password manager
-- Enable two-factor authentication when available
-
-If you didn't make this change, please:
-1. Reset your password immediately
-2. Check your account for any unauthorized activity
-3. Contact our support team
-
-© 2025 LevelMix. All rights reserved.`
+© 2026 LevelMix Audio. All rights reserved.`
 
 	request := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
 		To:      []string{to},
-		Subject: "Your LevelMix Password Has Been Changed",
+		Subject: "Your LevelMix password has been changed",
 		Html:    html,
 		Text:    text,
 	}
@@ -610,8 +561,6 @@ func NewMockEmailService() EmailService {
 	log.Println("Initialized Mock Email Service")
 	return &MockEmailService{}
 }
-
-// Add these to MockEmailService as well:
 
 func (m *MockEmailService) SendEmailChanged(ctx context.Context, oldEmail, newEmail string) error {
 	log.Printf("MOCK EMAIL - Email change notification for %s -> %s", oldEmail, newEmail)
