@@ -92,6 +92,8 @@ func run() {
 				log.Printf("Warning: Failed to initialize payment service: %v", err)
 			} else {
 				log.Printf("Payment service initialized successfully (Provider: %s)", paymentConfig.Provider)
+				// Dedicated Asynq client for the payment/notification system.
+				// Separate from the audio QueueManager but connects to the same Redis — standard Asynq pattern.
 				notificationQueueClient := asynq.NewClient(asynq.RedisClientOpt{
 					Addr:     os.Getenv("REDIS_URL"),
 					Password: os.Getenv("REDIS_PASSWORD"),
