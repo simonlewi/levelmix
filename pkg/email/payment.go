@@ -263,62 +263,6 @@ Questions? Reply to this email anytime.
 	return err
 }
 
-// SendTrialEnding sends a reminder email 48 hours before a trial ends.
-func (s *ResendService) SendTrialEnding(ctx context.Context, to, planName string, trialEndDate time.Time) error {
-	pricingLink := fmt.Sprintf("%s/pricing", s.baseURL)
-
-	html := fmt.Sprintf(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Your trial ends soon</title>
-  <style>%s</style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <p class="wordmark">LevelMix</p>
-      <h1 class="title">Your trial ends in 2 days</h1>
-    </div>
-    <div class="content">
-      <div class="block block-warning">
-        Your LevelMix <strong>%s</strong> trial ends on <strong>%s</strong>.
-      </div>
-      <p>Subscribe before your trial expires to keep full access.</p>
-      <div class="cta">
-        <a href="%s" class="button">Choose a plan</a>
-      </div>
-      <p>Questions? Reply to this email anytime.</p>
-    </div>
-    <div class="footer">
-      <p>© 2026 LevelMix Audio. All rights reserved.</p>
-    </div>
-  </div>
-</body>
-</html>`, emailCSS, planName, trialEndDate.Format("January 2, 2006"), pricingLink)
-
-	text := fmt.Sprintf(`Your trial ends in 2 days.
-
-Your LevelMix %s trial ends on %s.
-
-Subscribe before your trial expires to keep full access: %s
-
-Questions? Reply to this email anytime.
-
-© 2026 LevelMix Audio. All rights reserved.`, planName, trialEndDate.Format("January 2, 2006"), pricingLink)
-
-	request := &resend.SendEmailRequest{
-		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
-		To:      []string{to},
-		Subject: "Your LevelMix trial ends in 2 days",
-		Html:    html,
-		Text:    text,
-	}
-
-	_, err := s.client.Emails.Send(request)
-	return err
-}
-
 // SendTrialEnding sends a reminder email 2 days before the trial expires.
 func (s *ResendService) SendTrialEnding(ctx context.Context, to, planName string, trialEndDate time.Time) error {
 	dashboardLink := fmt.Sprintf("%s/dashboard", s.baseURL)
@@ -422,10 +366,6 @@ func (m *MockEmailService) SendSubscriptionCanceled(ctx context.Context, to, pla
 }
 
 func (m *MockEmailService) SendSubscriptionReactivated(ctx context.Context, to, planName string) error {
-	return nil
-}
-
-func (m *MockEmailService) SendTrialEnding(ctx context.Context, to, planName string, trialEndDate time.Time) error {
 	return nil
 }
 
