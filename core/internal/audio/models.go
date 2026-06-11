@@ -50,9 +50,10 @@ const (
 
 // Queue priority levels
 const (
-	QueueFast     = "fast"
-	QueuePremium  = "premium"
-	QueueStandard = "standard"
+	QueueFast          = "fast"
+	QueuePremium       = "premium"
+	QueueStandard      = "standard"
+	QueueNotifications = "notifications" // dedicated queue for email/background tasks
 )
 
 const (

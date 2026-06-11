@@ -319,6 +319,95 @@ Questions? Reply to this email anytime.
 	return err
 }
 
+// SendTrialEnding sends a reminder email 2 days before the trial expires.
+func (s *ResendService) SendTrialEnding(ctx context.Context, to, planName string, trialEndDate time.Time) error {
+	dashboardLink := fmt.Sprintf("%s/dashboard", s.baseURL)
+	billingLink := fmt.Sprintf("%s/dashboard#billing", s.baseURL)
+	formattedDate := trialEndDate.Format("January 2, 2006")
+
+	html := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Your Trial Ends Soon</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #4A8AC7 0%%, #D4A95E 100%%); color: white; padding: 32px 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+        .header p { margin: 8px 0 0; opacity: 0.9; font-size: 14px; }
+        .content { padding: 30px; }
+        .notice { background: #FFF8EC; border-left: 4px solid #D4A95E; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; }
+        .notice strong { color: #9A6E00; display: block; margin-bottom: 4px; }
+        .btn-primary { display: inline-block; padding: 13px 30px; background: #D4A95E; color: white !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; }
+        .btn-secondary { display: block; text-align: center; color: #4A8AC7 !important; text-decoration: none; margin-top: 14px; font-size: 13px; }
+        .footer { text-align: center; padding: 20px 30px; font-size: 12px; color: #999; background: #f9f9f9; border-top: 1px solid #eee; }
+        .footer a { color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your free trial ends in 2 days</h1>
+            <p>LevelMix %s</p>
+        </div>
+        <div class="content">
+            <p>Hi there,</p>
+            <p>Just a heads-up — your LevelMix <strong>%s</strong> free trial ends on <strong>%s</strong>.</p>
+
+            <div class="notice">
+                <strong>What happens on %s</strong>
+                Your saved card will be charged automatically and your subscription continues uninterrupted. No action needed if you want to keep going.
+            </div>
+
+            <p>If you'd like to cancel before then, you can do so any time from your dashboard — no questions asked.</p>
+
+            <div style="text-align: center; margin: 28px 0;">
+                <a href="%s" class="btn-primary">Go to Dashboard</a>
+                <a href="%s" class="btn-secondary">Manage or cancel subscription</a>
+            </div>
+
+            <p style="font-size: 13px; color: #888;">Questions? Just reply to this email.</p>
+        </div>
+        <div class="footer">
+            <p>© 2025 LevelMix · Tricode Digital AB</p>
+        </div>
+    </div>
+</body>
+</html>`, planName, planName, formattedDate, formattedDate, dashboardLink, billingLink)
+
+	text := fmt.Sprintf(`Your LevelMix free trial ends in 2 days
+
+Hi there,
+
+Your LevelMix %s free trial ends on %s.
+
+What happens on %s:
+Your saved card will be charged automatically and your subscription continues. No action needed if you want to keep going.
+
+If you'd like to cancel before then, you can do so any time from your dashboard — no questions asked.
+
+Dashboard: %s
+Manage or cancel: %s
+
+Questions? Reply to this email.
+
+© 2025 LevelMix · Tricode Digital AB`,
+		planName, formattedDate, formattedDate, dashboardLink, billingLink)
+
+	request := &resend.SendEmailRequest{
+		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
+		To:      []string{to},
+		Subject: fmt.Sprintf("Your LevelMix trial ends on %s", formattedDate),
+		Html:    html,
+		Text:    text,
+	}
+
+	_, err := s.client.Emails.Send(request)
+	return err
+}
+
 // Mock implementations for testing
 func (m *MockEmailService) SendPaymentSuccess(ctx context.Context, to, planName, amount string) error {
 	return nil
@@ -333,6 +422,10 @@ func (m *MockEmailService) SendSubscriptionCanceled(ctx context.Context, to, pla
 }
 
 func (m *MockEmailService) SendSubscriptionReactivated(ctx context.Context, to, planName string) error {
+	return nil
+}
+
+func (m *MockEmailService) SendTrialEnding(ctx context.Context, to, planName string, trialEndDate time.Time) error {
 	return nil
 }
 
