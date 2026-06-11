@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 
 	"github.com/simonlewi/levelmix/core/internal/audio"
@@ -91,7 +92,9 @@ func run() {
 				log.Printf("Warning: Failed to initialize payment service: %v", err)
 			} else {
 				log.Printf("Payment service initialized successfully (Provider: %s)", paymentConfig.Provider)
-				paymentHandlers = payment_handlers.NewPaymentHandlers(paymentService, tursoStorage, emailService)
+				asynqClient := asynq.NewClient(asynq.RedisClientOpt{Addr: os.Getenv("REDIS_URL")})
+				defer asynqClient.Close()
+				paymentHandlers = payment_handlers.NewPaymentHandlers(paymentService, tursoStorage, emailService, asynqClient)
 			}
 		}
 	}
