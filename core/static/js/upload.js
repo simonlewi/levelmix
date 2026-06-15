@@ -195,62 +195,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Handle LUFS slider (only exists for premium/professional users)
-    const lufsSlider = document.getElementById('lufs-slider');
-    const lufsValue = document.getElementById('lufs-value');
-    const lufsContainer = document.getElementById('lufs-container');
-
-    if (lufsSlider && lufsValue && lufsContainer) {
-        // Initialize display from slider's current value
-        selectedLufsTarget = parseInt(lufsSlider.value);
-        lufsValue.textContent = selectedLufsTarget;
-
-        // Activate custom LUFS and deselect presets
-        function activateCustomLufs() {
-            lufsContainer.classList.add('active');
-            // Uncheck all preset radio buttons
-            presetInputs.forEach(input => {
-                input.checked = false;
-            });
-            selectedPreset = 'custom';
-        }
-
-        // Deactivate custom LUFS when preset is selected
-        function deactivateCustomLufs() {
-            lufsContainer.classList.remove('active');
-        }
-
-        // Activate on click
-        lufsContainer.addEventListener('click', function() {
-            activateCustomLufs();
+    // Handle preset card selection
+    presetInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            selectedPreset = this.value;
+            updateNoiseReductionVisibility(selectedPreset);
+            console.log('[Upload] Preset changed to:', selectedPreset);
         });
-
-        // Update value on input and ensure active state
-        lufsSlider.addEventListener('input', function() {
-            selectedLufsTarget = parseInt(this.value);
-            lufsValue.textContent = selectedLufsTarget;
-            activateCustomLufs();
-        });
-
-        // Handle preset card selection - deactivate custom LUFS
-        presetInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                selectedPreset = this.value;
-                deactivateCustomLufs();
-                updateNoiseReductionVisibility(selectedPreset);
-                console.log('[Upload] Preset changed to:', selectedPreset);
-            });
-        });
-    } else {
-        // If no LUFS slider (non-premium users), just handle preset selection
-        presetInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                selectedPreset = this.value;
-                updateNoiseReductionVisibility(selectedPreset);
-                console.log('[Upload] Preset changed to:', selectedPreset);
-            });
-        });
-    }
+    });
 
     // Drag and drop handling - make entire page droppable
     function handleDragOver(e) {

@@ -99,7 +99,7 @@
                     <div class="mb-6 text-left">
                         <label class="block label-sm text-text-tertiary mb-3">Optimize for:</label>
                         <div class="preset-grid gap-2">
-                            <!-- DJ Mix -->
+                            <!-- Club / Festival -->
                             <label class="preset-card rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="preset" value="dj" class="hidden" checked>
                                 <div class="p-3 rounded-xl transition-all">
@@ -118,6 +118,7 @@
                                         <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">podcasts</span>
                                     </div>
                                     <div class="text-center text-sm font-semibold text-text-primary">Streaming</div>
+                                    <div class="text-center text-xs text-text-tertiary mt-0.5">Spotify, Apple Music</div>
                                 </div>
                             </label>
 
@@ -129,17 +130,18 @@
                                         <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">mic</span>
                                     </div>
                                     <div class="text-center text-sm font-semibold text-text-primary">Podcast</div>
+                                    <div class="text-center text-xs text-text-tertiary mt-0.5">All platforms</div>
                                 </div>
                             </label>
 
-                            <!-- Broadcast -->
+                            <!-- Radio & Broadcast -->
                             <label class="preset-card rounded-xl cursor-pointer transition-all bg-surface-container-high" style="border: 2px solid transparent;">
                                 <input type="radio" name="preset" value="broadcast" class="hidden">
                                 <div class="p-3 rounded-xl transition-all">
                                     <div class="preset-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mx-auto mb-1.5">
                                         <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">cell_tower</span>
                                     </div>
-                                    <div class="text-center text-sm font-semibold text-text-primary">Broadcast</div>
+                                    <div class="text-center text-sm font-semibold text-text-primary">Radio & Broadcast</div>
                                 </div>
                             </label>
                         </div>
@@ -154,38 +156,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Custom LUFS Target (Premium & Professional Only) -->
-                    {{if and .IsLoggedIn (or (eq .user.SubscriptionTier 2) (eq .user.SubscriptionTier 3))}}
-                    <div class="mb-6 text-left opacity-50 hover:opacity-100 transition-opacity duration-300">
-                        <label class="block label-sm text-text-tertiary mb-3">Custom LUFS Target:</label>
-                        <div id="lufs-container" class="lufs-card bg-surface-container-high rounded-xl p-4 cursor-pointer transition-all" style="border: 2px solid transparent;">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center">
-                                    <div class="lufs-icon w-10 h-10 bg-surface-container-highest rounded-lg flex items-center justify-center mr-3">
-                                        <span class="material-symbols-outlined text-text-secondary" style="font-size: 20px;">tune</span>
-                                    </div>
-                                    <span class="font-semibold text-text-primary">Custom Target</span>
-                                </div>
-                                <span id="lufs-value" class="text-2xl font-bold text-text-primary label-sm" style="font-size: 1.25rem; letter-spacing: normal;"></span>
-                            </div>
-                            <div class="relative">
-                                <input type="range"
-                                       id="lufs-slider"
-                                       name="lufs_target"
-                                       min="-20"
-                                       max="-2"
-                                       value="-7"
-                                       step="1"
-                                       class="lufs-slider w-full h-2 rounded-lg appearance-none cursor-pointer">
-                                <div class="flex justify-between text-xs text-text-tertiary mt-2">
-                                    <span>Quieter</span>
-                                    <span>Louder</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{end}}
 
                     <button type="submit"
                             id="upload-btn"
@@ -326,48 +296,6 @@
 #drop-area.drag-over {
     border-color: rgba(212, 169, 94, 0.4) !important;
     background-color: rgba(212, 169, 94, 0.05);
-}
-
-/* LUFS Slider */
-.lufs-slider {
-    background: linear-gradient(90deg, #2A2A28 0%, #4A8AC7 100%);
-    outline: none;
-}
-
-.lufs-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #EDEAE3;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.lufs-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
-
-.lufs-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #EDEAE3;
-    cursor: pointer;
-    border: none;
-    transition: transform 0.2s ease;
-}
-
-/* LUFS Card active */
-.lufs-card.active {
-    border-color: rgba(74, 138, 199, 0.5) !important;
-    background-color: rgba(74, 138, 199, 0.08);
-}
-
-.lufs-card.active .lufs-icon {
-    background: rgba(74, 138, 199, 0.2);
-}
-
-.lufs-card:not(.active):hover {
-    border-color: rgba(74, 138, 199, 0.2) !important;
 }
 
 /* Processing card states */
