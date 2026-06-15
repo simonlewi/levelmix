@@ -4,13 +4,13 @@
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-4xl font-extrabold bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">
+        <h1 class="text-4xl font-extrabold text-text-primary">
             Dashboard
         </h1>
-        <p class="text-slate-400 mt-2 text-lg">
-            Welcome back, <span class="text-white font-semibold">{{.user.GetDisplayName}}</span>
+        <p class="text-text-secondary mt-2 text-lg">
+            Welcome back, <span class="text-text-primary font-semibold">{{.user.GetDisplayName}}</span>
             {{if not .user.HasName}}
-                <a href="#account-settings" class="ml-2 text-legendary-teal hover:text-legendary text-sm underline">
+                <a href="#account-settings" class="ml-2 text-arctic hover:text-text-primary text-sm underline">
                     Add your name
                 </a>
             {{end}}
@@ -20,91 +20,76 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <!-- Account Type Card -->
-        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
-            <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-slate-400 truncate">
-                    Account tier
-                </dt>
-                <dd class="mt-1 text-3xl font-extrabold bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">
-                    {{.tierName}}
-                </dd>
-                {{if ne .tierName "Professional"}}
-                <div class="mt-4">
-                    <a href="/pricing" class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-exclusive border-2 border-legendary rounded-lg hover:shadow-lg hover:shadow-exclusive/30 transition-all duration-300 hover:-translate-y-0.5">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                        Upgrade to Professional
-                    </a>
-                </div>
-                {{end}}
+        <div class="bg-surface-container-high rounded-xl p-6 hover-lift">
+            <dt class="label-sm text-text-tertiary truncate mb-2">
+                Account tier
+            </dt>
+            <dd class="text-3xl font-extrabold text-text-primary">
+                {{.tierName}}
+            </dd>
+            {{if ne .tierName "Professional"}}
+            <div class="mt-4">
+                <a href="/pricing" class="btn-sand block text-center" style="text-decoration: none;">
+                    Upgrade to Professional
+                </a>
             </div>
+            {{end}}
         </div>
 
         <!-- Processing Time This Month Card -->
-        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
-            <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-slate-400 truncate">
-                    Processing time this month
-                </dt>
-                <dd class="mt-1 text-3xl font-extrabold text-white">
-                    {{.processingTimeUsed}}
-                </dd>
-                <div class="text-sm text-slate-400 mt-1">of {{.processingTimeTotal}}</div>
-                <div class="mt-3 bg-slate-700 h-2 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-legendary to-legendary-teal transition-all duration-500" style="width: {{.processingTimePercent}}%;"></div>
-                </div>
+        <div class="bg-surface-container-high rounded-xl p-6 hover-lift">
+            <dt class="label-sm text-text-tertiary truncate mb-2">
+                Processing time this month
+            </dt>
+            <dd class="text-3xl font-extrabold text-text-primary">
+                {{.processingTimeUsed}}
+            </dd>
+            <div class="text-sm text-text-tertiary mt-1">of {{.processingTimeTotal}}</div>
+            <div class="mt-3 bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+                <div class="h-full bg-arctic transition-all duration-500" style="width: {{.processingTimePercent}}%;"></div>
             </div>
         </div>
 
         <!-- Total Processing Time Card -->
-        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
-            <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-slate-400 truncate">
-                    Total processing time
-                </dt>
-                <dd class="mt-1 text-3xl font-extrabold text-white">
-                    {{.processingTime}}
-                </dd>
-                <div class="text-sm text-slate-400 mt-1">All time</div>
-            </div>
+        <div class="bg-surface-container-high rounded-xl p-6 hover-lift">
+            <dt class="label-sm text-text-tertiary truncate mb-2">
+                Total processing time
+            </dt>
+            <dd class="text-3xl font-extrabold text-text-primary">
+                {{.processingTime}}
+            </dd>
+            <div class="text-sm text-text-tertiary mt-1">All time</div>
         </div>
 
         <!-- Total Uploads Card -->
-        <div class="bg-slate-800 overflow-hidden rounded-xl border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5">
-            <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-slate-400 truncate">
-                    Total uploads
-                </dt>
-                <dd class="mt-1 text-3xl font-extrabold text-white">
-                    {{.stats.TotalUploads}}
-                </dd>
-                <div class="text-sm text-slate-400 mt-1">Lifetime</div>
-            </div>
+        <div class="bg-surface-container-high rounded-xl p-6 hover-lift">
+            <dt class="label-sm text-text-tertiary truncate mb-2">
+                Total uploads
+            </dt>
+            <dd class="text-3xl font-extrabold text-text-primary">
+                {{.stats.TotalUploads}}
+            </dd>
+            <div class="text-sm text-text-tertiary mt-1">Lifetime</div>
         </div>
     </div>
 
     <!-- Upload Button / Limit Warning -->
     <div class="mb-8">
         {{if or (eq .processingTimeLimit -1) (gt .processingTimeRemainingSeconds 0)}}
-            <a href="/upload" class="inline-flex items-center px-6 py-3 text-base font-semibold text-legendary-teal border-2 border-legendary-teal rounded-lg hover:bg-legendary-teal/10 transition-all duration-300">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
+            <a href="/upload" class="btn-arctic inline-flex items-center" style="text-decoration: none; padding: 0.75rem 1.5rem;">
+                <span class="material-symbols-outlined mr-2" style="font-size: 20px;">upload_file</span>
                 Upload new file
             </a>
         {{else}}
-            <div class="bg-legendary/10 border border-legendary/30 rounded-lg p-4 flex items-start gap-3">
-                <svg class="w-6 h-6 text-legendary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
+            <div class="bg-sand/10 border border-sand/30 rounded-lg p-4 flex items-start gap-3">
+                <span class="material-symbols-outlined text-sand flex-shrink-0 mt-0.5" style="font-size: 24px;">warning</span>
                 <div>
-                    <p class="text-sm font-medium text-legendary">
+                    <p class="text-sm font-medium text-sand">
                         Low processing time remaining
                     </p>
-                    <p class="text-sm text-slate-300 mt-1">
+                    <p class="text-sm text-text-secondary mt-1">
                         You've reached your monthly processing time limit.
-                        <a href="/pricing" class="font-semibold underline hover:text-legendary-teal">Upgrade your plan</a> for more processing time.
+                        <a href="/pricing" class="font-semibold underline hover:text-arctic">Upgrade your plan</a> for more processing time.
                     </p>
                 </div>
             </div>
@@ -112,48 +97,42 @@
     </div>
 
     <!-- Processing History -->
-    <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 border-b border-slate-700">
-            <h3 class="text-xl font-bold text-white">
+    <div class="bg-surface-container-high rounded-xl overflow-hidden mb-8">
+        <div class="px-6 py-5">
+            <h3 class="text-xl font-bold text-text-primary">
                 Processing history
             </h3>
         </div>
-        <div class="divide-y divide-slate-700">
+        <div>
             {{if .jobs}}
                 {{range .jobs}}
-                <div class="px-4 py-4 sm:px-6 hover:bg-slate-700/30 transition-all duration-300 border border-transparent hover:border-slate-600 rounded-lg mx-2 my-1" data-file-id="{{.job.AudioFileID}}" data-job-status="{{.job.Status}}">
+                <div class="px-6 py-4 hover:bg-surface-container-highest transition-colors duration-200" data-file-id="{{.job.AudioFileID}}" data-job-status="{{.job.Status}}">
                     <div class="flex items-center justify-between gap-4">
                         <div class="flex items-center flex-1 min-w-0">
                             <div class="flex-shrink-0 mr-4">
                                 {{if eq .job.Status "completed"}}
                                     <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-success" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                                        </svg>
+                                        <span class="material-symbols-outlined text-success" style="font-size: 24px;">check_circle</span>
                                     </div>
                                 {{else if or (eq .job.Status "processing") (eq .job.Status "queued")}}
-                                    <div class="w-12 h-12 bg-legendary/20 rounded-lg flex items-center justify-center">
-                                        <div class="spinner-legendary w-6 h-6"></div>
+                                    <div class="w-12 h-12 bg-arctic/20 rounded-lg flex items-center justify-center">
+                                        <div class="spinner w-6 h-6"></div>
                                     </div>
                                 {{else if eq .job.Status "failed"}}
-                                    <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                        </svg>
+                                    <div class="w-12 h-12 bg-error/20 rounded-lg flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-error" style="font-size: 24px;">error</span>
                                     </div>
                                 {{else}}
-                                    <div class="w-12 h-12 bg-slate-600/20 rounded-lg flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
+                                    <div class="w-12 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-text-tertiary" style="font-size: 24px;">schedule</span>
                                     </div>
                                 {{end}}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="text-base font-semibold text-white truncate">
+                                <div class="text-base font-semibold text-text-primary truncate">
                                     {{if .file}}{{.file.OriginalFilename}}{{else}}Processing...{{end}}
                                 </div>
-                                <div class="text-sm text-slate-400 flex flex-wrap gap-2 mt-0.5">
+                                <div class="text-sm text-text-tertiary flex flex-wrap gap-2 mt-0.5">
                                     {{if .hasTargetLUFS}}<span>Target: {{printf "%.1f" .targetLUFS}} LUFS</span>{{end}}
                                     <span>•</span>
                                     <span>{{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}</span>
@@ -162,22 +141,18 @@
                         </div>
                         <div class="flex items-center gap-2">
                             {{if eq .job.Status "completed"}}
-                                <a href="/download/{{.job.AudioFileID}}" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-success rounded-lg hover:bg-success/90 transition-all duration-300 hover:-translate-y-0.5">
-                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                    </svg>
+                                <a href="/download/{{.job.AudioFileID}}" class="btn-sand inline-flex items-center" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                    <span class="material-symbols-outlined mr-1.5" style="font-size: 16px;">download</span>
                                     Download
                                 </a>
                             {{else if or (eq .job.Status "processing") (eq .job.Status "queued")}}
-                                <span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-legendary/20 text-legendary border border-legendary/30 rounded-lg">
-                                    <span class="inline-block w-2 h-2 mr-2 bg-legendary rounded-full animate-pulse"></span>
+                                <span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-arctic/20 text-arctic border border-arctic/30 rounded-lg">
+                                    <span class="inline-block w-2 h-2 mr-2 bg-arctic rounded-full animate-pulse"></span>
                                     {{if eq .job.Status "processing"}}Processing{{else}}Queued{{end}}
                                 </span>
                             {{else if eq .job.Status "failed"}}
-                                <button onclick="retryJob('{{.job.AudioFileID}}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-legendary-teal border-2 border-legendary-teal rounded-lg hover:bg-legendary-teal/10 transition-all duration-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                    </svg>
+                                <button onclick="retryJob('{{.job.AudioFileID}}')" class="btn-arctic inline-flex items-center" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                    <span class="material-symbols-outlined mr-1.5" style="font-size: 16px;">refresh</span>
                                     Retry
                                 </button>
                             {{end}}
@@ -187,16 +162,11 @@
                 {{end}}
             {{else}}
                 <div class="px-4 py-12 text-center">
-                    <svg class="mx-auto h-16 w-16 text-slate-600 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                    </svg>
-                    <h3 class="mt-4 text-lg font-semibold text-slate-300">No processing history yet</h3>
-                    <p class="mt-2 text-sm text-slate-400">Upload your first audio file to get started!</p>
+                    <span class="material-symbols-outlined text-text-tertiary opacity-40 block mx-auto mb-4" style="font-size: 64px;">library_music</span>
+                    <h3 class="text-lg font-semibold text-text-secondary">No processing history yet</h3>
+                    <p class="mt-2 text-sm text-text-tertiary">Upload your first audio file to get started!</p>
                     <div class="mt-6">
-                        <a href="/upload" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-white transition-all duration-300"
-                           style="background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%); box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);"
-                           onmouseenter="this.style.boxShadow='0 0 30px rgba(230, 158, 57, 0.6)'; this.style.transform='translateY(-2px)'"
-                           onmouseleave="this.style.boxShadow='0 0 20px rgba(230, 158, 57, 0.4)'; this.style.transform='translateY(0)'">
+                        <a href="/upload" class="btn-sand" style="text-decoration: none; padding: 0.75rem 1.5rem;">
                             Upload Audio
                         </a>
                     </div>
@@ -206,9 +176,9 @@
     </div>
 
     <!-- Account Settings Section -->
-    <div id="account-settings" class="mt-8 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 border-b border-slate-700">
-            <h3 class="text-xl font-bold text-white">
+    <div id="account-settings" class="bg-surface-container-high rounded-xl overflow-hidden">
+        <div class="px-6 py-5">
+            <h3 class="text-xl font-bold text-text-primary">
                 Account Settings
             </h3>
         </div>
@@ -216,31 +186,31 @@
             <!-- NAME FIELD -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h4 class="text-sm font-semibold text-slate-300">Name</h4>
-                    <p class="text-sm text-slate-400 mt-0.5">
+                    <h4 class="text-sm font-semibold text-text-secondary">Name</h4>
+                    <p class="text-sm text-text-tertiary mt-0.5">
                         {{if .user.HasName}}
                             {{.user.Name}}
                         {{else}}
-                            <span class="text-slate-400 italic">Not set</span>
+                            <span class="italic">Not set</span>
                         {{end}}
                     </p>
                 </div>
                 <button
                     onclick="showNameModal()"
-                    class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors"
+                    class="text-sm font-semibold text-arctic hover:text-text-primary transition-colors"
                 >
                     {{if .user.HasName}}Change{{else}}Add{{end}}
                 </button>
             </div>
 
             <!-- EMAIL ADDRESS -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-700">
+            <div class="flex items-center justify-between pt-4">
                 <div>
-                    <h4 class="text-sm font-semibold text-slate-300">Email address</h4>
-                    <p class="text-sm text-slate-400 mt-0.5">{{.user.Email}}</p>
+                    <h4 class="text-sm font-semibold text-text-secondary">Email address</h4>
+                    <p class="text-sm text-text-tertiary mt-0.5">{{.user.Email}}</p>
                 </div>
                 {{if eq .user.AuthProvider "email"}}
-                <button onclick="showEmailModal()" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
+                <button onclick="showEmailModal()" class="text-sm font-semibold text-arctic hover:text-text-primary transition-colors">
                     Change
                 </button>
                 {{end}}
@@ -248,31 +218,31 @@
 
             <!-- PASSWORD -->
             {{if eq .user.AuthProvider "email"}}
-            <div class="flex items-center justify-between pt-4 border-t border-slate-700">
+            <div class="flex items-center justify-between pt-4">
                 <div>
-                    <h4 class="text-sm font-semibold text-slate-300">Password</h4>
-                    <p class="text-sm text-slate-400 mt-0.5">••••••••</p>
+                    <h4 class="text-sm font-semibold text-text-secondary">Password</h4>
+                    <p class="text-sm text-text-tertiary mt-0.5">••••••••</p>
                 </div>
-                <button onclick="showPasswordModal()" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
+                <button onclick="showPasswordModal()" class="text-sm font-semibold text-arctic hover:text-text-primary transition-colors">
                     Change
                 </button>
             </div>
             {{end}}
 
             <!-- SUBSCRIPTION -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-700">
+            <div class="flex items-center justify-between pt-4">
                 <div>
-                    <h4 class="text-sm font-semibold text-slate-300">Subscription</h4>
-                    <p class="text-sm text-slate-400 mt-0.5">{{.tierName}} plan</p>
+                    <h4 class="text-sm font-semibold text-text-secondary">Subscription</h4>
+                    <p class="text-sm text-text-tertiary mt-0.5">{{.tierName}} plan</p>
                 </div>
                 <div class="flex space-x-3">
                     {{if ne .tierName "Free"}}
-                    <button onclick="openBillingPortal(event)" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
+                    <button onclick="openBillingPortal(event)" class="text-sm font-semibold text-arctic hover:text-text-primary transition-colors">
                         Manage subscription
                     </button>
                     {{end}}
                     {{if ne .tierName "Professional"}}
-                    <a href="/pricing" class="text-sm font-semibold text-legendary-teal hover:text-legendary transition-colors">
+                    <a href="/pricing" class="text-sm font-semibold text-arctic hover:text-text-primary transition-colors">
                         Upgrade
                     </a>
                     {{end}}
@@ -280,17 +250,15 @@
             </div>
 
             <!-- DANGER ZONE -->
-            <div class="pt-4 border-t-2 border-red-500/50">
-                <div class="bg-red-500/5 border-2 border-red-500 rounded-xl p-6">
-                    <h4 class="text-lg font-bold text-red-400 mb-2">Danger Zone</h4>
-                    <p class="text-sm text-slate-400 mb-4">
+            <div class="pt-4">
+                <div class="bg-error/5 border-2 border-error rounded-xl p-6">
+                    <h4 class="text-lg font-bold text-error mb-2">Danger Zone</h4>
+                    <p class="text-sm text-text-secondary mb-4">
                         Once you delete your account, there is no going back. This will permanently delete your account,
                         processing history, and any files stored on our servers.
                     </p>
-                    <a href="/account/delete" class="inline-flex items-center px-4 py-2 border-2 border-red-500 text-sm font-semibold rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
+                    <a href="/account/delete" class="inline-flex items-center px-4 py-2 border-2 border-error text-sm font-semibold rounded-lg text-error hover:bg-error hover:text-surface transition-all duration-300" style="text-decoration: none;">
+                        <span class="material-symbols-outlined mr-2" style="font-size: 20px;">warning</span>
                         Delete account permanently
                     </a>
                 </div>
@@ -301,21 +269,19 @@
 
 <!-- Email Change Modal -->
 <div id="emailModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 bg-black/50">
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+    <div class="bg-surface-container-high rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-white">
+            <h3 class="text-xl font-bold text-text-primary">
                 Change Email Address
             </h3>
-            <button onclick="hideEmailModal()" class="text-slate-400 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+            <button onclick="hideEmailModal()" class="text-text-tertiary hover:text-text-primary transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 24px;">close</span>
             </button>
         </div>
 
         {{if .emailError}}
-        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3">
-            <div class="text-sm text-red-400 font-medium">
+        <div class="mb-4 rounded-lg bg-error/10 border border-error/30 p-3">
+            <div class="text-sm text-error font-medium">
                 {{if eq .emailError "missing_fields"}}
                     Please fill in all fields
                 {{else if eq .emailError "email_mismatch"}}
@@ -343,18 +309,16 @@
         </div>
         {{end}}
 
-        <div class="bg-slate-700/30 rounded-lg p-3 mb-4">
+        <div class="bg-surface rounded-lg p-3 mb-4">
             <div class="flex items-center text-sm">
-                <svg class="w-5 h-5 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                </svg>
-                <span class="text-slate-400">Current: <span class="text-white font-medium">{{.user.Email}}</span></span>
+                <span class="material-symbols-outlined text-text-tertiary mr-2" style="font-size: 20px;">alternate_email</span>
+                <span class="text-text-tertiary">Current: <span class="text-text-primary font-medium">{{.user.Email}}</span></span>
             </div>
         </div>
 
         <form action="/account/change-email" method="POST" class="space-y-4">
             <div>
-                <label for="new_email" class="block text-sm font-semibold text-slate-300 mb-2">
+                <label for="new_email" class="block text-sm font-semibold text-text-secondary mb-2">
                     New Email Address
                 </label>
                 <input
@@ -363,12 +327,12 @@
                     type="email"
                     required
                     placeholder="your.new@email.com"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
             </div>
 
             <div>
-                <label for="confirm_email" class="block text-sm font-semibold text-slate-300 mb-2">
+                <label for="confirm_email" class="block text-sm font-semibold text-text-secondary mb-2">
                     Confirm New Email
                 </label>
                 <input
@@ -377,12 +341,12 @@
                     type="email"
                     required
                     placeholder="your.new@email.com"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
             </div>
 
             <div>
-                <label for="email_current_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                <label for="email_current_password" class="block text-sm font-semibold text-text-secondary mb-2">
                     Current Password
                 </label>
                 <input
@@ -391,22 +355,24 @@
                     type="password"
                     required
                     placeholder="For security verification"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
-                <p class="mt-2 text-xs text-slate-400">Required for security verification</p>
+                <p class="mt-2 text-xs text-text-tertiary">Required for security verification</p>
             </div>
 
             <div class="flex space-x-3 pt-2">
                 <button
                     type="button"
                     onclick="hideEmailModal()"
-                    class="flex-1 py-3 px-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300"
+                    class="btn-ghost flex-1"
+                    style="padding: 0.75rem 1rem;"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    class="flex-1 py-3 px-4 text-legendary-teal border-2 border-legendary-teal font-semibold rounded-lg hover:bg-legendary-teal/10 transition-all duration-300"
+                    class="btn-arctic flex-1"
+                    style="padding: 0.75rem 1rem;"
                 >
                     Update Email
                 </button>
@@ -417,21 +383,19 @@
 
 <!-- Password Change Modal -->
 <div id="passwordModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 bg-black/50">
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+    <div class="bg-surface-container-high rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-white">
+            <h3 class="text-xl font-bold text-text-primary">
                 Change Password
             </h3>
-            <button onclick="hidePasswordModal()" class="text-slate-400 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+            <button onclick="hidePasswordModal()" class="text-text-tertiary hover:text-text-primary transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 24px;">close</span>
             </button>
         </div>
 
         {{if .passwordError}}
-        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3">
-            <div class="text-sm text-red-400 font-medium">
+        <div class="mb-4 rounded-lg bg-error/10 border border-error/30 p-3">
+            <div class="text-sm text-error font-medium">
                 {{if eq .passwordError "missing_fields"}}
                     Please fill in all fields
                 {{else if eq .passwordError "password_mismatch"}}
@@ -459,7 +423,7 @@
 
         <form action="/account/change-password" method="POST" class="space-y-4">
             <div>
-                <label for="pass_current_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                <label for="pass_current_password" class="block text-sm font-semibold text-text-secondary mb-2">
                     Current Password
                 </label>
                 <input
@@ -468,12 +432,12 @@
                     type="password"
                     required
                     placeholder="Enter your current password"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
             </div>
 
-            <div class="pt-2 border-t border-slate-700">
-                <label for="new_password" class="block text-sm font-semibold text-slate-300 mb-2">
+            <div class="pt-2">
+                <label for="new_password" class="block text-sm font-semibold text-text-secondary mb-2">
                     New Password
                 </label>
                 <input
@@ -483,13 +447,13 @@
                     required
                     minlength="8"
                     placeholder="Enter your new password"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
-                <p class="mt-2 text-xs text-slate-400">Must be at least 8 characters</p>
+                <p class="mt-2 text-xs text-text-tertiary">Must be at least 8 characters</p>
             </div>
 
             <div>
-                <label for="confirm_password" class="block text-sm font-semibold text-slate-300 mb-2">
+                <label for="confirm_password" class="block text-sm font-semibold text-text-secondary mb-2">
                     Confirm New Password
                 </label>
                 <input
@@ -499,7 +463,7 @@
                     required
                     minlength="8"
                     placeholder="Confirm your new password"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
             </div>
 
@@ -507,13 +471,15 @@
                 <button
                     type="button"
                     onclick="hidePasswordModal()"
-                    class="flex-1 py-3 px-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300"
+                    class="btn-ghost flex-1"
+                    style="padding: 0.75rem 1rem;"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    class="flex-1 py-3 px-4 text-legendary-teal border-2 border-legendary-teal font-semibold rounded-lg hover:bg-legendary-teal/10 transition-all duration-300"
+                    class="btn-arctic flex-1"
+                    style="padding: 0.75rem 1rem;"
                 >
                     Update Password
                 </button>
@@ -524,21 +490,19 @@
 
 <!-- Name Change Modal -->
 <div id="nameModal" class="hidden fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 bg-black/50">
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 max-w-md w-full mx-4 shadow-2xl">
+    <div class="bg-surface-container-high rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-white">
+            <h3 class="text-xl font-bold text-text-primary">
                 {{if .user.HasName}}Change Your Name{{else}}Add Your Name{{end}}
             </h3>
-            <button onclick="hideNameModal()" class="text-slate-400 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+            <button onclick="hideNameModal()" class="text-text-tertiary hover:text-text-primary transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 24px;">close</span>
             </button>
         </div>
 
         {{if .nameError}}
-        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3">
-            <div class="text-sm text-red-400 font-medium">
+        <div class="mb-4 rounded-lg bg-error/10 border border-error/30 p-3">
+            <div class="text-sm text-error font-medium">
                 {{if eq .nameError "name_required"}}
                     Name cannot be empty
                 {{else if eq .nameError "name_too_long"}}
@@ -560,7 +524,7 @@
 
         <form action="/account/update-name" method="POST" class="space-y-4">
             <div>
-                <label for="name" class="block text-sm font-semibold text-slate-300 mb-2">
+                <label for="name" class="block text-sm font-semibold text-text-secondary mb-2">
                     Name
                 </label>
                 <input
@@ -571,22 +535,24 @@
                     required
                     maxlength="100"
                     placeholder="Your name or stage name"
-                    class="appearance-none block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-legendary-teal focus:border-transparent transition-all"
+                    class="input w-full"
                 >
-                <p class="mt-2 text-xs text-slate-400">What should we call you?</p>
+                <p class="mt-2 text-xs text-text-tertiary">What should we call you?</p>
             </div>
 
             <div class="flex space-x-3 pt-2">
                 <button
                     type="button"
                     onclick="hideNameModal()"
-                    class="flex-1 py-3 px-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300"
+                    class="btn-ghost flex-1"
+                    style="padding: 0.75rem 1rem;"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    class="flex-1 py-3 px-4 text-legendary-teal border-2 border-legendary-teal font-semibold rounded-lg hover:bg-legendary-teal/10 transition-all duration-300"
+                    class="btn-arctic flex-1"
+                    style="padding: 0.75rem 1rem;"
                 >
                     Save
                 </button>
@@ -595,50 +561,8 @@
     </div>
 </div>
 
-<style>
-.spinner {
-    border: 2px solid rgba(59, 130, 246, 0.2);
-    border-top-color: rgb(59, 130, 246);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.spinner-legendary {
-    border: 3px solid rgba(230, 158, 57, 0.3);
-    border-top-color: #e69e39;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-</style>
 {{end}}
 
 {{define "scripts"}}
 <script src="/static/js/dashboard.js"></script>
-<script>
-    // Debug: Check if functions exist
-    console.log('showNameModal exists?', typeof showNameModal);
-    console.log('hideNameModal exists?', typeof hideNameModal);
-    console.log('openBillingPortal exists?', typeof openBillingPortal);
-    
-    // Debug: Check if modal exists
-    console.log('Modal element:', document.getElementById('nameModal'));
-    
-    // Test the function manually
-    window.testModal = function() {
-        console.log('Testing modal...');
-        const modal = document.getElementById('nameModal');
-        console.log('Modal found:', modal);
-        if (modal) {
-            console.log('Modal classes before:', modal.className);
-            modal.classList.remove('hidden');
-            console.log('Modal classes after:', modal.className);
-        }
-    };
-    
-    console.log('Run testModal() in console to test');
-</script>
 {{end}}

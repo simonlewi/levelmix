@@ -87,10 +87,8 @@ function updateJobUI(fileId, status, errorMessage = null) {
 
         // Update action to download button
         actionContainer.innerHTML = `
-            <a href="/download/${fileId}" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-success rounded-lg hover:bg-success/90 transition-all duration-300 hover:-translate-y-0.5">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
+            <a href="/download/${fileId}" class="btn-sand inline-flex items-center" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                <span class="material-symbols-outlined mr-1.5" style="font-size: 16px;">download</span>
                 Download
             </a>
         `;
@@ -100,19 +98,15 @@ function updateJobUI(fileId, status, errorMessage = null) {
     } else if (status === 'failed') {
         // Update icon to failed
         iconContainer.innerHTML = `
-            <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
+            <div class="w-12 h-12 bg-error/20 rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-error" style="font-size: 24px;">error</span>
             </div>
         `;
 
         // Update action to retry button
         actionContainer.innerHTML = `
-            <button onclick="retryJob('${fileId}')" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-legendary-teal border-2 border-legendary-teal rounded-lg hover:bg-legendary-teal/10 transition-all duration-300">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
+            <button onclick="retryJob('${fileId}')" class="btn-arctic inline-flex items-center" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                <span class="material-symbols-outlined mr-1.5" style="font-size: 16px;">refresh</span>
                 Retry
             </button>
         `;
@@ -122,15 +116,15 @@ function updateJobUI(fileId, status, errorMessage = null) {
     } else if (status === 'processing' || status === 'queued') {
         // Update icon to processing spinner
         iconContainer.innerHTML = `
-            <div class="w-12 h-12 bg-legendary/20 rounded-lg flex items-center justify-center">
-                <div class="spinner-legendary w-6 h-6"></div>
+            <div class="w-12 h-12 bg-arctic/20 rounded-lg flex items-center justify-center">
+                <div class="spinner w-6 h-6"></div>
             </div>
         `;
 
         // Replace with processing/queued badge
         actionContainer.innerHTML = `
-            <span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-legendary/20 text-legendary border border-legendary/30 rounded-lg">
-                <span class="inline-block w-2 h-2 mr-2 bg-legendary rounded-full animate-pulse"></span>
+            <span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-arctic/20 text-arctic border border-arctic/30 rounded-lg">
+                <span class="inline-block w-2 h-2 mr-2 bg-arctic rounded-full animate-pulse"></span>
                 ${status === 'queued' ? 'Queued' : 'Processing'}
             </span>
         `;

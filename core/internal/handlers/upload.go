@@ -246,6 +246,8 @@ func (h *UploadHandler) ConfirmUpload(c *gin.Context) {
 		return
 	}
 
+	noiseReduction := c.PostForm("noise_reduction") == "true"
+
 	task := audio.ProcessTask{
 		JobID:          jobID,
 		FileID:         fileID,
@@ -253,6 +255,7 @@ func (h *UploadHandler) ConfirmUpload(c *gin.Context) {
 		UserID:         userIDFromContext,
 		IsPremium:      isPremium,
 		ProcessingMode: processingMode,
+		NoiseReduction: noiseReduction,
 	}
 
 	log.Printf("ConfirmUpload: Enqueueing processing task for job %s", jobID)
@@ -456,6 +459,8 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
+	noiseReduction := c.PostForm("noise_reduction") == "true"
+
 	task := audio.ProcessTask{
 		JobID:          jobID,
 		FileID:         fileID,
@@ -463,6 +468,7 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		UserID:         userIDFromContext,
 		IsPremium:      isPremium,
 		ProcessingMode: processingMode,
+		NoiseReduction: noiseReduction,
 	}
 
 	log.Printf("UploadHandler: Enqueueing processing task for job %s", jobID)

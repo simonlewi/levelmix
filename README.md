@@ -1,27 +1,29 @@
 # LevelMix
 
+[![CI](https://github.com/simonlewi/levelmix/actions/workflows/ci.yml/badge.svg)](https://github.com/simonlewi/levelmix/actions/workflows/ci.yml)
+
 A web-based SaaS application that normalizes longer audio files to specified LUFS target levels, making audio content consistent and professional.
 
 ## Description
 
-LevelMix is a powerful yet simple audio normalization service designed for content creators who need to ensure consistent loudness levels across their audio content. Built with Go and HTMX, it provides a fast, efficient way to process audio files without the need for complex software or technical expertise.
+LevelMix is a powerful yet simple audio normalization service designed for content creators who need to ensure consistent loudness levels across their audio content. Built with Go, vanilla JavaScript, and TailwindCSS, it provides a fast, efficient way to process audio files without the need for complex software or technical expertise.
 
 **Key Features:**
 - 🎵 **Audio Normalization**: Automatically normalize audio files to industry-standard LUFS levels
-- 📊 **Multiple Presets**: Choose from streaming (-14 LUFS), broadcast (-23 LUFS), or EDM club-ready (-7 LUFS) presets
+- 📊 **Multiple Presets**: Choose from DJ mix (-5 LUFS), streaming (-14 LUFS), podcast (-16 LUFS), or broadcast (-23 LUFS) presets
 - 🚀 **Fast Processing**: Efficient FFmpeg-based processing pipeline with real-time progress tracking
 - 💾 **Secure Storage**: AWS S3 integration for reliable file storage and delivery
-- 🎯 **User-Friendly**: Clean, responsive interface built with HTMX and TailwindCSS
-- 📱 **Multi-Tier Service**: Freemium model with options for different user needs
+- 🎯 **User-Friendly**: Clean, responsive interface built with vanilla JavaScript and TailwindCSS
+- 📱 **Multi-Tier Service**: Freemium model with time-based processing limits
 
 ## Why?
 
 ### The Problem
 Content creators across various industries face a common challenge: **inconsistent audio levels**. Whether you're a:
-- 🎧 **DJ** creating seamless mixes
-- 🎙️ **Podcaster** ensuring consistent episode volumes
-- 🎵 **Music Producer** preparing tracks for different platforms
-- 🎬 **Video Editor** balancing audio across clips
+- **DJ** creating seamless mixes
+- **Podcaster** ensuring consistent episode volumes
+- **Music Producer** preparing tracks for different platforms
+- **Video Editor** balancing audio across clips
 
 You've likely encountered the tedious process of manually adjusting audio levels to meet platform requirements or maintain professional quality standards.
 
@@ -32,10 +34,21 @@ LevelMix automates this technical process, allowing creators to:
 - **Focus on Creativity**: Spend time on content creation, not technical adjustments
 - **Professional Results**: Achieve broadcast-quality audio normalization
 
+## Architecture
+
+This repo is **semi-open-source**. The `core/` and `pkg/` directories contain the application logic and compile on their own. Enterprise features (auth, payments, S3 storage, cleanup) live in a separate private `ee/` directory that is **not included** in this repo.
+
+The codebase uses [Go build tags](https://pkg.go.dev/go/build#hdr-Build_Constraints) to handle this:
+
+- `go build ./core/...` compiles with CE stubs (prints "rebuild with `-tags ee`")
+- `go build -tags ee ./core/...` compiles with full enterprise wiring
+
+If you clone this repo and want to run it, you need to provide your own `ee/` directory implementing the storage, auth, and payment interfaces. See [Enterprise setup](#enterprise-setup) below.
+
 ## Quick Start
 
 ### Prerequisites
-- Go 1.21 or higher
+- Go 1.24 or higher
 - FFmpeg installed on your system
 - Redis server (for job queue)
 - AWS S3 bucket (for file storage)
@@ -45,7 +58,7 @@ LevelMix automates this technical process, allowing creators to:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/levelmix.git
+   git clone https://github.com/simonlewi/levelmix.git
    cd levelmix
    ```
 
@@ -64,10 +77,10 @@ LevelMix automates this technical process, allowing creators to:
    ```bash
    # Create your Turso database
    turso db create levelmix-dev
-   
-   # Apply the database schema
-   turso db shell levelmix-dev < schema.sql
-   
+
+   # Apply the database schema (located in your ee/ directory)
+   turso db shell levelmix-dev < ee/storage/sql/schema.sql
+
    # Get your database URL and token
    turso db show levelmix-dev
    # Update your .env file with the connection details
@@ -80,16 +93,27 @@ LevelMix automates this technical process, allowing creators to:
 
 6. **Start the application**
    ```bash
-   go run core/cmd/server/main.go
+   go run -tags ee ./core/cmd/server
    ```
 
 7. **Start the worker (in a separate terminal)**
    ```bash
-   go run core/cmd/worker/main.go
+   go run -tags ee ./core/cmd/worker
    ```
 
 8. **Visit the application**
    Open your browser to `http://localhost:8080`
+
+### Enterprise setup
+
+The `ee/` directory is not included in this repo. To run the full application, you need to create your own implementations of:
+
+- `ee/storage/` — `AudioStorage` and `MetadataStorage` (see `pkg/storage/interfaces.go`)
+- `ee/auth/` — Authentication middleware and handlers
+- `ee/payment/` — Payment processing (optional)
+- `ee/cleanup/` — S3 lifecycle and consent cleanup (optional)
+
+Each `core/cmd/*/run_ee.go` file shows exactly which `ee/` packages are imported and how they're wired up. Use those as your reference for what to implement.
 
 ### Environment Variables
 
@@ -120,10 +144,6 @@ EMAIL_SERVICE=resend
 RESEND_API_KEY=your-resend-api-key
 EMAIL_FROM=your-email-address-here
 EMAIL_FROM_NAME=YourName
-
-# Monitoring (optional but recommended)
-SENTRY_DSN=your-sentry-dsn
-DATADOG_API_KEY=your-datadog-api-key
 ```
 
 ## Usage
@@ -132,28 +152,26 @@ DATADOG_API_KEY=your-datadog-api-key
 
 1. **Upload Audio File**
    - Visit the LevelMix homepage
-   - Drag and drop your MP3 file (up to 300MB for free users)
-   - Or click to select file from your computer
+   - Drag and drop your audio file or click to select from your computer
 
 2. **Choose Target Level**
    - Select from preset LUFS targets:
+     - **DJ Mix** (-5 LUFS): High-energy for club systems
      - **Streaming** (-14 LUFS): Perfect for Spotify, Apple Music, etc.
      - **Podcast** (-16 LUFS): Optimized for podcast platforms
-     - **Radio** (-23 LUFS): EBU R128 standard for TV/radio
-     - **Club Mix** (-7 LUFS): High-energy for club systems
-     - **Festival Mix** (-5 LUFS): Maximum impact EDM masters
+     - **Broadcast** (-23 LUFS): EBU R128 standard for TV/radio
      - **Custom LUFS** (Premium/Pro only): Set your own target level
 
 3. **Process & Download**
    - Monitor real-time processing progress
    - Download the processed file when complete
-   - Access your processing history in the dashboard (registered users)
+   - Access your processing history in the dashboard
 
 ### Subscription Tiers
 
-- **Free Tier**: 1 upload per week, MP3 format only, up to 300MB
-- **Premium Tier**: 5 uploads per week, MP3 + WAV support, priority processing, custom LUFS targets
-- **Professional Tier**: 20 uploads per week, multiple formats, batch processing, priority support
+- **Free**: 2 hours processing/month, standard queue, all presets, mp3 only
+- **Premium**: 10 hours processing/month, fast queue, custom LUFS, WAV support
+- **Professional**: 40 hours processing/month, priority processing, all formats (MP3, WAV, FLAC)
 
 ## Contributing
 
@@ -207,38 +225,38 @@ We welcome contributions to LevelMix! Here's how you can help:
 
 ```
 levelmix/
-├── core/                    # Core application
+├── core/                    # Core application (open source)
 │   ├── cmd/
-│   │   ├── server/         # Main web server
-│   │   └── worker/         # Background audio processor
+│   │   ├── server/         # Web server (main.go + run_ee.go/run_ce.go)
+│   │   ├── worker/         # Background audio processor
+│   │   └── cleanup/        # S3 lifecycle cleanup job
 │   ├── internal/
 │   │   ├── audio/          # Audio processing logic
 │   │   └── handlers/       # HTTP request handlers
-│   ├── static/             # Static assets (CSS, images)
+│   ├── static/             # Static assets (CSS, JS, images)
 │   └── templates/          # HTML templates
-├── ee/                     # Enterprise Edition features
+├── ee/                     # Enterprise features (not included, private)
 │   ├── auth/              # Authentication system
-│   └── storage/           # Storage implementations
-├── pkg/                   # Shared packages
+│   ├── cleanup/           # S3 and consent cleanup
+│   ├── payment/           # Payment processing
+│   └── storage/           # S3 + Turso implementations
+├── pkg/                   # Shared packages (open source)
 │   ├── email/             # Email service
-│   └── storage/           # Storage interfaces
-├── deployments/           # Deployment configurations
-├── scripts/               # Utility scripts
+│   └── storage/           # Storage interfaces and models
 ├── go.mod                 # Go module definition
-├── schema.sql             # Database schema
 └── README.md
 ```
 
 ### Areas for Contribution
 
-- 🐛 **Bug fixes** and performance improvements
-- 📚 **Documentation** enhancements
-- 🎨 **UI/UX** improvements
-- 🔧 **New audio formats** support (FLAC, AAC, etc.)
-- 🚀 **Performance optimizations**
-- 🧪 **Testing** coverage expansion
-- 🔒 **Security** enhancements
-- 🎛️ **Additional audio processing features**
+- **Bug fixes** and performance improvements
+- **Documentation** enhancements
+- **UI/UX** improvements
+- **New audio formats** support (FLAC, AAC, etc.)
+- **Performance optimizations**
+- **Testing** coverage expansion
+- **Security** enhancements
+- **Additional audio processing features**
 
 ### Code Style
 
@@ -251,9 +269,9 @@ levelmix/
 
 ### Getting Help
 
-- 📋 **Issues**: Report bugs or request features via GitHub Issues
-- 💬 **Discussions**: Join community discussions for questions and ideas
-- 📧 **Contact**: Reach out to maintainers for major contributions
+- **Issues**: Report bugs or request features via GitHub Issues
+- **Discussions**: Join community discussions for questions and ideas
+- **Contact**: Reach out to maintainers for major contributions
 
 ## Development
 
@@ -266,12 +284,12 @@ levelmix/
 
 2. **Start the web server**
    ```bash
-   go run core/cmd/server/main.go
+   go run -tags ee ./core/cmd/server
    ```
 
 3. **Start the worker (separate terminal)**
    ```bash
-   go run core/cmd/worker/main.go
+   go run -tags ee ./core/cmd/worker
    ```
 
 ### Testing Audio Processing
@@ -283,7 +301,7 @@ levelmix/
 
 ### Database Management
 
-The application uses Turso (SQLite-compatible) as its database. The schema is defined in `schema.sql`:
+The application uses Turso (SQLite-compatible) as its database. The schema is in `ee/storage/sql/schema.sql`.
 
 ```bash
 # Connect to your database
@@ -294,9 +312,6 @@ SELECT * FROM users LIMIT 5;
 
 # View tables
 .tables
-
-# View schema for a table
-.schema users
 ```
 
 ---

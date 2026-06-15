@@ -2,423 +2,263 @@
 
 {{define "title"}}LevelMix - Professional Audio Normalization{{end}}
 
-{{define "styles"}}
-<style>
-.hover-lift {
-    transition: transform 0.3s ease;
-}
-
-.hover-lift:hover {
-    transform: translateY(-5px);
-}
-
-/* Hero Waveform Styles */
-.hero-waveform {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-    position: relative;
-    min-height: 600px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.waveform-canvas {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    opacity: 0.3;
-    display: block !important;
-}
-
-.hero-gradient-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(230, 158, 57, 0.1) 0%,
-        rgba(20, 184, 166, 0.15) 50%,
-        rgba(230, 158, 57, 0.1) 100%
-    );
-    animation: gradient-shift 8s ease infinite;
-}
-
-@keyframes gradient-shift {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.5; }
-}
-
-.hero-content {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    padding: 0 2rem;
-}
-
-.text-gradient-legendary {
-    background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.btn-legendary {
-    background: #1e293b;
-    color: white;
-    border: 2px solid #e69e39;
-    box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);
-    transition: all 0.3s ease;
-}
-
-.btn-legendary:hover {
-    box-shadow: 0 0 30px rgba(230, 158, 57, 0.6);
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background: transparent;
-    color: #14b8a6;
-    border: 2px solid #14b8a6;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background: rgba(20, 184, 166, 0.1);
-    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
-}
-
-/* Feature card icon styles */
-.feature-icon {
-    width: 4rem;
-    height: 4rem;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-}
-
-.icon-legendary {
-    background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%);
-}
-
-.icon-teal {
-    background: linear-gradient(45deg, #14b8a6 0%, #3b82f6 100%);
-}
-
-.icon-success {
-    background: linear-gradient(45deg, #41c44e 0%, #14b8a6 100%);
-}
-
-/* Card styles - matching dashboard showcase */
-.card-2026 {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 0.75rem;
-    padding: 2rem;
-    transition: all 0.3s ease;
-}
-
-.card-2026:hover {
-    border-color: #475569;
-    transform: translateY(-2px);
-}
-
-.card-legendary {
-    border-color: rgba(230, 158, 57, 0.3);
-}
-
-.card-legendary:hover {
-    border-color: rgba(230, 158, 57, 0.6);
-    box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);
-}
-
-.card-teal {
-    border-color: rgba(20, 184, 166, 0.3);
-}
-
-.card-teal:hover {
-    border-color: rgba(20, 184, 166, 0.6);
-    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
-}
-
-.card-success {
-    border-color: rgba(65, 196, 78, 0.3);
-}
-
-.card-success:hover {
-    border-color: rgba(65, 196, 78, 0.6);
-    box-shadow: 0 0 20px rgba(65, 196, 78, 0.3);
-}
-
-/* CTA section */
-.cta-section {
-    background: #1e293b;
-    border-radius: 0.75rem;
-    padding: 3rem 2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(230, 158, 57, 0.3);
-    transition: all 0.3s ease;
-}
-
-.cta-section::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(45deg, #e69e39 0%, #14b8a6 100%);
-    opacity: 0.05;
-    border-radius: 0.75rem;
-}
-
-.cta-section:hover {
-    border-color: rgba(230, 158, 57, 0.6);
-    box-shadow: 0 0 20px rgba(230, 158, 57, 0.4);
-    transform: translateY(-2px);
-}
-
-/* Hero title responsive */
-.hero-title {
-    font-size: 4rem;
-    font-weight: 800;
-    margin-bottom: 1.5rem;
-    line-height: 1.2;
-    color: white;
-    text-align: center;
-}
-
-@media (max-width: 768px) {
-    .hero-title {
-        font-size: 3rem;
-    }
-}
-
-@media (max-width: 640px) {
-    .hero-title {
-        font-size: 2.25rem;
-    }
-}
-
-.hero-subtitle {
-    font-size: 1.5rem;
-    color: #e2e8f0;
-    margin-bottom: 2.5rem;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    line-height: 1.6;
-}
-
-@media (max-width: 768px) {
-    .hero-subtitle {
-        font-size: 1.25rem;
-    }
-}
-
-@media (max-width: 640px) {
-    .hero-subtitle {
-        font-size: 1.125rem;
-    }
-}
-</style>
-{{end}}
-
 {{define "main-classes"}}p-0{{end}}
 
 {{define "home_content"}}
-<!-- Hero Section with Animated Waveform -->
-<header class="hero-waveform">
-    <canvas id="waveformCanvas" class="waveform-canvas"></canvas>
-    <div class="hero-gradient-overlay"></div>
-    <div class="hero-content" style="max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 2rem;">
-        <h1 class="hero-title">
-            Professional Audio<br>
-            <span class="text-gradient-legendary">Normalization</span>
+<!-- Hero Section — 3D Wave Canvas -->
+<section class="relative flex flex-col justify-center overflow-hidden min-h-[100svh] md:min-h-[921px]">
+    <canvas id="hero-wave" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
+    <div class="absolute inset-0 bg-surface/40 pointer-events-none"></div>
+    <div class="signature-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px]"></div>
+
+    <div class="relative z-10 max-w-4xl px-8 md:px-24">
+        <h1 class="font-display text-5xl md:text-[60px] leading-[1.1] text-text-primary mb-6">
+            Your <span id="cycling-word">mix</span>,<br><span class="text-arctic">platform-ready.</span>
         </h1>
-        <p class="hero-subtitle">
-            Automatically normalize your audio to industry-standard loudness levels
+        <p class="text-lg md:text-xl text-sand max-w-2xl mb-10 leading-relaxed">
+            Stop losing listeners to volume jumps. Automatic, consistent loudness for your DJ mixes, live sets, and podcasts.
         </p>
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <div class="flex flex-col sm:flex-row gap-4">
             {{if .user}}
-            <a href="/upload" class="btn-legendary" style="font-size: 1.125rem; padding: 1rem 2rem; display: inline-block; text-decoration: none; border-radius: 0.5rem; font-weight: 700;">
+            <a href="/upload" class="btn-sand" style="text-decoration: none; font-size: 0.875rem; padding: 0.875rem 2rem;">
                 Upload Your Audio
             </a>
             {{else}}
-            <a href="/register" class="btn-legendary" style="font-size: 1.125rem; padding: 1rem 2rem; display: inline-block; text-decoration: none; border-radius: 0.5rem; font-weight: 700;">
-                Get started free
+            <a href="/register" class="btn-sand" style="text-decoration: none; font-size: 0.875rem; padding: 0.875rem 2rem;">
+                Get Started Free
             </a>
-            <a href="/how-to-use" class="btn-secondary" style="font-size: 1.125rem; padding: 1rem 2rem; display: inline-block; text-decoration: none; border-radius: 0.5rem; font-weight: 700;">
-                See how it works
+            <a href="/how-to-use" class="btn-arctic" style="text-decoration: none; font-size: 0.875rem; padding: 0.875rem 2rem; backdrop-filter: blur(4px);">
+                See How It Works
             </a>
             {{end}}
         </div>
         {{if not .user}}
-        <p class="text-slate-400 text-sm mt-6" style="text-align: center;">
-            Already have an account? <a href="/login" class="text-legendary-teal hover:text-legendary">Log in</a>
+        <p class="text-text-tertiary text-sm mt-6">
+            Already have an account? <a href="/login" class="text-arctic hover:text-text-primary transition-colors">Log in</a>
         </p>
         {{end}}
     </div>
-</header>
+</section>
 
-<!-- Main Content -->
-<div class="px-6 py-16 bg-slate-900">
-    <!-- How It Works Section -->
-    <section class="max-w-6xl mx-auto mb-20">
-        <h2 class="text-4xl font-extrabold text-center mb-12 text-white">
-            How it works
-        </h2>
-        <div class="grid md:grid-cols-3 gap-8">
-            <article class="card-2026 text-center hover-lift card-legendary">
-                <div class="feature-icon icon-legendary">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                        <path d="M12,11L16,15H13V19H11V15H8L12,11Z" />
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-legendary">1. Upload</h3>
-                <p class="text-slate-300 text-lg leading-relaxed">
-                    MP3 files up to 300MB supported for free users. Lossless format and up to 5GB for premium members.
-                </p>
-            </article>
+<!-- How It Works Section -->
+<section class="py-24 px-8 md:px-24 bg-surface-container-low">
+    <h2 class="font-bold text-[1.75rem] text-text-primary mb-16" data-animate="up">How it works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <article class="bg-surface-container-high p-8 rounded-xl hover-lift" data-animate="up" data-delay="0">
+            <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-6" style="border: 1px solid rgba(74,138,199,0.2);">
+                <span class="material-symbols-outlined text-arctic">cloud_upload</span>
+            </div>
+            <h3 class="font-bold text-arctic text-xl mb-4">1. Upload</h3>
+            <p class="text-text-secondary leading-relaxed">
+                MP3 files up to 300MB supported for free users. Lossless format and up to 5GB for premium members.
+            </p>
+        </article>
 
-            <article class="card-2026 text-center hover-lift card-teal">
-                <div class="feature-icon icon-teal">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-legendary-teal">2. Process</h3>
-                <p class="text-slate-300 text-lg leading-relaxed">
-                    Our advanced algorithm analyzes and adjusts the loudness to your chosen target level.
-                </p>
-            </article>
+        <article class="bg-surface-container-high p-8 rounded-xl hover-lift" data-animate="up" data-delay="120">
+            <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-6" style="border: 1px solid rgba(74,138,199,0.2);">
+                <span class="material-symbols-outlined text-arctic">tune</span>
+            </div>
+            <h3 class="font-bold text-arctic text-xl mb-4">2. Process</h3>
+            <p class="text-text-secondary leading-relaxed">
+                Our advanced algorithm analyzes and adjusts the loudness to your chosen target level.
+            </p>
+        </article>
 
-            <article class="card-2026 text-center hover-lift card-success">
-                <div class="feature-icon icon-success">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-success">3. Download</h3>
-                <p class="text-slate-300 text-lg leading-relaxed">
-                    Get your professionally normalized audio ready for streaming platforms and radio play.
-                </p>
-            </article>
+        <article class="bg-surface-container-high p-8 rounded-xl hover-lift" data-animate="up" data-delay="240">
+            <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-6" style="border: 1px solid rgba(74,138,199,0.2);">
+                <span class="material-symbols-outlined text-arctic">download</span>
+            </div>
+            <h3 class="font-bold text-arctic text-xl mb-4">3. Download</h3>
+            <p class="text-text-secondary leading-relaxed">
+                Get your professionally normalized audio ready for streaming platforms and radio play.
+            </p>
+        </article>
+    </div>
+
+    <!-- VIDEO PLACEHOLDER — How It Works demo loop -->
+    <!-- ACTIVATION: When video is ready, remove the "hidden" class from the outer div.       -->
+    <!-- Do NOT change any other attributes, classes, or structure.                           -->
+    <!-- Video file goes in: core/static/video/howitworks-loop.mp4                           -->
+    <div id="hiw-video-container" class="hidden mt-16" data-animate="up" data-delay="200">
+        <div class="bg-surface-container-high rounded-xl overflow-hidden"
+             style="aspect-ratio: 16/9; width: 100%;">
+            <video
+                id="hiw-demo-video"
+                class="w-full h-full object-cover"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="none"
+                aria-label="LevelMix in action — upload, choose preset, download">
+                <source src="/static/video/howitworks-loop.mp4" type="video/mp4">
+            </video>
         </div>
-    </section>
+    </div>
+    <!-- END VIDEO PLACEHOLDER -->
+</section>
 
-    <!-- Benefits Section -->
-    <section class="max-w-6xl mx-auto mb-20">
-        <h2 class="text-4xl font-extrabold text-center mb-12 text-white">
-            Why choose <span class="text-gradient-legendary">LevelMix</span>?
-        </h2>
-        <div class="grid md:grid-cols-3 gap-8">
-            <article class="card-2026 hover-lift text-center">
-                <div class="feature-icon" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z" />
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-legendary-teal">Professional quality</h3>
-                <p class="text-slate-300 text-lg leading-relaxed">
-                    Industry-standard loudness normalization with presets for streaming, podcasts, and radio.
-                </p>
-            </article>
+<!-- Features Section -->
+<section class="py-24 px-8 md:px-24">
+    <h2 class="font-bold text-[1.75rem] text-text-primary mb-24 max-w-xl" data-animate="up">Built for creators who care about sound</h2>
+    <div class="space-y-32">
 
-            <article class="card-2026 hover-lift text-center">
-                <div class="feature-icon" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-legendary-teal">Lightning fast</h3>
-                <p class="text-slate-300 text-lg leading-relaxed">
-                    Process your audio in minutes with our optimized cloud processing pipeline.
-                </p>
-            </article>
-
-            <article class="card-2026 hover-lift text-center">
-                <div class="feature-icon" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-legendary-teal">Easy to use</h3>
-                <p class="text-slate-300 text-lg leading-relaxed">
-                    No technical knowledge required. Simple drag-and-drop interface with real-time progress tracking.
-                </p>
-            </article>
+        <!-- Feature 1 -->
+        <div class="flex flex-col md:flex-row items-center gap-16">
+            <div class="flex-1" data-animate="left">
+                <span class="label-sm text-arctic mb-4 block">Engine Intelligence</span>
+                <h3 class="text-3xl font-bold text-text-primary mb-6">Dynamics-Aware Processing</h3>
+                <p class="text-text-secondary text-lg leading-relaxed">Unlike simple limiters, LevelMix respects your transients. Our algorithm adjusts gain while maintaining the emotional impact of your mix's dynamic range.</p>
+            </div>
+            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group" data-animate="right">
+                <img class="w-full h-full object-cover" src="/static/images/soundboard.webp" alt="Professional audio mixing console">
+                <div class="absolute inset-0 bg-surface/65 group-hover:opacity-0 transition-opacity duration-500"></div>
+                <div class="absolute inset-0 bg-arctic/10 mix-blend-overlay"></div>
+            </div>
         </div>
-    </section>
 
-    <!-- Optimization Presets Section -->
-    <section class="max-w-5xl mx-auto mb-20">
-        <div class="card-2026 card-legendary" style="padding: 2.5rem;">
-            <h2 class="text-4xl font-extrabold text-center mb-8 text-white">
-                Optimize for your platform
+        <!-- Feature 2 -->
+        <div class="flex flex-col md:flex-row-reverse items-center gap-16">
+            <div class="flex-1" data-animate="right">
+                <span class="label-sm text-arctic mb-4 block">Compliance</span>
+                <h3 class="text-3xl font-bold text-text-primary mb-6">Industry-Standard Targets</h3>
+                <p class="text-text-secondary text-lg leading-relaxed">Stop guessing LUFS. From -14 LUFS for Spotify to EBU R128 for television, we ensure your audio never gets turned down by platform algorithms.</p>
+            </div>
+            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group" data-animate="left">
+                <img class="w-full h-full object-cover" src="/static/images/daw-waveforms.webp" alt="Digital audio workstation showing waveforms">
+                <div class="absolute inset-0 bg-surface/65 group-hover:opacity-0 transition-opacity duration-500"></div>
+                <div class="absolute inset-0 bg-arctic/10 mix-blend-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="flex flex-col md:flex-row items-center gap-16">
+            <div class="flex-1" data-animate="left">
+                <span class="label-sm text-arctic mb-4 block">Performance</span>
+                <h3 class="text-3xl font-bold text-text-primary mb-6">Long-Form Content Ready</h3>
+                <p class="text-text-secondary text-lg leading-relaxed">Optimized for DJ mixes, live sets and podcasts. Process 2-hour long recordings in under 2 minutes with zero quality degradation or phase shifting.</p>
+            </div>
+            <div class="flex-1 w-full aspect-video bg-surface-container rounded-xl overflow-hidden relative group" data-animate="right">
+                <img class="w-full h-full object-cover" src="/static/images/studio-mic.webp" alt="Microphone in a professional recording studio">
+                <div class="absolute inset-0 bg-surface/65 group-hover:opacity-0 transition-opacity duration-500"></div>
+                <div class="absolute inset-0 bg-arctic/10 mix-blend-overlay"></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Pricing Preview Section -->
+<section class="py-24 px-8 md:px-24 bg-surface-container-low">
+    <div class="text-center mb-16">
+        <h2 class="font-bold text-[1.75rem] text-text-primary mb-4" data-animate="up">Simple, Honest Pricing</h2>
+        <p class="text-text-secondary">Precision tools for every stage of your career.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+        <!-- Free -->
+        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift" data-animate="up" data-delay="0">
+            <div class="mb-8">
+                <h4 class="label-sm text-text-tertiary mb-2">Free</h4>
+                <p class="text-text-secondary text-sm mt-4">Perfect for trying out LevelMix</p>
+            </div>
+            <ul class="space-y-4 mb-10 flex-grow text-sm text-text-secondary">
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 18px;">check</span>
+                    2 hours processing/month
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 18px;">check</span>
+                    All presets
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 18px;">check</span>
+                    High-quality LUFS normalization
+                </li>
+            </ul>
+            <a href="/upload" class="btn-ghost text-center" style="text-decoration: none; padding: 0.75rem 1.25rem;">
+                Get Started
+            </a>
+        </div>
+
+        <!-- Premium -->
+        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift card-premium relative" data-animate="up" data-delay="120">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-sand text-[#1A1A17] label-sm px-4 py-1 rounded-full" style="font-size: 0.625rem;">
+                Most Popular
+            </div>
+            <div class="mb-8">
+                <h4 class="label-sm text-sand mb-2">Premium</h4>
+                <p class="text-text-secondary text-sm mt-4">For serious creators who need serious speed</p>
+            </div>
+            <ul class="space-y-4 mb-10 flex-grow text-sm text-text-secondary">
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-sand" style="font-size: 18px;">check</span>
+                    <strong>10 hours</strong> processing/month
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-sand" style="font-size: 18px;">check</span>
+                    <strong>Fast queue</strong> — Priority processing
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-sand" style="font-size: 18px;">check</span>
+                    Custom LUFS settings
+                </li>
+            </ul>
+            <a href="/pricing" class="btn-sand text-center" style="text-decoration: none; padding: 0.75rem 1.25rem;">
+                See Plans
+            </a>
+        </div>
+
+        <!-- Professional -->
+        <div class="bg-surface p-10 rounded-xl flex flex-col hover-lift" style="border: 1px solid rgba(74,138,199,0.2);" data-animate="up" data-delay="240">
+            <div class="mb-8">
+                <h4 class="label-sm text-arctic mb-2">Professional</h4>
+                <p class="text-text-secondary text-sm mt-4">Maximum power for audio professionals</p>
+            </div>
+            <ul class="space-y-4 mb-10 flex-grow text-sm text-text-secondary">
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 18px;">check</span>
+                    <strong>40 hours</strong> processing/month
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 18px;">check</span>
+                    <strong>Instant processing</strong> — Fastest queue
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 18px;">check</span>
+                    Advanced audio analysis
+                </li>
+            </ul>
+            <a href="/pricing" class="btn-arctic text-center" style="text-decoration: none; padding: 0.75rem 1.25rem;">
+                See Plans
+            </a>
+        </div>
+
+    </div>
+    <div class="text-center mt-12">
+        <a href="/pricing" class="text-arctic font-bold text-sm hover:underline inline-flex items-center gap-2">
+            View full pricing details
+            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span>
+        </a>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-24 px-8 md:px-24" data-animate="up">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-surface-container-high rounded-xl p-8 sm:p-12 text-center">
+            <h2 class="font-bold text-3xl md:text-4xl text-text-primary mb-4" style="line-height: 1.2;">
+                Ready to normalize your audio?
             </h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div style="background: #0f172a; padding: 1.5rem; border-radius: 0.75rem; border: 2px solid rgba(230, 158, 57, 0.2); transition: all 0.3s ease;" onmouseover="this.style.borderColor='rgba(230, 158, 57, 0.5)'" onmouseout="this.style.borderColor='rgba(230, 158, 57, 0.2)'">
-                    <h3 class="text-2xl font-bold mb-6 text-legendary text-center">Music & content</h3>
-                    <ul class="space-y-5 text-white">
-                        <li class="text-center">
-                            <div class="font-bold text-xl mb-1">DJ content</div>
-                            <div class="text-slate-300 leading-relaxed">Loud and punchy, optimized for impact and energy</div>
-                        </li>
-                        <li class="text-center">
-                            <div class="font-bold text-xl mb-1">Streaming</div>
-                            <div class="text-slate-300 leading-relaxed">Perfect for Spotify, YouTube, and Apple Music</div>
-                        </li>
-                    </ul>
-                </div>
-                <div style="background: #0f172a; padding: 1.5rem; border-radius: 0.75rem; border: 2px solid rgba(20, 184, 166, 0.2); transition: all 0.3s ease;" onmouseover="this.style.borderColor='rgba(20, 184, 166, 0.5)'" onmouseout="this.style.borderColor='rgba(20, 184, 166, 0.2)'">
-                    <h3 class="text-2xl font-bold mb-6 text-legendary-teal text-center">Spoken word</h3>
-                    <ul class="space-y-5 text-white">
-                        <li class="text-center">
-                            <div class="font-bold text-xl mb-1">Podcast</div>
-                            <div class="text-slate-300 leading-relaxed">Clear and consistent levels for spoken content</div>
-                        </li>
-                        <li class="text-center">
-                            <div class="font-bold text-xl mb-1">Broadcast</div>
-                            <div class="text-slate-300 leading-relaxed">EBU R128 standard for radio and television</div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="mt-8 text-center">
-                <p class="text-slate-200 text-base">
-                    <span class="text-gradient-legendary font-bold">Premium </span>members can set custom loudness targets for specialized applications
-                </p>
-            </div>
+            <p class="text-lg text-text-secondary mb-10 leading-relaxed">
+                Get started with 2 hours of processing. Create your free account now!
+            </p>
+            <a href="/upload" class="btn-sand block sm:inline-block" style="text-decoration: none; font-size: 0.875rem; padding: 0.875rem 2.5rem; white-space: normal;">
+                Start processing now
+            </a>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- CTA Section -->
-    <section class="text-center max-w-4xl mx-auto">
-        <div class="cta-section">
-            <div style="position: relative; z-index: 10;">
-                <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; color: white; line-height: 1.3;">
-                    Ready to normalize your audio?
-                </h2>
-                <p style="font-size: 1.125rem; color: #e2e8f0; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-                    Get started with 2 hours of processing. Create your free account now!
-                </p>
-                <a
-                    href="/upload"
-                    class="btn-legendary"
-                    style="font-size: 1.125rem; padding: 1rem 2rem; display: inline-block; text-decoration: none; border-radius: 0.5rem; font-weight: 700;"
-                >
-                    Start processing now
-                </a>
-            </div>
-        </div>
-    </section>
-</div>
+<script src="/static/js/home.js?v={{.AppVersion}}"></script>
 {{end}}

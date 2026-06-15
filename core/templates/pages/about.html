@@ -2,46 +2,30 @@
 
 {{define "title"}}About LevelMix - Professional Audio Normalization{{end}}
 
-{{define "styles"}}
-<style>
-.hero-gradient {
-    background: linear-gradient(135deg, #7ed3e9 0%, #0f5f94 50%, #3aa8a3 100%);
-}
-
-.hover-lift {
-    transition: transform 0.3s ease;
-}
-
-.hover-lift:hover {
-    transform: translateY(-5px);
-}
-</style>
-{{end}}
-
-{{define "main-classes"}}bg-gray-900{{end}}
+{{define "main-classes"}}bg-surface{{end}}
 
 {{define "about_content"}}
 <!-- Hero Section -->
-<header class="py-16 px-6 text-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
-            About <span class="bg-gradient-to-r from-legendary to-legendary-teal bg-clip-text text-transparent">LevelMix</span>
+<header class="py-20 px-6 bg-surface">
+    <div class="max-w-4xl mx-auto text-left">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight text-text-primary">
+            About <span class="text-arctic">LevelMix</span>
         </h1>
-        <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+        <p class="text-xl text-text-secondary max-w-2xl">
             The professional audio normalization service built for creators who demand consistent, high-quality results.
         </p>
     </div>
 </header>
 
 <!-- Main Content -->
-<div class="px-6 py-16">
+<div class="px-6 py-16 bg-surface">
     <!-- Mission Section -->
-    <section class="max-w-4xl mx-auto mb-20 text-center">
-        <h2 class="text-3xl font-bold text-white mb-8">Our mission</h2>
-        <p class="text-xl text-white leading-relaxed mb-8">
+    <section class="max-w-4xl mx-auto mb-20">
+        <h2 class="text-3xl font-bold text-text-primary mb-8" data-animate="up">Our mission</h2>
+        <p class="text-xl text-text-primary leading-relaxed mb-8">
             LevelMix was created to solve one of the most frustrating problems in audio production: inconsistent loudness levels. We believe that every creator should have access to professional-grade audio normalization without needing expensive software or technical expertise.
         </p>
-        <p class="text-lg text-gray-300">
+        <p class="text-lg text-text-secondary">
             Our goal is simple: make your audio sound professional, consistent, and ready for any platform.
         </p>
     </section>
@@ -49,55 +33,51 @@
     <!-- Problem & Solution Section -->
     <section class="max-w-6xl mx-auto mb-20">
         <div class="grid md:grid-cols-2 gap-12 items-center">
-            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover-lift">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 gradient-border-legendary">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
-                    </svg>
+            <div class="bg-surface-container-high p-8 rounded-2xl hover-lift" data-animate="left">
+                <div class="w-16 h-16 rounded-xl bg-error/10 flex items-center justify-center mx-auto mb-6">
+                    <span class="material-symbols-outlined text-error" style="font-size: 32px;">cancel</span>
                 </div>
-                <h3 class="text-2xl font-semibold mb-6 text-red-400 text-center">The problem</h3>
-                <ul class="space-y-4 text-white">
+                <h3 class="text-2xl font-semibold mb-6 text-error text-center">The problem</h3>
+                <ul class="space-y-4 text-text-secondary">
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-error rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Audio creators spend hours manually adjusting volume levels</span>
                     </li>
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-error rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Inconsistent loudness across tracks ruins the listening experience</span>
                     </li>
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-error rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Professional audio software is expensive and complex</span>
                     </li>
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-red-400 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-error rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Different platforms have different loudness requirements</span>
                     </li>
                 </ul>
             </div>
-            
-            <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover-lift">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 gradient-border-legendary">
-                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" />
-                    </svg>
+
+            <div class="bg-surface-container-high p-8 rounded-2xl hover-lift" data-animate="right">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-6">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">check_circle</span>
                 </div>
-                <h3 class="text-2xl font-semibold mb-6 text-teal-500 text-center">Our solution</h3>
-                <ul class="space-y-4 text-white">
+                <h3 class="text-2xl font-semibold mb-6 text-arctic text-center">Our solution</h3>
+                <ul class="space-y-4 text-text-secondary">
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-teal-500 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-arctic rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Automated normalization to industry-standard loudness levels</span>
                     </li>
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-teal-500 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-arctic rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Simple drag-and-drop interface anyone can use</span>
                     </li>
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-teal-500 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-arctic rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Professional results in minutes, not hours</span>
                     </li>
                     <li class="flex items-start">
-                        <div class="w-2 h-2 bg-teal-500 rounded-full mt-3 mr-4 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-arctic rounded-full mt-3 mr-4 flex-shrink-0"></div>
                         <span>Platform-specific presets for streaming, radio, and more</span>
                     </li>
                 </ul>
@@ -107,96 +87,83 @@
 
     <!-- Who We Serve Section -->
     <section class="max-w-6xl mx-auto mb-20">
-        <h2 class="text-4xl font-bold text-center mb-12 text-white">
+        <h2 class="text-4xl font-bold mb-12 text-text-primary" data-animate="up">
             Who We Serve
         </h2>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                    </svg>
+            <div class="bg-surface-container-high p-6 rounded-2xl hover-lift text-center" data-animate="up" data-delay="0">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">album</span>
                 </div>
-                <h3 class="text-xl font-semibold text-teal-500 mb-3">DJs</h3>
-                <p class="text-white">Perfect mixes for streaming platforms, live sets, and radio play</p>
+                <h3 class="text-xl font-semibold text-arctic mb-3">DJs</h3>
+                <p class="text-text-secondary">Perfect mixes for streaming platforms, live sets, and radio play</p>
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                    </svg>
+            <div class="bg-surface-container-high p-6 rounded-2xl hover-lift text-center" data-animate="up" data-delay="60">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">mic</span>
                 </div>
-                <h3 class="text-xl font-semibold text-teal-500 mb-3">Podcasters</h3>
-                <p class="text-white">Consistent audio levels across all episodes for professional listening</p>
+                <h3 class="text-xl font-semibold text-arctic mb-3">Podcasters</h3>
+                <p class="text-text-secondary">Consistent audio levels across all episodes for professional listening</p>
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                    </svg>
+            <div class="bg-surface-container-high p-6 rounded-2xl hover-lift text-center" data-animate="up" data-delay="120">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">piano</span>
                 </div>
-                <h3 class="text-xl font-semibold text-teal-500 mb-3">Music producers</h3>
-                <p class="text-white">Industry-standard loudness levels for releases and demos</p>
+                <h3 class="text-xl font-semibold text-arctic mb-3">Music producers</h3>
+                <p class="text-text-secondary">Industry-standard loudness levels for releases and demos</p>
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
+            <div class="bg-surface-container-high p-6 rounded-2xl hover-lift text-center" data-animate="up" data-delay="0">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">play_circle</span>
                 </div>
-                <h3 class="text-xl font-semibold text-teal-500 mb-3">Content creators</h3>
-                <p class="text-white">Professional audio quality for YouTube, TikTok, and social media</p>
+                <h3 class="text-xl font-semibold text-arctic mb-3">Content creators</h3>
+                <p class="text-text-secondary">Professional audio quality for YouTube, TikTok, and social media</p>
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
+            <div class="bg-surface-container-high p-6 rounded-2xl hover-lift text-center" data-animate="up" data-delay="60">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">movie</span>
                 </div>
-                <h3 class="text-xl font-semibold text-teal-500 mb-3">Video editors</h3>
-                <p class="text-white">Seamless audio integration for films, commercials, and projects</p>
+                <h3 class="text-xl font-semibold text-arctic mb-3">Video editors</h3>
+                <p class="text-text-secondary">Seamless audio integration for films, commercials, and projects</p>
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover-lift text-center">
-                <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: linear-gradient(45deg, #3b82f6 0%, #14b8a6 100%);">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-                    </svg>
+            <div class="bg-surface-container-high p-6 rounded-2xl hover-lift text-center" data-animate="up" data-delay="120">
+                <div class="w-16 h-16 rounded-xl bg-arctic/10 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-arctic" style="font-size: 32px;">tune</span>
                 </div>
-                <h3 class="text-xl font-semibold text-teal-500 mb-3">Audio engineers</h3>
-                <p class="text-white">Quick normalization for client projects and mastering workflows</p>
+                <h3 class="text-xl font-semibold text-arctic mb-3">Audio engineers</h3>
+                <p class="text-text-secondary">Quick normalization for client projects and mastering workflows</p>
             </div>
         </div>
     </section>
 
     <!-- Technical Excellence Section -->
-    <section class="max-w-4xl mx-auto mb-20 bg-gray-800 p-8 rounded-2xl border border-gray-700">
-        <h2 class="text-3xl font-bold text-center mb-8 text-white">
-            Technical <span class="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent">excellence</span>
+    <section class="max-w-4xl mx-auto mb-20 bg-surface-container-high p-8 rounded-2xl" data-animate="up">
+        <h2 class="text-3xl font-bold mb-8 text-text-primary">
+            Technical <span class="text-arctic">excellence</span>
         </h2>
         <div class="grid md:grid-cols-2 gap-8">
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-teal-500">Professional measurement</h3>
-                <p class="text-white mb-6">
+                <h3 class="text-xl font-semibold mb-4 text-arctic">Professional measurement</h3>
+                <p class="text-text-secondary mb-6">
                     Our analysis engine uses ITU-R BS.1770-4 standards for accurate loudness measurement, providing reliable and consistent results across all your content.
                 </p>
-                <h3 class="text-xl font-semibold mb-4 text-teal-500">Smart processing</h3>
-                <p class="text-white">
+                <h3 class="text-xl font-semibold mb-4 text-arctic">Smart processing</h3>
+                <p class="text-text-secondary">
                     Our adaptive algorithms apply the right processing approach for each content type—aggressive leveling for music and streaming, or natural dynamics preservation for spoken word.
                 </p>
             </div>
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-teal-500">Platform optimization</h3>
-                <p class="text-white mb-6">
+                <h3 class="text-xl font-semibold mb-4 text-arctic">Platform optimization</h3>
+                <p class="text-text-secondary mb-6">
                     Each preset is carefully tuned for its specific use case, whether it's punchy DJ mixes, consistent streaming content, natural podcasts, or broadcast-ready material.
                 </p>
-                <h3 class="text-xl font-semibold mb-4 text-teal-500">Quality assurance</h3>
-                <p class="text-white">
+                <h3 class="text-xl font-semibold mb-4 text-arctic">Quality assurance</h3>
+                <p class="text-text-secondary">
                     Every processed file is automatically checked to ensure clean output with proper headroom, no clipping, and high-quality encoding preserved.
                 </p>
             </div>
@@ -204,28 +171,19 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="text-center">
-        <div class="cta-card-legendary max-w-2xl mx-auto">
-            <h2 class="text-3xl font-bold text-white mb-4">
+    <section class="max-w-2xl mx-auto pb-4" data-animate="up">
+        <div class="bg-surface-container-high rounded-xl p-12 text-center">
+            <h2 class="text-3xl font-bold text-text-primary mb-4">
                 Ready to get started?
             </h2>
-            <p class="text-gray-300 text-lg mb-8">
+            <p class="text-text-secondary text-lg mb-10">
                 Join thousands of creators who trust LevelMix for professional audio normalization
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 sm:gap-0 sm:space-x-4 justify-center items-center">
-                <a
-                    href="/upload"
-                    class="w-full sm:w-auto text-white px-8 py-4 rounded-xl text-lg font-bold transition-all text-center"
-                    style="background: #1e293b; border: 2px solid #e69e39; box-shadow: 0 0 0 rgba(230, 158, 57, 0);"
-                    onmouseenter="this.style.boxShadow='0 0 20px rgba(230, 158, 57, 0.4)'; this.style.transform='translateY(-2px)'"
-                    onmouseleave="this.style.boxShadow='0 0 0 rgba(230, 158, 57, 0)'; this.style.transform='translateY(0)'"
-                >
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/upload" class="btn-sand" style="text-decoration: none; padding: 0.875rem 2rem;">
                     Try Free Now
                 </a>
-                <a
-                    href="/pricing"
-                    class="w-full sm:w-auto border-2 border-teal-500 text-teal-500 px-8 py-4 rounded-xl text-lg font-bold hover:bg-teal-500 hover:text-gray-900 transition-colors text-center"
-                >
+                <a href="/pricing" class="btn-ghost" style="text-decoration: none; padding: 0.875rem 2rem;">
                     View Pricing
                 </a>
             </div>

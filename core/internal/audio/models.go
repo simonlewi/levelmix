@@ -24,6 +24,7 @@ type ProcessTask struct {
 	IsPremium      bool           `json:"is_premium"`
 	FastMode       bool           `json:"fast_mode"` // deprecated, used for backward compatibility
 	ProcessingMode ProcessingMode `json:"processing_mode"`
+	NoiseReduction bool           `json:"noise_reduction"`
 }
 
 type OutputOptions struct {
@@ -49,9 +50,10 @@ const (
 
 // Queue priority levels
 const (
-	QueueFast     = "fast"
-	QueuePremium  = "premium"
-	QueueStandard = "standard"
+	QueueFast          = "fast"
+	QueuePremium       = "premium"
+	QueueStandard      = "standard"
+	QueueNotifications = "notifications" // dedicated queue for email/background tasks
 )
 
 const (

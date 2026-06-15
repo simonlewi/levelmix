@@ -1,23 +1,34 @@
+# syntax=docker/dockerfile:1
+
 # Build stage
 FROM golang:1.24-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git
+RUN apk add --no-cache git openssh-client
+
+# Configure SSH for GitHub access
+RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 
 # Set working directory
 WORKDIR /app
 
-# Copy go mod files
-COPY go.mod go.sum ./
+# Clone the private enterprise repo using deploy key
+RUN --mount=type=ssh git clone git@github.com:simonlewi/levelmix-enterprise.git /app/enterprise
 
-# Download dependencies
-RUN go mod download
-
-# Copy source code
+# Copy source code first
 COPY . .
 
+# Add enterprise module dependency and point to the local clone
+# (must be after COPY . . to avoid go.mod being overwritten)
+RUN go mod edit \
+    -require=github.com/simonlewi/levelmix-enterprise@v0.0.0 \
+    -replace=github.com/simonlewi/levelmix-enterprise=/app/enterprise
+
+# Download dependencies (including enterprise's transitive deps)
+RUN go mod tidy && go mod download
+
 # Build the worker
-RUN CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -ldflags="-w -s" -o worker ./core/cmd/worker
+RUN CGO_ENABLED=0 GOOS=linux go build -tags ee -installsuffix cgo -ldflags="-w -s" -o worker ./core/cmd/worker
 
 # Final stage
 FROM alpine:latest

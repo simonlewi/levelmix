@@ -1,8 +1,1 @@
-// HTMX event handlers for navigation
-document.body.addEventListener('htmx:beforeRequest', function(evt) {
-    console.log('Navigation request started');
-});
-
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    console.log('Navigation completed');
-});
+// No page-specific JS needed for the how-to-use page.

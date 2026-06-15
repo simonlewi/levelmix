@@ -10,10 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
-	ee_storage "github.com/simonlewi/levelmix/ee/storage"
 	"github.com/simonlewi/levelmix/pkg/storage"
 )
 
@@ -113,26 +110,15 @@ func (h *DownloadHandler) HandleDownload(c *gin.Context) {
 	log.Printf("Initiating download for file %s, format: %s, filename: %s", fileID, outputFormat, downloadFilename)
 
 	// Try presigned URL first (best performance)
-	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
-		// Create presigned URL with download headers to force download instead of streaming
-		processedKey := s3Storage.GetProcessedKey(fileID, outputFormat)
+	processedKey := h.storage.GetProcessedKey(fileID, outputFormat)
 
-		presigner := s3.NewPresignClient(s3Storage.GetClient())
-
-		request, err := presigner.PresignGetObject(c.Request.Context(), &s3.GetObjectInput{
-			Bucket:                     aws.String(s3Storage.GetBucket()),
-			Key:                        aws.String(processedKey),
-			ResponseContentDisposition: aws.String(fmt.Sprintf("attachment; filename=\"%s\"", downloadFilename)),
-			ResponseContentType:        aws.String(contentType),
-		}, s3.WithPresignExpires(1*time.Hour))
-
-		if err == nil {
-			log.Printf("Using presigned URL with download headers for: %s", fileID)
-			c.Redirect(http.StatusTemporaryRedirect, request.URL)
-			return
-		}
-		log.Printf("Presigned URL generation failed, falling back to direct download: %v", err)
+	presignedURL, err := h.storage.GetPresignedDownloadURL(c.Request.Context(), processedKey, downloadFilename, contentType, 1*time.Hour)
+	if err == nil {
+		log.Printf("Using presigned URL with download headers for: %s", fileID)
+		c.Redirect(http.StatusTemporaryRedirect, presignedURL)
+		return
 	}
+	log.Printf("Presigned URL generation failed, falling back to direct download: %v", err)
 
 	// Fallback to direct download with proper headers
 	h.directDownload(c, fileID, downloadFilename, contentType, outputFormat)
@@ -142,12 +128,7 @@ func (h *DownloadHandler) directDownload(c *gin.Context, fileID, filename, conte
 	log.Printf("Using direct download for file %s", fileID)
 
 	// Get the correct S3 key
-	var processedKey string
-	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
-		processedKey = s3Storage.GetProcessedKey(fileID, outputFormat)
-	} else {
-		processedKey = "processed/" + fileID
-	}
+	processedKey := h.storage.GetProcessedKey(fileID, outputFormat)
 
 	// Get file reader
 	reader, err := h.storage.Download(c.Request.Context(), processedKey)
@@ -158,13 +139,10 @@ func (h *DownloadHandler) directDownload(c *gin.Context, fileID, filename, conte
 	}
 	defer reader.Close()
 
-	// Try to get content length from S3 metadata
+	// Try to get content length from metadata
 	var contentLength int64 = -1
-	if s3Storage, ok := h.storage.(*ee_storage.S3Storage); ok {
-		// Get object info for Content-Length header
-		if info, err := s3Storage.GetObjectInfo(c.Request.Context(), processedKey); err == nil {
-			contentLength = info.Size
-		}
+	if info, err := h.storage.GetObjectInfo(c.Request.Context(), processedKey); err == nil {
+		contentLength = info.Size
 	}
 
 	// Set comprehensive headers for better Chrome support

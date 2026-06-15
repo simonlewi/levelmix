@@ -40,6 +40,8 @@ coverage/
 
 # Local development files
 *.local
+go.work
+go.work.sum
 docker-compose.override.yml
 docker-compose.yml
 
