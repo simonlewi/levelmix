@@ -123,6 +123,7 @@ if [ "$SKIP_UPDATE" = false ]; then
 
     # Pull latest
     git pull origin main
+
     echo -e "${GREEN}  Code updated${NC}"
     echo ""
 else
@@ -140,9 +141,23 @@ echo -e "${BLUE}  Branch: ${GIT_BRANCH}  Commit: ${GIT_COMMIT}${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 3: Build Docker images (enterprise repo cloned inside build via deploy key)
+# Step 3: Pre-flight Go compilation check
 # ---------------------------------------------------------------------------
-echo -e "${YELLOW}Step 3: Building Docker images...${NC}"
+echo -e "${YELLOW}Step 3: Pre-flight compilation check...${NC}"
+go build -tags ee -o /tmp/levelmix-preflight-$$ ./core/cmd/server 2>&1 | tee /tmp/build-errors-$$.log || {
+    echo -e "${RED}  Go compilation failed!${NC}"
+    cat /tmp/build-errors-$$.log
+    rm -f /tmp/build-errors-$$.log
+    exit 1
+}
+rm -f /tmp/levelmix-preflight-$$ /tmp/build-errors-$$.log
+echo -e "${GREEN}  Compilation OK${NC}"
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 4: Build Docker images (enterprise repo cloned inside build via deploy key)
+# ---------------------------------------------------------------------------
+echo -e "${YELLOW}Step 4: Building Docker images...${NC}"
 
 echo -e "${BLUE}  Building web service...${NC}"
 docker build \
@@ -173,10 +188,10 @@ echo -e "${GREEN}  Worker: levelmix-worker:${GIT_COMMIT}${NC}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 4: Run database migrations
+# Step 5: Run database migrations
 # ---------------------------------------------------------------------------
 if [ "$SKIP_MIGRATE" = false ]; then
-    echo -e "${YELLOW}Step 4: Running database migrations...${NC}"
+    echo -e "${YELLOW}Step 5: Running database migrations...${NC}"
     if [ -f "./migrate.sh" ]; then
         ./migrate.sh || {
             echo -e "${RED}  Migrations failed -- aborting before restart${NC}"
@@ -189,14 +204,14 @@ if [ "$SKIP_MIGRATE" = false ]; then
     fi
     echo ""
 else
-    echo -e "${YELLOW}Step 4: Skipped (--skip-migrate)${NC}"
+    echo -e "${YELLOW}Step 5: Skipped (--skip-migrate)${NC}"
     echo ""
 fi
 
 # ---------------------------------------------------------------------------
-# Step 5: Restart services
+# Step 6: Restart services
 # ---------------------------------------------------------------------------
-echo -e "${YELLOW}Step 5: Restarting services...${NC}"
+echo -e "${YELLOW}Step 6: Restarting services...${NC}"
 
 if [ -f "docker-compose.yml" ]; then
     GIT_COMMIT=$GIT_COMMIT docker-compose up -d

@@ -950,11 +950,11 @@ func (h *UploadHandler) validateFile(fileHeader *multipart.FileHeader, userTier 
 	switch userTier {
 	case 1: // Free tier - MP3 only
 		if ext != ".mp3" {
-			return fmt.Errorf("Only MP3 files are supported. Upgrade to Premium for WAV support")
+			return fmt.Errorf("Only MP3 files are supported. Upgrade to Premium for WAV and FLAC support")
 		}
-	case 2, 3: // Premium/Pro tiers - MP3 and WAV
-		if ext != ".mp3" && ext != ".wav" {
-			return fmt.Errorf("Only MP3 and WAV files are supported")
+	case 2, 3: // Premium/Pro tiers - MP3, WAV, and FLAC
+		if ext != ".mp3" && ext != ".wav" && ext != ".flac" {
+			return fmt.Errorf("Only MP3, WAV, and FLAC files are supported")
 		}
 	default:
 		if ext != ".mp3" {
