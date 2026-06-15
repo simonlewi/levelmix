@@ -135,8 +135,9 @@ func (h *AccountHandler) deleteUserData(ctx context.Context, userID string) erro
 }
 
 func (h *AccountHandler) clearSession(c *gin.Context) {
-	c.SetCookie("session_token", "", -1, "/", "", false, true)
-	c.SetCookie("user_id", "", -1, "/", "", false, true)
+	isSecure := c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
+	c.SetCookie("session_token", "", -1, "/", "", isSecure, true)
+	c.SetCookie("user_id", "", -1, "/", "", isSecure, true)
 }
 
 // UpdateName handles updating the user's name
