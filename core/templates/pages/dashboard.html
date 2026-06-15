@@ -133,8 +133,6 @@
                                     {{if .file}}{{.file.OriginalFilename}}{{else}}Processing...{{end}}
                                 </div>
                                 <div class="text-sm text-text-tertiary flex flex-wrap gap-2 mt-0.5">
-                                    {{if .hasTargetLUFS}}<span>Target: {{printf "%.1f" .targetLUFS}} LUFS</span>{{end}}
-                                    <span>•</span>
                                     <span>{{.job.CreatedAt.Format "Jan 2, 3:04 PM"}}</span>
                                 </div>
                             </div>
