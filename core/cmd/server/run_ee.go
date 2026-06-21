@@ -113,6 +113,7 @@ func run() {
 	downloadHandler := handlers.NewDownloadHandler(audioStorage, metadataStorage)
 	aboutHandler := handlers.NewAboutHandler()
 	pricingHandler := handlers.NewPricingHandler()
+	startHandler := handlers.NewStartHandler()
 	howToUseHandler := handlers.NewHowToUseHandler()
 	paymentSuccessHandler := handlers.NewPaymentSuccessHandler()
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
@@ -155,6 +156,7 @@ func run() {
 	cookiePolicyTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "cookie-policy.html")
 	termsOfServiceTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "terms-of-service.html")
 	howToUseTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "how-to-use.html")
+	startTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "start.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -176,6 +178,7 @@ func run() {
 		privacyPolicyTemplate,
 		cookiePolicyTemplate,
 		termsOfServiceTemplate,
+		startTemplate,
 	)
 
 	// Static files
@@ -224,6 +227,7 @@ func run() {
 
 		publicOpen.GET("/about", aboutHandler.ShowAbout)
 		publicOpen.GET("/pricing", pricingHandler.ShowPricing)
+		publicOpen.GET("/start", startHandler.ShowStart)
 		publicOpen.GET("/payment/success", paymentSuccessHandler.ShowPaymentSuccess)
 		publicOpen.GET("/how-to-use", howToUseHandler.ShowHowToUse)
 
