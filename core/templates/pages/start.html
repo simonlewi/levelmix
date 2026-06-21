@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Fonts (same as base.html) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/output.css?v={{.AppVersion}}">
+    <title>{{if .PageTitle}}{{.PageTitle}} - LevelMix{{else}}LevelMix - Audio Normalization{{end}}</title>
+
+    <!-- Favicon (same as base.html) -->
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/static/images/favicon/site.webmanifest">
+    <meta name="theme-color" content="#0F0F0D">
+
+    <style>
+        /* Precision Console tokens (§4) — scoped so this standalone page never
+           depends on utility classes that may be absent from the prebuilt output.css */
+        :root {
+            --color-surface: #0F0F0D;
+            --color-surface-container-low: #1C1C19;
+            --color-surface-container: #20201D;
+            --color-surface-container-high: #2A2A28;
+            --color-surface-container-highest: #353532;
+            --color-arctic: #4A8AC7;
+            --color-sand: #D4A95E;
+            --color-text-primary: #EDEAE3;
+            --color-text-secondary: #B0ADA4;
+            --color-text-tertiary: #7A7770;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: inherit; }
+
+        .wrap {
+            width: 100%;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Header — wordmark only */
+        .site-header {
+            background: var(--color-surface-container-low);
+            padding: 1rem 1.5rem;
+        }
+        .wordmark {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.75rem;
+            color: var(--color-text-primary);
+            text-decoration: none;
+        }
+
+        /* Headings — Inter, never Syne (§3 typography rule) */
+        h1, h2, h3 {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+
+        section { padding: 4rem 0; }
+
+        /* Hero */
+        .hero { text-align: center; padding-top: 4.5rem; }
+        .hero h1 {
+            font-weight: 800;
+            font-size: 3rem;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+        .hero .sub {
+            color: var(--color-text-secondary);
+            font-size: 1.25rem;
+            max-width: 38rem;
+            margin: 1.5rem auto 0;
+        }
+        .trust-line {
+            color: var(--color-text-tertiary);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        /* CTA sizing — keeps .btn-sand / .btn-arctic identity, enlarges for touch */
+        .cta-lg {
+            display: inline-block;
+            font-size: 0.9375rem;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            margin-top: 2rem;
+        }
+
+        /* Signature before/after waveform */
+        .waveform {
+            margin: 3rem auto 0;
+            max-width: 760px;
+        }
+        .waveform img { width: 100%; height: auto; display: block; }
+
+        /* How It Works */
+        .steps {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+        .step {
+            background: var(--color-surface-container-high);
+            border-radius: 12px;
+            padding: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+        .step-num {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: var(--color-arctic);
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 1.125rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step-text { font-size: 1.125rem; font-weight: 500; }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 1.875rem;
+            text-align: center;
+            letter-spacing: -0.01em;
+        }
+
+        /* Trust statement */
+        .trust-statement {
+            text-align: center;
+            color: var(--color-text-secondary);
+            font-size: 1.25rem;
+        }
+
+        /* Pricing anchor */
+        .pricing-anchor { text-align: center; }
+        .pricing-anchor .lead { font-size: 1.5rem; font-weight: 700; }
+        .pricing-anchor .tiers {
+            color: var(--color-text-secondary);
+            font-size: 1.0625rem;
+            margin-top: 1rem;
+        }
+
+        /* Final CTA */
+        .final-cta { text-align: center; background: var(--color-surface-container-low); }
+        .final-cta h2 {
+            font-weight: 800;
+            font-size: 2.25rem;
+            letter-spacing: -0.02em;
+        }
+        .final-cta .value-line {
+            color: var(--color-text-secondary);
+            font-size: 1.125rem;
+            margin-top: 1rem;
+        }
+
+        /* Footer */
+        .site-footer {
+            background: var(--color-surface);
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+        .site-footer .copy { color: var(--color-text-tertiary); font-size: 0.8125rem; margin-bottom: 1rem; }
+        .site-footer a {
+            color: var(--color-text-tertiary);
+            font-size: 0.8125rem;
+            text-decoration: none;
+            transition: color 200ms ease;
+        }
+        .site-footer a:hover { color: var(--color-text-primary); }
+        .site-footer .sep { color: var(--color-text-tertiary); margin: 0 0.5rem; }
+
+        /* Mobile (375px) */
+        @media (max-width: 480px) {
+            .hero { padding-top: 2.5rem; }
+            .hero h1 { font-size: 2.25rem; }
+            .hero .sub { font-size: 1.125rem; }
+            section { padding: 3rem 0; }
+            .final-cta h2 { font-size: 1.875rem; }
+            .step { padding: 1.25rem; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Minimal header: wordmark only, NO nav links. Links to "/" (same tab),
+         preserving any UTM query string so attribution survives the hop. -->
+    <header class="site-header">
+        <a href="/" class="wordmark">LevelMix</a>
+    </header>
+
+    <main>
+
+        <!-- 1. Hero -->
+        <section class="hero">
+            <div class="wrap">
+                <h1>No more volume jumps.</h1>
+                <p class="sub">One track too quiet. The next too loud. LevelMix automatically corrects your audio &mdash; upload, process, download. Done.</p>
+                <a href="/register" class="btn-sand cta-lg">Start Free &mdash; No Card Required</a>
+                <p class="trust-line">Free account &middot; 2 hours processing included &middot; Cancel anytime</p>
+                <div class="waveform">
+                    <img src="/static/images/levelmix-before-after.webp"
+                         alt="A podcast waveform before and after LevelMix: uneven and quiet on the left, evened out and consistent on the right">
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. How It Works -->
+        <section>
+            <div class="wrap">
+                <h2 class="section-title">Three steps. That's it.</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div class="step-text">Upload your audio file</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div class="step-text">Choose a preset (DJ Mix, Podcast, Streaming, Broadcast)</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-text">Download your corrected file</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Social Proof / Trust -->
+        <section>
+            <div class="wrap">
+                <p class="trust-statement">Used by DJs, podcasters, and content agencies.</p>
+            </div>
+        </section>
+
+        <!-- 4. Pricing anchor -->
+        <section class="pricing-anchor">
+            <div class="wrap">
+                <p class="lead">Free to start. Upgrade when you need more.</p>
+                <p class="tiers">Free: 2 hrs/month &nbsp;&middot;&nbsp; Premium: &euro;9/mo, 10 hrs &nbsp;&middot;&nbsp; Pro: &euro;24/mo, 40 hrs</p>
+                <a href="/pricing" class="btn-arctic cta-lg">See full pricing</a>
+            </div>
+        </section>
+
+        <!-- 5. Final CTA -->
+        <section class="final-cta">
+            <div class="wrap">
+                <h2>No more volume jumps.</h2>
+                <a href="/register" class="btn-sand cta-lg">Start Free &mdash; No Card Required</a>
+                <p class="value-line">Your first 2 hours are free. No card needed.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Minimal footer: Privacy + Terms only (real route paths, confirmed via grep) -->
+    <footer class="site-footer">
+        <div class="copy">&copy; 2026 LevelMix Audio.</div>
+        <a href="/privacy">Privacy Policy</a>
+        <span class="sep">&middot;</span>
+        <a href="/terms-of-service">Terms</a>
+    </footer>
+
+</body>
+</html>
