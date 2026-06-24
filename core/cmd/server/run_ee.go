@@ -124,7 +124,7 @@ func run() {
 
 	// Initialize auth
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
-	authHandler := ee_auth.NewHandler(metadataStorage, authMiddleware)
+	authHandler := ee_auth.NewHandler(metadataStorage, authMiddleware, emailService)
 
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
