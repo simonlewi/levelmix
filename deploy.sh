@@ -145,9 +145,21 @@ echo ""
 # ---------------------------------------------------------------------------
 echo -e "${YELLOW}Step 3: Building Docker images...${NC}"
 
+# Resolve the current enterprise main SHA and pass it as a build arg. The
+# Dockerfiles clone the enterprise repo in a RUN layer that Docker caches
+# indefinitely; without this, builds silently reuse a stale enterprise clone.
+# Keying the cache on the SHA re-clones exactly when enterprise main moves.
+ENTERPRISE_SHA=$(git ls-remote git@github.com:simonlewi/levelmix-enterprise.git refs/heads/main | cut -f1)
+if [ -z "$ENTERPRISE_SHA" ]; then
+    echo -e "${RED}  Could not resolve enterprise main SHA (check deploy key / network)${NC}"
+    exit 1
+fi
+echo -e "${BLUE}  Enterprise main: ${ENTERPRISE_SHA}${NC}"
+
 echo -e "${BLUE}  Building web service...${NC}"
 docker build \
   --build-arg GIT_COMMIT=$GIT_COMMIT \
+  --build-arg ENTERPRISE_SHA=$ENTERPRISE_SHA \
   --ssh default="$DEPLOY_KEY" \
   $DOCKER_BUILD_FLAGS \
   -f Dockerfile.web \
@@ -161,6 +173,7 @@ echo -e "${GREEN}  Web: levelmix-web:${GIT_COMMIT}${NC}"
 
 echo -e "${BLUE}  Building worker service...${NC}"
 docker build \
+  --build-arg ENTERPRISE_SHA=$ENTERPRISE_SHA \
   --ssh default="$DEPLOY_KEY" \
   $DOCKER_BUILD_FLAGS \
   -f Dockerfile.worker \
