@@ -12,8 +12,14 @@ RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 # Set working directory
 WORKDIR /app
 
+# Cache-bust keyed on enterprise main's SHA so the clone re-runs only when the
+# enterprise repo actually changes (this RUN layer is otherwise cached forever,
+# which silently builds against stale enterprise code). deploy.sh passes the SHA.
+ARG ENTERPRISE_SHA=unset
 # Clone the private enterprise repo using deploy key
-RUN --mount=type=ssh git clone git@github.com:simonlewi/levelmix-enterprise.git /app/enterprise
+RUN --mount=type=ssh \
+    echo "enterprise ref: ${ENTERPRISE_SHA}" && \
+    git clone git@github.com:simonlewi/levelmix-enterprise.git /app/enterprise
 
 # Copy source code first
 COPY . .
