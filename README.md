@@ -2,320 +2,258 @@
 
 [![CI](https://github.com/simonlewi/levelmix/actions/workflows/ci.yml/badge.svg)](https://github.com/simonlewi/levelmix/actions/workflows/ci.yml)
 
-A web-based SaaS application that normalizes longer audio files to specified LUFS target levels, making audio content consistent and professional.
+**No more volume jumps.**
 
-## Description
+LevelMix is a web-based SaaS that automatically corrects inconsistent audio levels
+in DJ mixes, podcasts, audiobooks, and long-form audio content. Upload your file,
+choose a preset, download a normalized result — no audio engineering background
+required.
 
-LevelMix is a powerful yet simple audio normalization service designed for content creators who need to ensure consistent loudness levels across their audio content. Built with Go, vanilla JavaScript, and TailwindCSS, it provides a fast, efficient way to process audio files without the need for complex software or technical expertise.
+Live at [levelmix.io](https://levelmix.io)
 
-**Key Features:**
-- 🎵 **Audio Normalization**: Automatically normalize audio files to industry-standard LUFS levels
-- 📊 **Multiple Presets**: Choose from DJ mix (-5 LUFS), streaming (-14 LUFS), podcast (-16 LUFS), or broadcast (-23 LUFS) presets
-- 🚀 **Fast Processing**: Efficient FFmpeg-based processing pipeline with real-time progress tracking
-- 💾 **Secure Storage**: AWS S3 integration for reliable file storage and delivery
-- 🎯 **User-Friendly**: Clean, responsive interface built with vanilla JavaScript and TailwindCSS
-- 📱 **Multi-Tier Service**: Freemium model with time-based processing limits
+---
 
-## Why?
+## The Problem
 
-### The Problem
-Content creators across various industries face a common challenge: **inconsistent audio levels**. Whether you're a:
-- **DJ** creating seamless mixes
-- **Podcaster** ensuring consistent episode volumes
-- **Music Producer** preparing tracks for different platforms
-- **Video Editor** balancing audio across clips
+One track too quiet. The next one too loud. Inconsistent audio loses listeners —
+in DJ sets, podcast feeds, and long-form content alike.
 
-You've likely encountered the tedious process of manually adjusting audio levels to meet platform requirements or maintain professional quality standards.
+Manual loudness correction is slow, technical, and easy to get wrong. LevelMix
+automates it, consistently, every time.
 
-### The Solution
-LevelMix automates this technical process, allowing creators to:
-- **Save Time**: No more manual audio editing or guesswork
-- **Ensure Consistency**: Meet industry standards for streaming platforms, broadcasting, and club play
-- **Focus on Creativity**: Spend time on content creation, not technical adjustments
-- **Professional Results**: Achieve broadcast-quality audio normalization
+**Who it's for:**
+- DJs and live set performers with uneven track loudness
+- Podcasters with volume inconsistency between hosts or recording sessions
+- Audiobook producers needing broadcast-standard consistency
+- Content agencies processing high volumes of audio
+- Video editors balancing audio across clips
+
+---
+
+## Features
+
+- **Automatic loudness correction** — Upload, process, download. No LUFS
+  knowledge needed.
+- **Preset-based normalization** — DJ Mix (-5 LUFS), Streaming (-14 LUFS),
+  Podcast (-16 LUFS), Broadcast (-23 LUFS)
+- **Dynamics-aware processing** — Proprietary algorithm preserves musical
+  dynamics; loud sections hit target while quiet sections remain proportionally
+  quieter
+- **Silence trimming** — Automatic detection and removal of leading/trailing
+  dead air
+- **Real-time progress tracking** — Server-sent events with percentage-based
+  job status
+- **Secure file handling** — Files stored on AWS S3 with presigned URLs;
+  auto-deleted after 30 days
+- **Priority queue** — Paid tiers receive higher job priority via separate
+  Asynq queue weights
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Go 1.24+ |
+| Web framework | Gin |
+| Templates | `html/template` + Tailwind CSS v4 |
+| Frontend | Vanilla JS (no React, no HTMX) |
+| Audio processing | FFmpeg (two-pass loudnorm + alimiter chain) |
+| Job queue | Asynq + Redis |
+| Database | Turso (libSQL / SQLite) |
+| File storage | AWS S3 (presigned URLs, multipart upload) |
+| Payments | Stripe (Hosted Checkout, webhook-driven tier sync) |
+| Email | Resend (transactional + broadcast) |
+| Deployment | Docker Compose + Traefik on Hetzner CX22 |
+| DNS / SSL | Cloudflare |
+
+---
 
 ## Architecture
 
-This repo is **semi-open-source**. The `core/` and `pkg/` directories contain the application logic and compile on their own. Enterprise features (auth, payments, S3 storage, cleanup) live in a separate private `ee/` directory that is **not included** in this repo.
+This repo is **open-core**. The `core/` and `pkg/` directories contain the
+application logic and compile standalone. Enterprise features live in a private
+`ee/` directory that is **not included** in this repo.
 
-The codebase uses [Go build tags](https://pkg.go.dev/go/build#hdr-Build_Constraints) to handle this:
+Go build tags control which implementation is wired in:
 
-- `go build ./core/...` compiles with CE stubs (prints "rebuild with `-tags ee`")
-- `go build -tags ee ./core/...` compiles with full enterprise wiring
+```bash
+# Community Edition (stubs only — prints "rebuild with -tags ee")
+go build ./core/...
 
-If you clone this repo and want to run it, you need to provide your own `ee/` directory implementing the storage, auth, and payment interfaces. See [Enterprise setup](#enterprise-setup) below.
-
-## Quick Start
-
-### Prerequisites
-- Go 1.24 or higher
-- FFmpeg installed on your system
-- Redis server (for job queue)
-- AWS S3 bucket (for file storage)
-- Turso database account
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/simonlewi/levelmix.git
-   cd levelmix
-   ```
-
-2. **Install dependencies**
-   ```bash
-   go mod download
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Set up the database**
-   ```bash
-   # Create your Turso database
-   turso db create levelmix-dev
-
-   # Apply the database schema (located in your ee/ directory)
-   turso db shell levelmix-dev < ee/storage/sql/schema.sql
-
-   # Get your database URL and token
-   turso db show levelmix-dev
-   # Update your .env file with the connection details
-   ```
-
-5. **Start Redis (if running locally)**
-   ```bash
-   redis-server
-   ```
-
-6. **Start the application**
-   ```bash
-   go run -tags ee ./core/cmd/server
-   ```
-
-7. **Start the worker (in a separate terminal)**
-   ```bash
-   go run -tags ee ./core/cmd/worker
-   ```
-
-8. **Visit the application**
-   Open your browser to `http://localhost:8080`
-
-### Enterprise setup
-
-The `ee/` directory is not included in this repo. To run the full application, you need to create your own implementations of:
-
-- `ee/storage/` — `AudioStorage` and `MetadataStorage` (see `pkg/storage/interfaces.go`)
-- `ee/auth/` — Authentication middleware and handlers
-- `ee/payment/` — Payment processing (optional)
-- `ee/cleanup/` — S3 lifecycle and consent cleanup (optional)
-
-Each `core/cmd/*/run_ee.go` file shows exactly which `ee/` packages are imported and how they're wired up. Use those as your reference for what to implement.
-
-### Environment Variables
-
-Create a `.env` file in the project root with the following configuration:
-
-```env
-# Application Settings
-APP_URL=http://localhost:8080
-PORT=8080
-GIN_MODE=debug
-SESSION_SECRET=your-very-long-random-session-secret-here
-
-# Database (Turso)
-TURSO_DB_URL=libsql://your-database.turso.io
-TURSO_AUTH_TOKEN=your-turso-auth-token
-
-# Storage (AWS S3)
-AWS_REGION=us-east-1
-AWS_S3_BUCKET=levelmix-audio-files
-AWS_ACCESS_KEY_ID=your-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key
-
-# Queue (Redis)
-REDIS_URL=redis://localhost:6379
-
-# Email Service (Resend)
-EMAIL_SERVICE=resend
-RESEND_API_KEY=your-resend-api-key
-EMAIL_FROM=your-email-address-here
-EMAIL_FROM_NAME=YourName
+# Enterprise Edition (full wiring)
+go build -tags ee ./core/...
 ```
-
-## Usage
-
-### Web Interface
-
-1. **Upload Audio File**
-   - Visit the LevelMix homepage
-   - Drag and drop your audio file or click to select from your computer
-
-2. **Choose Target Level**
-   - Select from preset LUFS targets:
-     - **DJ Mix** (-5 LUFS): High-energy for club systems
-     - **Streaming** (-14 LUFS): Perfect for Spotify, Apple Music, etc.
-     - **Podcast** (-16 LUFS): Optimized for podcast platforms
-     - **Broadcast** (-23 LUFS): EBU R128 standard for TV/radio
-     - **Custom LUFS** (Premium/Pro only): Set your own target level
-
-3. **Process & Download**
-   - Monitor real-time processing progress
-   - Download the processed file when complete
-   - Access your processing history in the dashboard
-
-### Subscription Tiers
-
-- **Free**: 2 hours processing/month, standard queue, all presets, mp3 only
-- **Premium**: 10 hours processing/month, fast queue, custom LUFS, WAV support
-- **Professional**: 40 hours processing/month, priority processing, all formats (MP3, WAV, FLAC)
-
-## Contributing
-
-We welcome contributions to LevelMix! Here's how you can help:
-
-### Development Setup
-
-1. **Fork the repository** and create your feature branch
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-
-2. **Set up your development environment**
-   ```bash
-   # Install development dependencies
-   go mod download
-   
-   # Install golangci-lint for code quality
-   go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-   
-   # Run tests
-   go test ./...
-   ```
-
-3. **Make your changes**
-   - Follow Go best practices and conventions
-   - Add tests for new functionality
-   - Update documentation as needed
-
-4. **Test your changes**
-   ```bash
-   # Run all tests
-   go test ./...
-   
-   # Run with race detection
-   go test -race ./...
-   
-   # Check formatting
-   go fmt ./...
-   
-   # Run linting
-   golangci-lint run
-   ```
-
-5. **Submit a Pull Request**
-   - Ensure all tests pass
-   - Include a clear description of your changes
-   - Reference any related issues
-
-### Project Structure
 
 ```
 levelmix/
-├── core/                    # Core application (open source)
+├── core/                    # Open-source application logic
 │   ├── cmd/
-│   │   ├── server/         # Web server (main.go + run_ee.go/run_ce.go)
+│   │   ├── server/         # Web server (main.go)
 │   │   ├── worker/         # Background audio processor
 │   │   └── cleanup/        # S3 lifecycle cleanup job
 │   ├── internal/
-│   │   ├── audio/          # Audio processing logic
+│   │   ├── audio/          # FFmpeg processing pipeline
 │   │   └── handlers/       # HTTP request handlers
-│   ├── static/             # Static assets (CSS, JS, images)
+│   ├── static/             # CSS, JS, images, favicon
 │   └── templates/          # HTML templates
-├── ee/                     # Enterprise features (not included, private)
+├── ee/                     # Enterprise features (private, not included)
 │   ├── auth/              # Authentication system
 │   ├── cleanup/           # S3 and consent cleanup
-│   ├── payment/           # Payment processing
-│   └── storage/           # S3 + Turso implementations
-├── pkg/                   # Shared packages (open source)
+│   ├── payment/           # Stripe integration
+│   └── storage/           # Turso + S3 implementations
+├── pkg/                   # Shared interfaces (open-source)
 │   ├── email/             # Email service
 │   └── storage/           # Storage interfaces and models
-├── go.mod                 # Go module definition
+├── go.mod
 └── README.md
-```
-
-### Areas for Contribution
-
-- **Bug fixes** and performance improvements
-- **Documentation** enhancements
-- **UI/UX** improvements
-- **New audio formats** support (FLAC, AAC, etc.)
-- **Performance optimizations**
-- **Testing** coverage expansion
-- **Security** enhancements
-- **Additional audio processing features**
-
-### Code Style
-
-- Follow standard Go formatting (`go fmt`)
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Keep functions small and focused
-- Write tests for new functionality
-- Follow the existing project structure
-
-### Getting Help
-
-- **Issues**: Report bugs or request features via GitHub Issues
-- **Discussions**: Join community discussions for questions and ideas
-- **Contact**: Reach out to maintainers for major contributions
-
-## Development
-
-### Running in Development Mode
-
-1. **Start Redis**
-   ```bash
-   redis-server
-   ```
-
-2. **Start the web server**
-   ```bash
-   go run -tags ee ./core/cmd/server
-   ```
-
-3. **Start the worker (separate terminal)**
-   ```bash
-   go run -tags ee ./core/cmd/worker
-   ```
-
-### Testing Audio Processing
-
-1. Create a test MP3 file or use any existing audio file
-2. Upload through the web interface at `http://localhost:8080/upload`
-3. Monitor the processing in the worker logs
-4. Download the normalized result
-
-### Database Management
-
-The application uses Turso (SQLite-compatible) as its database. The schema is in `ee/storage/sql/schema.sql`.
-
-```bash
-# Connect to your database
-turso db shell your-database-name
-
-# Run a query
-SELECT * FROM users LIMIT 5;
-
-# View tables
-.tables
 ```
 
 ---
 
-**Made with ❤️ for content creators everywhere**
+## Audio Processing Pipeline
 
-*LevelMix - Making professional audio normalization accessible to everyone*
+Two processing modes — both FFmpeg-based:
+
+**Precise mode** (default): Two-pass `loudnorm` filter for metrically accurate
+LUFS output. Best for podcasts and broadcast targets.
+
+**Dynamics-preserving mode**: Single-pass `volume` + `alimiter` chain. Maintains
+musical dynamics for DJ mixes and music content.
+
+**Silence trimming**: `FFprobe` duration detection + `silencedetect` filter
+removes leading/trailing dead air before normalization.
+
+Pipeline stages: Upload → S3 → Validate → Analyze → Queue → Normalize → Store → Download
+
+Progress is tracked via FFmpeg stderr parsing and broadcast to the client via
+server-sent events.
+
+---
+
+## Business Model
+
+Freemium SaaS. Processing is measured in **audio-hours**, not file count.
+
+| Tier | Price | Monthly Processing |
+|---|---|---|
+| Free | €0 | 2 hours |
+| Premium | €9/mo or €90/yr | 10 hours |
+| Professional | €24/mo or €240/yr | 40 hours |
+| Enterprise | Contact | Custom |
+
+Both paid tiers include a 7-day free trial. Subscription tiers are synced from
+Stripe webhooks to `users.subscription_tier` in Turso.
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Go 1.24+
+- FFmpeg installed on your system
+- Redis server
+- AWS S3 bucket
+- Turso database account
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/simonlewi/levelmix.git
+cd levelmix
+
+# Install dependencies
+go mod download
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Apply database schema
+turso db create levelmix-dev
+turso db shell levelmix-dev < ee/storage/sql/schema.sql
+
+# Start Redis
+redis-server
+
+# Start the web server
+go run -tags ee ./core/cmd/server
+
+# Start the worker (separate terminal)
+go run -tags ee ./core/cmd/worker
+
+# Visit http://localhost:8080
+```
+
+### Enterprise Setup
+
+The `ee/` directory is not included. To run the full application, implement:
+
+- `ee/storage/` — `AudioStorage` and `MetadataStorage`
+  (see `pkg/storage/interfaces.go`)
+- `ee/auth/` — Authentication middleware and handlers
+- `ee/payment/` — Stripe payment processing
+- `ee/cleanup/` — S3 lifecycle and consent cleanup
+
+Each `core/cmd/*/run_ee.go` file shows exactly which `ee/` packages are imported
+and how they're wired up. Use those as your implementation reference.
+
+---
+
+## Contributing
+
+Contributions are welcome on the open-source components (`core/`, `pkg/`).
+
+```bash
+# Fork the repo and create a feature branch
+git checkout -b feature/your-feature
+
+# Install dependencies and linter
+go mod download
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Run tests
+go test ./...
+go test -race ./...
+
+# Check formatting and lint
+go fmt ./...
+golangci-lint run
+
+# Submit a pull request with a clear description
+```
+
+**Good areas to contribute:**
+- Additional audio format support (FLAC, AAC, OGG)
+- Audio processing performance improvements
+- Test coverage expansion
+- Documentation improvements
+- UI/UX refinements
+
+### Getting Help
+
+- **Issues:** Bug reports and feature requests via GitHub Issues
+- **Discussions:** Community questions and ideas via GitHub Discussions
+
+---
+
+## License
+
+`core/` and `pkg/` are licensed under the **Apache License 2.0**.
+
+The `ee/` directory (not included) is proprietary and all rights reserved.
+
+See [LICENSE](./LICENSE) for full terms.
+
+---
+
+## About
+
+Built and maintained by [Simon](https://github.com/simonlewi) /
+[Tricode Digital AB](https://levelmix.io), Sweden.
+
+LevelMix is an independent SaaS product. The open-core model means the audio
+processing pipeline, job queue architecture, and HTTP handlers are publicly
+auditable — enterprise authentication, payments, and storage are kept private.

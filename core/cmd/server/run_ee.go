@@ -184,6 +184,13 @@ func run() {
 	// Static files
 	r.Static("/static", filepath.Join(projectRoot, "core", "static"))
 
+	// LLM SEO — serve llms.txt for AI crawlers (Perplexity, ChatGPT Browse, Claude web).
+	// Public, no auth: same exposure as the static files above.
+	r.GET("/llms.txt", func(c *gin.Context) {
+		c.Header("Content-Type", "text/plain; charset=utf-8")
+		c.File(filepath.Join(projectRoot, "core", "static", "llms.txt"))
+	})
+
 	// Health check - must be before any middleware for Docker/Traefik
 	r.GET("/health", healthHandler.HealthCheck)
 
