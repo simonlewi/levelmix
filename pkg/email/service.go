@@ -548,12 +548,14 @@ type MockEmailService struct{}
 
 // SendPasswordReset implements EmailService.
 func (m *MockEmailService) SendPasswordReset(ctx context.Context, to string, token string) error {
-	panic("unimplemented")
+	log.Printf("MOCK EMAIL - Password reset for %s (token: %s)", to, token)
+	return nil
 }
 
 // SendWelcome implements EmailService.
 func (m *MockEmailService) SendWelcome(ctx context.Context, to string) error {
-	panic("unimplemented")
+	log.Printf("MOCK EMAIL - Welcome email for %s", to)
+	return nil
 }
 
 // NewMockEmailService creates a mock email service that logs instead of sending
