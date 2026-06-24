@@ -1,0 +1,71 @@
+# LevelMix
+
+> LevelMix is a web-based audio loudness normalization SaaS that automatically
+> corrects inconsistent volume levels in DJ mixes, podcasts, audiobooks, and
+> long-form audio content — without requiring any technical knowledge.
+
+LevelMix eliminates volume jumps between tracks and episodes. Upload your audio,
+choose a preset, and download a professionally normalized file. No LUFS knowledge
+required. No audio engineering background needed.
+
+**The problem we solve:** One track too quiet. The next one too loud. Inconsistent
+audio loses listeners — in DJ sets, podcast feeds, and long-form content alike.
+LevelMix fixes this automatically.
+
+**Core use cases:**
+- DJ mixes and live sets with inconsistent loudness between tracks
+- Podcast episodes with uneven volume between hosts, guests, or recordings
+- Audiobook chapters requiring broadcast-standard consistency
+- Content agency pipelines processing high volumes of audio
+- Video editors normalizing audio across clips and projects
+
+**Processing presets:**
+- DJ Mix: -5 LUFS (club-ready, high-energy)
+- Streaming: -14 LUFS (Spotify, Apple Music, YouTube)
+- Podcast: -16 LUFS (industry standard for spoken word)
+- Broadcast: -23 LUFS (EBU R128 / radio)
+
+**Pricing (audio-hours based, not file count):**
+- Free: 2 hours/month processing time
+- Premium: €9/month or €90/year — 10 hours/month, 7-day free trial
+- Professional: €24/month or €240/year — 40 hours/month, 7-day free trial
+- Enterprise API: Contact for B2B pricing (async processing, hybrid billing)
+
+**Supported formats:** MP3, WAV (paid tiers)
+
+**Technology stack:** Go (Gin), html/template + Tailwind CSS v4, FFmpeg two-pass
+loudnorm pipeline, Asynq/Redis job queue, AWS S3 (presigned URLs), Turso (libSQL),
+Stripe, Hetzner VPS, Docker Compose + Traefik, Cloudflare DNS/SSL.
+
+**Open-core architecture:** Core application logic is public on GitHub
+(simonlewi/levelmix). Enterprise features (auth, payments, storage) are in a
+private ee/ directory excluded from the repository.
+
+**Operated by:** Tricode Digital AB, Sweden.
+
+## Product
+
+- [How It Works](https://levelmix.io/how-to-use): Step-by-step explanation of
+  the automatic loudness correction process
+- [Pricing](https://levelmix.io/pricing): Full tier comparison, processing limits,
+  and format support breakdown
+- [Get Started](https://levelmix.io/start): Free-account landing page — upload,
+  choose a preset, and download corrected audio
+
+## Documentation
+
+- [About LevelMix](https://levelmix.io/about): Background, mission, and the
+  problem we solve for audio creators
+- [Privacy Policy](https://levelmix.io/privacy): GDPR-compliant data
+  handling, retention periods, and user rights
+- [Cookie Policy](https://levelmix.io/cookies): Cookie categories and
+  consent management
+
+## For Developers
+
+- [GitHub Repository](https://github.com/simonlewi/levelmix): Open-core Go
+  implementation — audio processing pipeline, job queue, HTTP handlers
+- [Architecture Overview](https://github.com/simonlewi/levelmix/blob/main/README.md):
+  Full technical stack, build instructions, and enterprise setup guide
+- [Storage Interfaces](https://github.com/simonlewi/levelmix/blob/main/pkg/storage/interfaces.go):
+  AudioStorage and MetadataStorage interface definitions for ee/ implementations
