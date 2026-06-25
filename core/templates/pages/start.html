@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Fonts (same as base.html) -->
+    <!-- Inter (body text) from Google Fonts; may swap freely. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Syne is used ONLY for the wordmark — self-hosted (14KB) and preloaded so it
+         paints in-brand on the first frame with no swap/pop, even on a cold landing. -->
+    <link rel="preload" href="/static/fonts/syne-700.woff2?v={{.AppVersion}}" as="font" type="font/woff2" crossorigin>
 
     <link rel="stylesheet" href="/static/css/output.css?v={{.AppVersion}}">
     <title>{{if .PageTitle}}{{.PageTitle}} - LevelMix{{else}}LevelMix - Audio Normalization{{end}}</title>
@@ -21,6 +24,16 @@
     <meta name="theme-color" content="#0F0F0D">
 
     <style>
+        /* Self-hosted Syne for the wordmark (preloaded above) — guarantees the
+           brand font on every load with no swap, independent of Google Fonts. */
+        @font-face {
+            font-family: 'Syne';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url('/static/fonts/syne-700.woff2?v={{.AppVersion}}') format('woff2');
+        }
+
         /* Precision Console tokens (§4) — scoped so this standalone page never
            depends on utility classes that may be absent from the prebuilt output.css */
         :root {
@@ -203,6 +216,10 @@
             section { padding: 3rem 0; }
             .final-cta h2 { font-size: 1.875rem; }
             .step { padding: 1.25rem; gap: 1rem; }
+            /* Full-width CTAs on mobile: the long label can't fit on one line at
+               375px, so override .btn-* nowrap and let the button fill the column.
+               Keeps both CTAs centered with no horizontal scroll. */
+            .cta-lg { display: block; white-space: normal; text-align: center; }
         }
     </style>
 </head>
@@ -219,11 +236,11 @@
         <!-- 1. Hero -->
         <section class="hero">
             <div class="wrap">
-                <h1>No more volume jumps.</h1>
-                <p class="sub">One track too quiet. The next too loud. LevelMix automatically corrects your audio &mdash; upload, process, download. Done.</p>
-                <a href="/register" class="btn-sand cta-lg">Start Free &mdash; No Card Required</a>
-                <p class="trust-line">Free account &middot; 2 hours processing included &middot; Cancel anytime</p>
-                <div class="waveform">
+                <h1 data-animate="up" data-delay="0">No more volume jumps.</h1>
+                <p class="sub" data-animate="up" data-delay="80">One track too quiet. The next too loud. LevelMix automatically corrects your audio &mdash; upload, process, download. Done.</p>
+                <a href="/register" class="btn-sand cta-lg" data-animate="up" data-delay="160">Start Free &mdash; No Card Required</a>
+                <p class="trust-line" data-animate="up" data-delay="220">Free account &middot; 2 hours processing included &middot; Cancel anytime</p>
+                <div class="waveform" data-animate="up" data-delay="320">
                     <img src="/static/images/levelmix-before-after.webp"
                          alt="A podcast waveform before and after LevelMix: uneven and quiet on the left, evened out and consistent on the right">
                 </div>
@@ -233,17 +250,17 @@
         <!-- 2. How It Works -->
         <section>
             <div class="wrap">
-                <h2 class="section-title">Three steps. That's it.</h2>
+                <h2 class="section-title" data-animate="up">Three steps. That's it.</h2>
                 <div class="steps">
-                    <div class="step">
+                    <div class="step" data-animate="up" data-delay="0">
                         <div class="step-num">1</div>
                         <div class="step-text">Upload your audio file</div>
                     </div>
-                    <div class="step">
+                    <div class="step" data-animate="up" data-delay="120">
                         <div class="step-num">2</div>
                         <div class="step-text">Choose a preset (DJ Mix, Podcast, Streaming, Broadcast)</div>
                     </div>
-                    <div class="step">
+                    <div class="step" data-animate="up" data-delay="240">
                         <div class="step-num">3</div>
                         <div class="step-text">Download your corrected file</div>
                     </div>
@@ -254,25 +271,25 @@
         <!-- 3. Social Proof / Trust -->
         <section>
             <div class="wrap">
-                <p class="trust-statement">Used by DJs, podcasters, and content agencies.</p>
+                <p class="trust-statement" data-animate="up">Used by DJs, podcasters, and content agencies.</p>
             </div>
         </section>
 
         <!-- 4. Pricing anchor -->
         <section class="pricing-anchor">
             <div class="wrap">
-                <p class="lead">Free to start. Upgrade when you need more.</p>
-                <p class="tiers">Free: 2 hrs/month &nbsp;&middot;&nbsp; Premium: &euro;9/mo, 10 hrs &nbsp;&middot;&nbsp; Pro: &euro;24/mo, 40 hrs</p>
-                <a href="/pricing" class="btn-arctic cta-lg">See full pricing</a>
+                <p class="lead" data-animate="up" data-delay="0">Free to start. Upgrade when you need more.</p>
+                <p class="tiers" data-animate="up" data-delay="100">Free: 2 hrs/month &nbsp;&middot;&nbsp; Premium: &euro;9/mo, 10 hrs &nbsp;&middot;&nbsp; Pro: &euro;24/mo, 40 hrs</p>
+                <a href="/pricing" class="btn-arctic cta-lg" data-animate="up" data-delay="180">See full pricing</a>
             </div>
         </section>
 
         <!-- 5. Final CTA -->
         <section class="final-cta">
             <div class="wrap">
-                <h2>No more volume jumps.</h2>
-                <a href="/register" class="btn-sand cta-lg">Start Free &mdash; No Card Required</a>
-                <p class="value-line">Your first 2 hours are free. No card needed.</p>
+                <h2 data-animate="up" data-delay="0">No more volume jumps.</h2>
+                <a href="/register" class="btn-sand cta-lg" data-animate="up" data-delay="100">Start Free &mdash; No Card Required</a>
+                <p class="value-line" data-animate="up" data-delay="180">Your first 2 hours are free. No card needed.</p>
             </div>
         </section>
 
@@ -285,6 +302,10 @@
         <span class="sep">&middot;</span>
         <a href="/terms-of-service">Terms</a>
     </footer>
+
+    <!-- Scroll-triggered reveal animations (shared site-wide system; this
+         standalone page must load it itself since it doesn't extend base.html) -->
+    <script src="/static/js/scroll-animations.js?v={{.AppVersion}}"></script>
 
 </body>
 </html>
