@@ -75,12 +75,20 @@
         </article>
     </div>
 
-    <!-- VIDEO PLACEHOLDER — How It Works demo loop -->
-    <!-- ACTIVATION: When video is ready, remove the "hidden" class from the outer div.       -->
-    <!-- Do NOT change any other attributes, classes, or structure.                           -->
-    <!-- Video file goes in: core/static/video/howitworks-loop.mp4                           -->
-    <div id="hiw-video-container" class="hidden mt-16" data-animate="up" data-delay="200">
-        <div class="bg-surface-container-high rounded-xl overflow-hidden"
+    <!-- VIDEO — How It Works demo loop.
+         Desktop plays the full 16:9 recording; mobile plays a tighter-framed cut
+         (howitworks-loop-mobile.mp4) so UI elements stay legible at phone width.
+         Toggle via a scoped media query (md:block isn't in the prebuilt CSS). -->
+    <style>
+        #hiw-video-mobile { display: none; }
+        @media (max-width: 767px) {
+            #hiw-video-desktop { display: none; }
+            #hiw-video-mobile  { display: block; }
+        }
+    </style>
+    <div id="hiw-video-container" style="max-width: 960px; margin: 6rem auto 0;" data-animate="up" data-delay="200">
+        <!-- Desktop: full 16:9 framing -->
+        <div id="hiw-video-desktop" class="bg-surface-container-high rounded-xl overflow-hidden"
              style="aspect-ratio: 16/9; width: 100%;">
             <video
                 id="hiw-demo-video"
@@ -91,11 +99,28 @@
                 playsinline
                 preload="none"
                 aria-label="LevelMix in action — upload, choose preset, download">
-                <source src="/static/video/howitworks-loop.mp4" type="video/mp4">
+                <source src="/static/videos/howitworks-loop.mp4" type="video/mp4">
+            </video>
+        </div>
+        <!-- Mobile: tighter-framed cut, shown at its own natural aspect ratio -->
+        <div id="hiw-video-mobile" class="bg-surface-container-high rounded-xl overflow-hidden">
+            <video
+                id="hiw-demo-video-mobile"
+                style="width: 100%; height: auto; display: block;"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="none"
+                aria-label="LevelMix in action — upload, choose preset, download">
+                <source src="/static/videos/howitworks-loop-mobile.mp4" type="video/mp4">
+                <!-- Fallback: until the mobile cut exists, the above 404s and the
+                     browser advances to the full desktop recording. -->
+                <source src="/static/videos/howitworks-loop.mp4" type="video/mp4">
             </video>
         </div>
     </div>
-    <!-- END VIDEO PLACEHOLDER -->
+    <!-- END VIDEO -->
 </section>
 
 <!-- Features Section -->
