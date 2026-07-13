@@ -11,12 +11,14 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 
-	"github.com/simonlewi/levelmix/core/internal/audio"
-	"github.com/simonlewi/levelmix/pkg/email"
+	"github.com/simonlewi/levelmix-enterprise/marketing"
 	payment_handlers "github.com/simonlewi/levelmix-enterprise/payment/handlers"
 	ee_storage "github.com/simonlewi/levelmix-enterprise/storage"
+	"github.com/simonlewi/levelmix/core/internal/audio"
+	"github.com/simonlewi/levelmix/pkg/email"
 )
 
 func run() {
@@ -72,6 +74,36 @@ func run() {
 	// Start worker
 	srv, mux := audio.NewWorker(os.Getenv("REDIS_URL"), processor, trialHandler)
 
+	// Marketing → Resend contact sync (Task type marketing:sync_resend).
+	// Only wired when Resend is configured (RESEND_API_KEY + RESEND_AUDIENCE_ID);
+	// in dev/mock environments it's skipped entirely. When enabled, a daily
+	// scheduler enqueues the sync task, which this worker consumes.
+	var marketingScheduler *asynq.Scheduler
+	if syncer, err := marketing.NewSyncer(metadataStorage); err != nil {
+		log.Printf("Marketing sync disabled: %v", err)
+	} else {
+		mux.HandleFunc(marketing.TypeMarketingSync, syncer.HandleSyncTask)
+
+		marketingScheduler = asynq.NewScheduler(
+			asynq.RedisClientOpt{
+				Addr:     os.Getenv("REDIS_URL"),
+				Password: os.Getenv("REDIS_PASSWORD"),
+			},
+			nil,
+		)
+		syncTask := asynq.NewTask(marketing.TypeMarketingSync, nil)
+		// Run daily at 03:00. Routed to the low-weight notifications queue so it
+		// never competes with audio processing.
+		if _, err := marketingScheduler.Register("0 3 * * *", syncTask,
+			asynq.Queue(payment_handlers.QueueNotifications)); err != nil {
+			log.Printf("Failed to register marketing sync schedule: %v", err)
+		} else if err := marketingScheduler.Start(); err != nil {
+			log.Printf("Failed to start marketing sync scheduler: %v", err)
+		} else {
+			log.Println("Marketing sync scheduler started (daily at 03:00)")
+		}
+	}
+
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -86,6 +118,9 @@ func run() {
 
 	<-quit
 	log.Println("Shutting down worker...")
+	if marketingScheduler != nil {
+		marketingScheduler.Shutdown()
+	}
 	srv.Shutdown()
 }
 

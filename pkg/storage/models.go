@@ -46,6 +46,8 @@ type User struct {
 	AuthProviderID        *string
 	SubscriptionTier      int // 1=free, 2=premium, 3=professional
 	SubscriptionExpiresAt *time.Time
+	MarketingConsent      bool       // Opt-in for marketing/product emails (separate from cookie & ToS consent)
+	MarketingConsentAt    *time.Time // When marketing consent was last granted; NULL when not consented
 }
 
 // User Helper Methods
