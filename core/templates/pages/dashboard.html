@@ -247,6 +247,23 @@
                 </div>
             </div>
 
+            <!-- MARKETING EMAILS -->
+            <div class="flex items-center justify-between pt-4">
+                <div>
+                    <h4 class="text-sm font-semibold text-text-secondary">Marketing emails</h4>
+                    <p class="text-sm text-text-tertiary mt-0.5">Product updates and tips. Unsubscribe anytime.</p>
+                </div>
+                <form action="/account/marketing-consent" method="POST" class="flex items-center">
+                    <input
+                        type="checkbox"
+                        name="marketing_consent"
+                        onchange="this.form.submit()"
+                        class="h-5 w-5 rounded border-outline text-arctic focus:ring-arctic cursor-pointer"
+                        {{if .user.MarketingConsent}}checked{{end}}
+                    >
+                </form>
+            </div>
+
             <!-- DANGER ZONE -->
             <div class="pt-4">
                 <div class="bg-error/5 border-2 border-error rounded-xl p-6">

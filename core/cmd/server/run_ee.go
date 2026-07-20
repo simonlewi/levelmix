@@ -19,12 +19,13 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 
-	"github.com/simonlewi/levelmix/core/internal/audio"
-	"github.com/simonlewi/levelmix/core/internal/handlers"
 	ee_auth "github.com/simonlewi/levelmix-enterprise/auth"
+	"github.com/simonlewi/levelmix-enterprise/marketing"
 	ee_payment "github.com/simonlewi/levelmix-enterprise/payment"
 	payment_handlers "github.com/simonlewi/levelmix-enterprise/payment/handlers"
 	ee_storage "github.com/simonlewi/levelmix-enterprise/storage"
+	"github.com/simonlewi/levelmix/core/internal/audio"
+	"github.com/simonlewi/levelmix/core/internal/handlers"
 	"github.com/simonlewi/levelmix/pkg/email"
 )
 
@@ -126,6 +127,14 @@ func run() {
 	// Initialize auth
 	authMiddleware := ee_auth.NewMiddleware(metadataStorage)
 	authHandler := ee_auth.NewHandler(metadataStorage, authMiddleware, emailService)
+
+	// Resend unsubscribe webhook — only wired when RESEND_WEBHOOK_SECRET is set.
+	var resendWebhook *marketing.WebhookHandler
+	if wh, err := marketing.NewWebhookHandler(metadataStorage); err != nil {
+		log.Printf("Resend webhook disabled: %v", err)
+	} else {
+		resendWebhook = wh
+	}
 
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -279,6 +288,7 @@ func run() {
 		protected.GET("/account/change-email", accountHandler.ShowChangeEmail)
 		protected.POST("/account/change-email", accountHandler.HandleChangeEmail)
 		protected.POST("/account/update-name", accountHandler.UpdateName)
+		protected.POST("/account/marketing-consent", accountHandler.HandleMarketingConsent)
 		protected.GET("/account/change-password", accountHandler.ShowChangePassword)
 		protected.POST("/account/change-password", accountHandler.HandleChangePassword)
 		protected.GET("/api/consent/:userID", cookieHandler.GetLatestConsent)
@@ -294,6 +304,9 @@ func run() {
 	}
 
 	// Webhook endpoints (no authentication - verified by webhook signature)
+	if resendWebhook != nil {
+		r.POST("/webhooks/resend", gin.WrapF(resendWebhook.Handle))
+	}
 	if paymentHandlers != nil {
 		r.POST("/api/v1/payment/webhook", paymentHandlers.GinHandleWebhook)
 	} else {

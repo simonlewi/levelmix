@@ -48,6 +48,8 @@ type User struct {
 	SubscriptionExpiresAt *time.Time
 	EmailVerified         bool       // Soft verification: TRUE once the owner confirms the address (non-gating)
 	EmailVerifiedAt       *time.Time // When the email was verified; NULL when unverified
+	MarketingConsent      bool       // Opt-in for marketing/product emails (separate from cookie & ToS consent)
+	MarketingConsentAt    *time.Time // When marketing consent was last granted; NULL when not consented
 }
 
 // User Helper Methods

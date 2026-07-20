@@ -176,6 +176,28 @@ func (h *AccountHandler) UpdateName(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, "/dashboard?nameSuccess=true")
 }
 
+// HandleMarketingConsent updates the user's marketing-email opt-in from account settings.
+// The checkbox auto-submits: present ("on") means opt-in, absent means opt-out.
+func (h *AccountHandler) HandleMarketingConsent(c *gin.Context) {
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	user := userInterface.(*storage.User)
+
+	consent := c.PostForm("marketing_consent") == "on"
+	if err := h.metadata.SetMarketingConsent(c.Request.Context(), user.ID, consent); err != nil {
+		log.Printf("Failed to update marketing consent for user %s: %v", user.ID, err)
+		c.Redirect(http.StatusSeeOther, "/dashboard?marketingError=update_failed#account-settings")
+		return
+	}
+
+	log.Printf("User %s set marketing consent to %v", user.ID, consent)
+	c.Redirect(http.StatusSeeOther, "/dashboard?marketingSuccess=true#account-settings")
+}
+
 // ShowChangeEmail displays the change email form
 func (h *AccountHandler) ShowChangeEmail(c *gin.Context) {
 	userInterface, exists := c.Get("user")

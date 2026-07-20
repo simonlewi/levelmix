@@ -57,6 +57,9 @@ type MetadataStorage interface {
 	StoreVerificationToken(ctx context.Context, userID, token string, expiresAt time.Time) error
 	GetUserIDByVerificationToken(ctx context.Context, token string) (string, error) // rejects expired tokens
 	DeleteVerificationToken(ctx context.Context, token string) error
+	// Marketing consent operations (GDPR-compliant email marketing opt-in)
+	SetMarketingConsent(ctx context.Context, userID string, consent bool) error
+	GetMarketingConsentedUsers(ctx context.Context) ([]*User, error)
 
 	// User stats operations
 	CreateUserStats(ctx context.Context, stats *UserUploadStats) error
