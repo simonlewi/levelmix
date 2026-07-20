@@ -120,6 +120,7 @@ func run() {
 	dashboardHandler := handlers.NewDashboardHandler(metadataStorage)
 	accountHandler := handlers.NewAccountHandler(metadataStorage, audioStorage)
 	passwordRecoveryHandler := ee_auth.NewPasswordRecoveryHandler(metadataStorage, emailService)
+	verificationHandler := ee_auth.NewVerificationHandler(metadataStorage)
 	healthHandler := handlers.NewHealthHandler(metadataStorage, os.Getenv("REDIS_URL"))
 	cookieHandler := handlers.NewCookieHandler(metadataStorage)
 
@@ -166,6 +167,9 @@ func run() {
 	termsOfServiceTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "terms-of-service.html")
 	howToUseTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "how-to-use.html")
 	startTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "start.html")
+	verifyEmailTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "verify-email.html")
+	verifyEmailRejectTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "verify-email-reject.html")
+	verifyEmailRejectedTemplate := filepath.Join(projectRoot, "core", "templates", "pages", "verify-email-rejected.html")
 
 	r.LoadHTMLFiles(
 		baseTemplate,
@@ -188,6 +192,9 @@ func run() {
 		cookiePolicyTemplate,
 		termsOfServiceTemplate,
 		startTemplate,
+		verifyEmailTemplate,
+		verifyEmailRejectTemplate,
+		verifyEmailRejectedTemplate,
 	)
 
 	// Static files
@@ -208,6 +215,7 @@ func run() {
 	r.POST("/register", authHandler.HandleRegister)
 	r.POST("/forgot-password", passwordRecoveryHandler.HandleForgotPassword)
 	r.POST("/reset-password", passwordRecoveryHandler.HandleResetPassword)
+	r.POST("/verify-email/reject", verificationHandler.HandleReject)
 	r.GET("/status/:id", uploadHandler.GetStatus)
 	r.POST("/cancel/:id", uploadHandler.CancelJob)
 	r.POST("/retry/:id", uploadHandler.RetryJob)
@@ -223,6 +231,8 @@ func run() {
 		public.GET("/logout", authHandler.HandleLogout)
 		public.GET("/forgot-password", passwordRecoveryHandler.ShowForgotPassword)
 		public.GET("/reset-password", passwordRecoveryHandler.ShowResetPassword)
+		public.GET("/verify-email", verificationHandler.ShowVerify)
+		public.GET("/verify-email/reject", verificationHandler.ShowRejectConfirm)
 		public.GET("/results/:id", downloadHandler.ShowResults)
 		public.GET("/privacy", cookieHandler.ShowPrivacyPolicy)
 		public.GET("/cookies", cookieHandler.ShowCookiePolicy)
