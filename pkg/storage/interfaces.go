@@ -52,6 +52,12 @@ type MetadataStorage interface {
 	UpdateUserName(ctx context.Context, userID string, name string) error
 	DeleteUser(ctx context.Context, userID string) error
 
+	// Email verification operations (soft, non-gating)
+	SetEmailVerified(ctx context.Context, userID string) error
+	StoreVerificationToken(ctx context.Context, userID, token string, expiresAt time.Time) error
+	GetUserIDByVerificationToken(ctx context.Context, token string) (string, error) // rejects expired tokens
+	DeleteVerificationToken(ctx context.Context, token string) error
+
 	// User stats operations
 	CreateUserStats(ctx context.Context, stats *UserUploadStats) error
 	GetUserStats(ctx context.Context, userID string) (*UserUploadStats, error)

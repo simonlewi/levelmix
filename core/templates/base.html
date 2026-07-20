@@ -347,6 +347,12 @@
                     {{template "terms_of_service_content" .}}
                 {{else if eq .CurrentPage "payment-success"}}
                     {{template "payment_success_content" .}}
+                {{else if eq .CurrentPage "verify-email"}}
+                    {{template "verify_email_content" .}}
+                {{else if eq .CurrentPage "verify-email-reject"}}
+                    {{template "verify_email_reject_content" .}}
+                {{else if eq .CurrentPage "verify-email-rejected"}}
+                    {{template "verify_email_rejected_content" .}}
                 {{end}}
             {{end}}
         </div>

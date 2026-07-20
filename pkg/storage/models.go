@@ -46,6 +46,8 @@ type User struct {
 	AuthProviderID        *string
 	SubscriptionTier      int // 1=free, 2=premium, 3=professional
 	SubscriptionExpiresAt *time.Time
+	EmailVerified         bool       // Soft verification: TRUE once the owner confirms the address (non-gating)
+	EmailVerifiedAt       *time.Time // When the email was verified; NULL when unverified
 }
 
 // User Helper Methods

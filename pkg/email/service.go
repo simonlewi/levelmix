@@ -16,6 +16,7 @@ import (
 type EmailService interface {
 	SendPasswordReset(ctx context.Context, to, token string) error
 	SendWelcome(ctx context.Context, to string) error
+	SendEmailVerification(ctx context.Context, to, token string) error
 	SendAccountDeleted(ctx context.Context, to string) error
 	SendEmailChanged(ctx context.Context, oldEmail, newEmail string) error
 	SendEmailChangeConfirmation(ctx context.Context, to string) error
@@ -239,6 +240,77 @@ Questions? Reply to this email anytime.
 	}
 
 	log.Printf("Welcome email sent successfully to %s", to)
+	return nil
+}
+
+// SendEmailVerification sends a soft email-verification message to new email/password
+// signups. One token yields two links: confirm ("Yes, this is me") and reject
+// ("I didn't create this account"). It replaces the welcome email for email signups.
+func (s *ResendService) SendEmailVerification(ctx context.Context, to, token string) error {
+	confirmLink := fmt.Sprintf("%s/verify-email?token=%s", s.baseURL, token)
+	rejectLink := fmt.Sprintf("%s/verify-email/reject?token=%s", s.baseURL, token)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Confirm your email</title>
+  <style>%s</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <p class="wordmark">LevelMix</p>
+      <h1 class="title">Welcome — please confirm your email.</h1>
+    </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <p>An account was just created on LevelMix with this email address. If that was you, confirm below and you're all set.</p>
+      <div class="cta">
+        <a href="%s" class="button">Yes, this is me</a>
+      </div>
+      <p>Or copy this link into your browser:</p>
+      <p><a href="%s" class="link">%s</a></p>
+      <p><strong>This link expires in 7 days.</strong></p>
+      <p>If you didn't create this account, let us know and we'll remove it:</p>
+      <p><a href="%s" class="link">I didn't create this account</a></p>
+    </div>
+    <div class="footer">
+      <p>© 2026 LevelMix Audio. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`, emailCSS, confirmLink, confirmLink, confirmLink, rejectLink)
+
+	text := fmt.Sprintf(`Welcome to LevelMix — please confirm your email.
+
+Hi there,
+
+An account was just created on LevelMix with this email address.
+
+If that was you, confirm here: %s
+
+This link expires in 7 days.
+
+If you didn't create this account, remove it here: %s
+
+© 2026 LevelMix Audio. All rights reserved.`, confirmLink, rejectLink)
+
+	request := &resend.SendEmailRequest{
+		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
+		To:      []string{to},
+		Subject: "Confirm your LevelMix email",
+		Html:    html,
+		Text:    text,
+	}
+
+	_, err := s.client.Emails.Send(request)
+	if err != nil {
+		log.Printf("Failed to send verification email to %s: %v", to, err)
+		return fmt.Errorf("failed to send email: %w", err)
+	}
+
+	log.Printf("Verification email sent successfully to %s", to)
 	return nil
 }
 
@@ -555,6 +627,12 @@ func (m *MockEmailService) SendPasswordReset(ctx context.Context, to string, tok
 // SendWelcome implements EmailService.
 func (m *MockEmailService) SendWelcome(ctx context.Context, to string) error {
 	log.Printf("MOCK EMAIL - Welcome email for %s", to)
+	return nil
+}
+
+// SendEmailVerification implements EmailService.
+func (m *MockEmailService) SendEmailVerification(ctx context.Context, to string, token string) error {
+	log.Printf("MOCK EMAIL - Verification for %s | confirm: /verify-email?token=%s | reject: /verify-email/reject?token=%s", to, token, token)
 	return nil
 }
 
