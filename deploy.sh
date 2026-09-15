@@ -192,9 +192,9 @@ echo ""
 if [ "$SKIP_MIGRATE" = false ]; then
     echo -e "${YELLOW}Step 4: Running database migrations...${NC}"
     if [ -f "./migrate.sh" ]; then
-        ./migrate.sh || {
+        ./migrate.sh -prod || {
             echo -e "${RED}  Migrations failed -- aborting before restart${NC}"
-            echo -e "${BLUE}  Fix the migration and run: ./migrate.sh${NC}"
+            echo -e "${BLUE}  Fix the migration and run: ./migrate.sh -prod${NC}"
             exit 1
         }
         echo -e "${GREEN}  Migrations completed${NC}"

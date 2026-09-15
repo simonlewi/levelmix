@@ -9,7 +9,8 @@ build/
 
 # Environment & secrets
 .env
-.env.production
+.env.prod
+.env.dev
 config.*.json
 !config.example.json
 secrets/
@@ -56,7 +57,9 @@ docker-compose.yml
 !ee/README.md
 
 # Exclude enterprise builds
-bin/levelmix-ee
+bin/
+# leading slash is required: a bare 'migrate' would also match cmd/migrate/
+/migrate
 dist/enterprise/
 
 # Development overrides
