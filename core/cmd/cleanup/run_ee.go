@@ -19,13 +19,18 @@ func run() {
 	_, b, _, _ := runtime.Caller(0)
 	projectRoot := filepath.Join(filepath.Dir(b), "../../..")
 
-	// Load environment variables
-	envPath := filepath.Join(projectRoot, ".env")
+	// Load environment variables. .env.dev wins when present so local
+	// development targets the dev database instead of prod; the Docker image
+	// carries neither file and falls through to the system environment.
+	envPath := filepath.Join(projectRoot, ".env.dev")
+	if _, err := os.Stat(envPath); err != nil {
+		envPath = filepath.Join(projectRoot, ".env")
+	}
 	if _, err := os.Stat(envPath); err == nil {
 		if err := godotenv.Load(envPath); err != nil {
-			log.Printf("Error loading .env file to cleanup: %v", err)
+			log.Printf("Error loading %s to cleanup: %v", filepath.Base(envPath), err)
 		} else {
-			log.Println(".env file loaded successfully to cleanup")
+			log.Printf("%s loaded successfully to cleanup", filepath.Base(envPath))
 		}
 	} else {
 		log.Println("No .env file found, using environment variables from system/Docker")
