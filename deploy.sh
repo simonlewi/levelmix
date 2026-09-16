@@ -37,6 +37,10 @@ DOCKER_BUILD_FLAGS=""
 SKIP_UPDATE=false
 SKIP_MIGRATE=false
 
+# Preserved for the Step 1 re-exec, which runs after the loop below has
+# consumed "$@".
+ORIGINAL_ARGS=("$@")
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --no-cache)
@@ -121,8 +125,15 @@ if [ "$SKIP_UPDATE" = false ]; then
         git stash push -m "Auto-stash before deploy $(date)"
     fi
 
-    # Pull latest
+    # Pull latest. Bash reads this script incrementally by byte offset, so a
+    # pull that changes deploy.sh leaves the rest of this run executing
+    # misaligned or stale lines. Re-exec the new copy instead.
+    DEPLOY_SHA_BEFORE=$(git rev-parse HEAD:deploy.sh)
     git pull origin main
+    if [ "$(git rev-parse HEAD:deploy.sh)" != "$DEPLOY_SHA_BEFORE" ]; then
+        echo -e "${BLUE}  deploy.sh changed, re-executing new version...${NC}"
+        exec "$REPO_DIR/deploy.sh" --skip-update "${ORIGINAL_ARGS[@]}"
+    fi
 
     echo -e "${GREEN}  Code updated${NC}"
     echo ""
